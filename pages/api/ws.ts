@@ -51,7 +51,7 @@ export default async function handler(
       cors: {
         origin: process.env.NODE_ENV === 'production'
           ? process.env.NEXT_PUBLIC_APP_URL
-          : `http://localhost:${process.env.PORT || 3007}`,
+          : ['http://localhost:3005', 'http://localhost:3006', 'http://localhost:3007'],
         methods: ['GET', 'POST']
       }
     });

@@ -24,7 +24,8 @@
       "Bash(pkill:*)",
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
-      "Bash(PORT=3005 npm start)"
+      "Bash(PORT=3005 npm start)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": [],

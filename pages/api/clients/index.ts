@@ -120,11 +120,17 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             { logError: true, retryCount: 2 }
           );
           
+          // Map company_name to name for frontend compatibility
+          const mappedClients = (clients || []).map((client: any) => ({
+            ...client,
+            name: client.name || client.company_name || 'Unnamed Client'
+          }));
+
           // Return empty array if no clients, not an error
-          res.status(200).json({ 
-            success: true, 
-            data: clients || [],
-            message: clients.length === 0 ? 'No clients found' : undefined
+          res.status(200).json({
+            success: true,
+            data: mappedClients,
+            message: mappedClients.length === 0 ? 'No clients found' : undefined
           });
         }
         break;

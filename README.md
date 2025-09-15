@@ -4,27 +4,38 @@ A modern Next.js application for fiber network project management.
 
 ## 🚀 Quick Start
 
-### Local Development (Production Mode - Recommended)
+### 🚨 IMPORTANT: Always Use Production Mode for Local Development
 
-Use production mode for local development as it provides the full Next.js experience without authentication barriers:
+**DO NOT USE `npm run dev` - It has a known Watchpack bug that will cause it to fail!**
+
+### ✅ Correct Way to Start the Server:
 
 ```bash
-# Install dependencies
+# Step 1: Install dependencies (if not already done)
 npm install
 
-# Build the application
+# Step 2: Build the application (REQUIRED - Must do this first!)
 npm run build
 
-# Start the production server (default port 3000)
-npm start
-
-# Or specify a custom port
+# Step 3: Start the production server on port 3005
 PORT=3005 npm start
 ```
 
-Access the application at: **http://localhost:3000** (or your chosen port)
+**Access the application at: http://localhost:3005**
 
-**Note**: The development server (`npm run dev`) has known issues and should not be used. Always use production mode for local development.
+### ❌ What NOT to Do:
+
+```bash
+npm run dev  # ⚠️ THIS WILL FAIL - Known Watchpack bug
+```
+
+### 📝 Making Code Changes:
+
+When you need to update code:
+1. Make your changes
+2. Stop the server (Ctrl+C)
+3. Rebuild: `npm run build`
+4. Restart: `PORT=3005 npm start`
 
 ## 📦 Available Scripts
 

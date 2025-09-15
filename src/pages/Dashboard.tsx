@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react';
-import { 
-  FolderOpen, 
-  Building2, 
-  Users, 
-  UserCheck, 
-  FileText, 
+import { useState, useCallback, useEffect } from 'react';
+import {
+  FolderOpen,
+  Building2,
+  Users,
+  UserCheck,
+  FileText,
   Truck,
   Wrench,
   AlertTriangle,
@@ -17,6 +17,7 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { QuickActionCard } from '@/components/dashboard/QuickActionCard';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { notificationService } from '@/services/core';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import '../styles/design-system.css';
 
 interface StatCardData {
@@ -40,19 +41,19 @@ interface QuickActionData {
 export function Dashboard() {
   // navigate removed - not used in current implementation
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { stats, isLoading, error, loadDashboardData } = useDashboardData();
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      // Simulate data refresh
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await loadDashboardData();
       notificationService.success('Dashboard data refreshed successfully');
     } catch (error) {
       notificationService.error('Failed to refresh dashboard data');
     } finally {
       setIsRefreshing(false);
     }
-  }, []);
+  }, [loadDashboardData]);
 
   const handleExport = useCallback(() => {
     notificationService.info('Export functionality coming soon');
@@ -62,8 +63,8 @@ export function Dashboard() {
     {
       title: 'Projects',
       subtitle: 'Manage and track all projects',
-      value: 4,
-      subValue: 'Total Projects',
+      value: stats.activeProjects || 0,
+      subValue: `${stats.totalProjects || 0} Total Projects`,
       icon: FolderOpen,
       color: '#3b82f6',
       route: '/app/projects'
@@ -71,8 +72,8 @@ export function Dashboard() {
     {
       title: 'Suppliers',
       subtitle: 'Supplier management and contacts',
-      value: 1,
-      subValue: 'Total Suppliers',
+      value: stats.supplierActive || 0,
+      subValue: 'Active Suppliers',
       icon: Truck,
       color: '#10b981',
       route: '/app/suppliers'
@@ -80,7 +81,7 @@ export function Dashboard() {
     {
       title: "RFQ's",
       subtitle: 'Request for Quotations',
-      value: 0,
+      value: stats.rfqsActive || 0,
       subValue: 'Active RFQs',
       icon: FileText,
       color: '#374151',
@@ -98,7 +99,7 @@ export function Dashboard() {
     {
       title: 'Staff',
       subtitle: 'Staff members and management',
-      value: 30,
+      value: stats.teamMembers || 0,
       subValue: 'Total Staff',
       icon: Users,
       color: '#f97316',
@@ -107,8 +108,8 @@ export function Dashboard() {
     {
       title: 'Contractors',
       subtitle: 'Contractor management and projects',
-      value: 15,
-      subValue: 'Total Contractors',
+      value: stats.contractorsActive || 0,
+      subValue: `${stats.contractorsPending || 0} Pending`,
       icon: UserCheck,
       color: '#3b82f6',
       route: '/app/contractors'
@@ -116,7 +117,7 @@ export function Dashboard() {
     {
       title: 'Poles Installed',
       subtitle: 'Fiber optic pole installation tracking',
-      value: 4,
+      value: stats.polesInstalled || 0,
       subValue: 'Poles Installed',
       icon: Wrench,
       color: '#10b981',
@@ -125,7 +126,7 @@ export function Dashboard() {
     {
       title: 'Flagged Issues',
       subtitle: 'High priority tasks requiring attention',
-      value: 2,
+      value: stats.openIssues || 0,
       subValue: 'Issues to Resolve',
       icon: AlertTriangle,
       color: '#ef4444',

@@ -63,16 +63,24 @@ export const clientApi = {
 
   /**
    * Get active clients for dropdowns
+   * Fetches all clients since status values vary (active, prospect, etc.)
    */
   async getActiveClients(): Promise<Client[]> {
     try {
-      const response = await fetch(`${API_BASE}/clients?status=ACTIVE`);
+      // Get all clients - we'll filter client-side if needed
+      const response = await fetch(`${API_BASE}/clients`);
       if (!response.ok) {
         throw new Error(`Failed to fetch active clients: ${response.status}`);
       }
 
       const result = await response.json();
-      return result.data || [];
+      const clients = result.data || [];
+
+      // Map company_name to name for compatibility with dropdown component
+      return clients.map((client: any) => ({
+        ...client,
+        name: client.name || client.company_name || 'Unnamed Client'
+      }));
     } catch (error) {
       log.error('Error fetching active clients:', { error }, 'clientApi');
       return [];

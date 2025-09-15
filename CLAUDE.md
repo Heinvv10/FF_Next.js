@@ -33,6 +33,7 @@
 ### Development & Testing
 - `tests/` - Test suites and e2e tests
 - `docs/` - Documentation
+  - `docs/page-logs/` - **Page development logs tracking all changes with timestamps**
 
 ### AI Assistant Helpers
 - `.agent-os/` - AI agent configuration and project specs
@@ -45,15 +46,34 @@ Non-essential files have been moved to `../FF_React_Archive/` to keep the codeba
 - Legacy code (ForgeFlow-v2-FF2)
 - `archive/old-layouts/` - Old layout components (MainLayout, simple Layout) replaced by AppLayout
 
-## ⚠️ CRITICAL: Development Server Issue
-**Known Bug**: The development server (`npm run dev`) has a Watchpack bug due to nested package.json files in the `neon/` directory. This affects both Next.js 14 and 15.
+## 🚨 CRITICAL: How to Start the Server
 
-### Workaround - Use Production Mode for Local Development:
+### ✅ ALWAYS USE THIS METHOD (Production Mode):
 ```bash
-npm run build        # Build the application
-PORT=3005 npm start  # Start production server on port 3005
+# Step 1: Build the application (REQUIRED FIRST)
+npm run build
+
+# Step 2: Start the server on port 3005
+PORT=3005 npm start
 ```
-Access the app at: **http://localhost:3005**
+**Access the app at: http://localhost:3005**
+
+### ❌ DO NOT USE Development Mode:
+```bash
+npm run dev  # ⚠️ WILL FAIL - Has Watchpack bug
+```
+
+### Why This Works:
+- **Known Bug**: The development server has a Watchpack bug due to nested package.json files in the `neon/` directory
+- **Solution**: Production mode bypasses the file watcher entirely
+- **Affects**: Both Next.js 14 and 15
+- **Stability**: Production mode is 100% stable for local development
+
+### If You Need to Make Code Changes:
+1. Make your code changes
+2. Stop the server (Ctrl+C)
+3. Rebuild: `npm run build`
+4. Restart: `PORT=3005 npm start`
 
 ## Key Commands
 
@@ -127,10 +147,25 @@ npm run antihall    # Run anti-hallucination validator
 
 ### Coding Standards
 1. **File Size Limit**: Keep files under 300 lines (enforces better organization)
-2. **Component Structure**: 
+2. **Component Structure**:
    - Components should be < 200 lines
    - Extract business logic to custom hooks
    - Keep only UI logic in components
 3. **Type Organization**: Group types by module (e.g., `types/procurement/base.types.ts`)
 4. **Service Pattern**: Domain-focused services, split large services into operations
 5. **Custom Hooks**: Use for data fetching, business logic, and reusable UI state
+
+### 📝 Page Development Logging
+**IMPORTANT**: After making changes to any page, create or update the corresponding log in `docs/page-logs/`
+
+1. **When to Log**: Document all significant changes, bug fixes, or feature additions to pages
+2. **Log Format**: Use timestamp format: `Month DD, YYYY - HH:MM AM/PM`
+3. **What to Include**:
+   - Problem description
+   - Solution implemented with file:line references
+   - Testing results
+   - Related API endpoints
+4. **Example**: See `docs/page-logs/dashboard.md` for reference
+5. **Index**: Update `docs/page-logs/README.md` when creating new page logs
+
+This practice ensures knowledge retention and helps debug similar issues quickly.

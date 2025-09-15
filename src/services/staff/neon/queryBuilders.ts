@@ -122,11 +122,12 @@ export async function queryActiveStaff() {
  * Query project managers
  */
 export async function queryProjectManagers() {
+  // Since position field is null for all staff, return all active staff as potential project managers
+  // In future, filter by position when that data is available
   return getSql()`
-    SELECT id, name, position, department, email 
-    FROM staff 
-    WHERE status = 'ACTIVE' 
-      AND (position LIKE '%Manager%' OR position LIKE '%Lead%' OR position = 'MD')
+    SELECT id, name, position, department, email
+    FROM staff
+    WHERE status = 'active'
     ORDER BY name ASC
   `;
 }

@@ -23,7 +23,7 @@ class SocketIOAdapter extends EventEmitter {
   constructor(config: SocketIOConfig = {}) {
     super();
     this.config = {
-      url: config.url || (typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3007'),
+      url: config.url || (typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'),
       autoConnect: config.autoConnect !== false,
       reconnection: config.reconnection !== false,
       reconnectionAttempts: config.reconnectionAttempts || 10,
