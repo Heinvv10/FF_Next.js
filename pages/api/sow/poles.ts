@@ -16,16 +16,50 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
   const { userId } = getAuth(req);
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  try {
+  // Handle GET requests to fetch poles data
+  if (req.method === 'GET') {
+    try {
+      const { projectId, limit = '1000', offset = '0' } = req.query;
+
+      if (!projectId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Project ID is required'
+        });
+      }
+
+      const sql = getSql();
+
+      // Fetch poles data for the project with pagination
+      const poles = await sql`
+        SELECT * FROM sow_poles
+        WHERE project_id = ${projectId}
+        ORDER BY pole_number ASC
+        LIMIT ${parseInt(limit as string)}
+        OFFSET ${parseInt(offset as string)}
+      `;
+
+      return res.status(200).json({
+        success: true,
+        data: poles
+      });
+    } catch (error) {
+      console.error('Error fetching poles:', error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch poles data'
+      });
+    }
+  }
+
+  // Handle POST requests to upload poles data
+  if (req.method === 'POST') {
+    try {
     const { projectId, poles } = req.body;
 
     if (!projectId || !poles || !Array.isArray(poles)) {
@@ -173,11 +207,15 @@ export default async function handler(
       projectId
     });
 
-  } catch (error) {
-    console.error('Poles upload error:', error);
-    return res.status(500).json({ 
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to upload poles data' 
-    });
+    } catch (error) {
+      console.error('Poles upload error:', error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to upload poles data'
+      });
+    }
   }
+
+  // Method not allowed
+  return res.status(405).json({ error: 'Method not allowed' });
 }

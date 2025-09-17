@@ -26,20 +26,23 @@ export default async function handler(
   // Handle GET request - fetch drops
   if (req.method === 'GET') {
     try {
-      const { projectId } = req.query;
+      const { projectId, limit = '1000', offset = '0' } = req.query;
       
       let query;
       if (projectId) {
         query = await sql`
-          SELECT * FROM sow_drops 
+          SELECT * FROM sow_drops
           WHERE project_id = ${projectId}
           ORDER BY created_at DESC
+          LIMIT ${parseInt(limit as string)}
+          OFFSET ${parseInt(offset as string)}
         `;
       } else {
         query = await sql`
-          SELECT * FROM sow_drops 
+          SELECT * FROM sow_drops
           ORDER BY created_at DESC
-          LIMIT 1000
+          LIMIT ${parseInt(limit as string)}
+          OFFSET ${parseInt(offset as string)}
         `;
       }
       
