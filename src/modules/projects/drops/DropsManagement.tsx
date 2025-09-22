@@ -8,7 +8,16 @@ import {
 } from './DropsManagement/index';
 
 export function DropsManagement() {
-  const { stats, filters, filteredDrops, updateFilters, loading, error } = useDropsManagement();
+  const {
+    stats,
+    allDropsStats,
+    filters,
+    filteredDrops,
+    updateFilters,
+    loading,
+    error,
+    searchDrops
+  } = useDropsManagement();
 
   if (loading) {
     return (
@@ -27,11 +36,23 @@ export function DropsManagement() {
     );
   }
 
+  const handleFiltersChange = async (newFilters: Partial<any>) => {
+    updateFilters(newFilters);
+
+    // If search term or status filter changed, perform server-side search
+    if ('searchTerm' in newFilters || 'statusFilter' in newFilters) {
+      await searchDrops(
+        newFilters.searchTerm || filters.searchTerm,
+        newFilters.statusFilter || filters.statusFilter
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <DropsHeader stats={stats} />
-      <DropsStatsCards stats={stats} />
-      <DropsFilters filters={filters} onFiltersChange={updateFilters} />
+      <DropsHeader stats={allDropsStats} />
+      <DropsStatsCards stats={stats} allDropsStats={allDropsStats} />
+      <DropsFilters filters={filters} onFiltersChange={handleFiltersChange} />
       <DropsGrid drops={filteredDrops} />
     </div>
   );

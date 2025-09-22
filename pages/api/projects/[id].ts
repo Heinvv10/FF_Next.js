@@ -1,6 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-// import { getAuth } from '@clerk/nextjs/server';
 import { getAuth } from '../../../lib/auth-mock';
+import { neon } from '@neondatabase/serverless';
+import { safeArrayQuery, safeMutation } from '../../../lib/safe-query';
+import { apiResponse } from '../../../lib/apiResponse';
+import { logUpdate, logDelete } from '../../../lib/db-logger';
 
 /**
  * Project API Route
@@ -8,6 +11,10 @@ import { getAuth } from '../../../lib/auth-mock';
  * PUT /api/projects/[id] - Update a project
  * DELETE /api/projects/[id] - Delete a project
  */
+
+// Create a new connection for each request to avoid connection pooling issues
+const getSql = () => neon(process.env.DATABASE_URL!);
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -15,95 +22,123 @@ export default async function handler(
   const { id } = req.query;
 
   try {
-    // Get authentication from Clerk
+    // Get authentication
     const { userId } = getAuth(req);
-    
+
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return apiResponse.unauthorized(res);
     }
 
     if (!id || typeof id !== 'string') {
-      return res.status(400).json({ error: 'Project ID is required' });
+      return apiResponse.validationError(res, { id: 'Project ID is required' });
     }
-
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
 
     switch (req.method) {
       case 'GET': {
-        const response = await fetch(`${backendUrl}/api/projects/${id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-User-Id': userId,
-          },
-        });
+        const sql = getSql();
+        const project = await safeArrayQuery(
+          async () => sql`
+            SELECT
+              p.id,
+              p.project_code,
+              p.project_name as name,
+              p.client_id,
+              p.description,
+              p.project_type as type,
+              p.status,
+              p.priority,
+              p.start_date,
+              p.end_date,
+              p.budget,
+              p.actual_cost,
+              p.project_manager,
+              p.progress,
+              p.created_at,
+              p.updated_at,
+              c.company_name as client_name
+            FROM projects p
+            LEFT JOIN clients c ON p.client_id = c.id
+            WHERE p.id = ${id}
+          `,
+          { logError: true }
+        );
 
-        if (!response.ok) {
-          const error = await response.text();
-          return res.status(response.status).json({ 
-            success: false,
-            error: error || `Failed to fetch project: ${response.status}` 
-          });
+        if (!project || project.length === 0) {
+          return apiResponse.notFound(res, 'Project', id);
         }
 
-        const result = await response.json();
-        return res.status(200).json(result);
+        return apiResponse.success(res, project[0]);
       }
 
       case 'PUT': {
-        const response = await fetch(`${backendUrl}/api/projects/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-User-Id': userId,
-          },
-          body: JSON.stringify({
-            ...req.body,
-            updatedBy: userId,
-          }),
-        });
+        const updateData = req.body;
+        const sql = getSql();
+        const updateResult = await safeMutation(
+          async () => sql`
+            UPDATE projects SET
+              project_name = COALESCE(${updateData.project_name}, project_name),
+              client_id = COALESCE(${updateData.client_id}, client_id),
+              description = COALESCE(${updateData.description}, description),
+              project_type = COALESCE(${updateData.project_type}, project_type),
+              status = COALESCE(${updateData.status}, status),
+              priority = COALESCE(${updateData.priority}, priority),
+              start_date = COALESCE(${updateData.start_date}, start_date),
+              end_date = COALESCE(${updateData.end_date}, end_date),
+              budget = COALESCE(${updateData.budget}, budget),
+              project_manager = COALESCE(${updateData.project_manager}, project_manager),
+              location = COALESCE(${updateData.location}, location),
+              updated_at = NOW()
+            WHERE id = ${id}
+            RETURNING *
+          `,
+          { logError: true }
+        );
 
-        if (!response.ok) {
-          const error = await response.text();
-          return res.status(response.status).json({ 
-            success: false,
-            error: error || `Failed to update project: ${response.status}` 
+        if (!updateResult.success) {
+          return apiResponse.databaseError(
+            res,
+            new Error(updateResult.error || 'Failed to update project'),
+            updateResult.error || 'Failed to update project'
+          );
+        }
+
+        // Log successful project update
+        const updatedProject = updateResult.data?.[0];
+        if (updatedProject) {
+          logUpdate('project', id, {
+            updated_fields: Object.keys(updateData),
+            updated_by: userId
           });
         }
 
-        const result = await response.json();
-        return res.status(200).json(result);
+        return apiResponse.success(res, updatedProject, 'Project updated successfully');
       }
 
       case 'DELETE': {
-        const response = await fetch(`${backendUrl}/api/projects/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-User-Id': userId,
-          },
-        });
+        const sql = getSql();
+        const deleteResult = await safeMutation(
+          async () => sql`DELETE FROM projects WHERE id = ${id}`,
+          { logError: true }
+        );
 
-        if (!response.ok) {
-          const error = await response.text();
-          return res.status(response.status).json({ 
-            success: false,
-            error: error || `Failed to delete project: ${response.status}` 
-          });
+        if (!deleteResult.success) {
+          return apiResponse.databaseError(
+            res,
+            new Error(deleteResult.error || 'Failed to delete project'),
+            deleteResult.error || 'Failed to delete project'
+          );
         }
 
-        const result = await response.json();
-        return res.status(200).json(result);
+        // Log successful project deletion
+        logDelete('project', id);
+
+        return apiResponse.success(res, null, 'Project deleted successfully');
       }
 
       default:
-        return res.status(405).json({ error: 'Method not allowed' });
+        return apiResponse.methodNotAllowed(res, req.method!, ['GET', 'PUT', 'DELETE']);
     }
-  } catch (error) {
-    console.error('Project API error:', error);
-    return res.status(500).json({ 
-      success: false,
-      error: error instanceof Error ? error.message : 'Internal server error' 
-    });
+  } catch (error: any) {
+    return apiResponse.internalError(res, error);
   }
 }

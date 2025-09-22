@@ -85,8 +85,37 @@ export default async function handler(
     // Insert data into database
     console.log(`Inserting ${processedData.length} ${dataType} records for project ${projectId}`);
 
+    // Create tables if they don't exist
+    if (dataType === 'fibre') {
+      await sql`
+        CREATE TABLE IF NOT EXISTS sow_fibre (
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          project_id UUID,
+          segment_id VARCHAR(255),
+          cable_size VARCHAR(50),
+          layer VARCHAR(50),
+          length FLOAT,
+          pon_no INTEGER,
+          zone_no INTEGER,
+          string_completed FLOAT,
+          date_completed TIMESTAMP,
+          contractor VARCHAR(100),
+          is_complete BOOLEAN,
+          raw_data JSONB,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `;
+    }
+
     // Clear existing data for this project
-    await sql`DELETE FROM ${sql(tableName)} WHERE project_id = ${projectId}`;
+    if (dataType === 'poles') {
+      await sql`DELETE FROM sow_poles WHERE project_id = ${projectId}`;
+    } else if (dataType === 'drops') {
+      await sql`DELETE FROM sow_drops WHERE project_id = ${projectId}`;
+    } else if (dataType === 'fibre') {
+      await sql`DELETE FROM sow_fibre WHERE project_id = ${projectId}`;
+    }
 
     // Batch insert new data
     const values = processedData.map((item: any) => ({
@@ -99,25 +128,37 @@ export default async function handler(
     // Insert in batches of 100
     const batchSize = 100;
     let inserted = 0;
-    
+
     for (let i = 0; i < values.length; i += batchSize) {
       const batch = values.slice(i, i + batchSize);
-      
-      if (dataType === 'poles') {
-        await sql`
-          INSERT INTO sow_poles ${sql(batch)}
-        `;
-      } else if (dataType === 'drops') {
-        await sql`
-          INSERT INTO sow_drops ${sql(batch)}
-        `;
-      } else if (dataType === 'fibre') {
-        await sql`
-          INSERT INTO sow_fibre ${sql(batch)}
-        `;
+
+      // Build insert for each data type
+      for (const record of batch) {
+        if (dataType === 'poles') {
+          await sql`
+            INSERT INTO sow_poles (project_id, pole_number, latitude, longitude, status, created_at, updated_at)
+            VALUES (${record.project_id}, ${record.pole_number}, ${record.latitude}, ${record.longitude}, ${record.status}, ${record.created_at}, ${record.updated_at})
+          `;
+        } else if (dataType === 'drops') {
+          await sql`
+            INSERT INTO sow_drops (project_id, drop_id, pole_number, address, status, created_at, updated_at)
+            VALUES (${record.project_id}, ${record.drop_id}, ${record.pole_number}, ${record.address}, ${record.status}, ${record.created_at}, ${record.updated_at})
+          `;
+        } else if (dataType === 'fibre') {
+          await sql`
+            INSERT INTO sow_fibre (
+              project_id, segment_id, cable_size, layer, length,
+              pon_no, zone_no, contractor, is_complete, created_at, updated_at
+            )
+            VALUES (
+              ${record.project_id}, ${record.segment_id}, ${record.cable_size},
+              ${record.layer}, ${record.length}, ${record.pon_no}, ${record.zone_no},
+              ${record.contractor}, ${record.is_complete}, ${record.created_at}, ${record.updated_at}
+            )
+          `;
+        }
+        inserted++;
       }
-      
-      inserted += batch.length;
     }
 
     return res.status(200).json({

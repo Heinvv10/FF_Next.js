@@ -2,7 +2,7 @@ const { Client } = require('pg');
 const XLSX = require('xlsx');
 require('dotenv').config();
 
-const PROJECT_ID = '7e7a6d88-8da1-4ac3-a16e-4b7a91e83439';
+const PROJECT_ID = 'e2a61399-275a-4c44-8008-e9e42b7a3501'; // louissep15
 const DROPS_FILE = '/home/louisdup/Downloads/Lawley Drops.xlsx';
 const BATCH_SIZE = 1000;
 

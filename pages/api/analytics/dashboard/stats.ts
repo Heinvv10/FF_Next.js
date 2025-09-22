@@ -14,6 +14,12 @@ export default withErrorHandler(async (
     return;
   }
 
+  // Set cache headers to prevent browser caching
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+
   try {
     // Fetch real statistics from database using direct Neon client
     const [
@@ -21,7 +27,8 @@ export default withErrorHandler(async (
       staffStats,
       sowStats,
       clientStats,
-      sowImportStats
+      sowImportStats,
+      contractorStats
     ] = await Promise.all([
       // Projects statistics - using actual columns
       sql`
@@ -69,6 +76,16 @@ export default withErrorHandler(async (
           0 as total_imports,
           0 as completed_imports
         FROM projects
+      `,
+
+      // Contractor statistics
+      sql`
+        SELECT
+          COUNT(*) as total_contractors,
+          COUNT(CASE WHEN status = 'approved' THEN 1 END) as active_contractors,
+          COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_contractors,
+          COUNT(CASE WHEN status IN ('under_review', 'documentation_incomplete') THEN 1 END) as review_contractors
+        FROM contractors
       `
     ]);
 
@@ -78,6 +95,7 @@ export default withErrorHandler(async (
     const sowData: any = sowStats[0] || {};
     const clientData: any = clientStats[0] || {};
     const importData: any = sowImportStats[0] || {};
+    const contractorData: any = contractorStats[0] || {};
 
     // Calculate derived metrics
     const completedProjects = parseInt(projectData.completed_projects) || 0;
@@ -115,9 +133,9 @@ export default withErrorHandler(async (
       // Financial stats
       totalRevenue,
       
-      // Contractor stats (no contractors table yet)
-      contractorsActive: 0,
-      contractorsPending: 0,
+      // Contractor stats - from actual contractors table
+      contractorsActive: parseInt(contractorData.active_contractors) || 0,
+      contractorsPending: parseInt(contractorData.pending_contractors) || 0,
       
       // Procurement stats (no procurement tables yet)
       boqsActive: 0,

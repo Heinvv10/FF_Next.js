@@ -32,33 +32,37 @@ export function NavigationMenu({ visibleNavItems, isCollapsed, sidebarStyles, th
               <Link
                 key={item.to}
                 href={item.to}
-                className={`flex items-center rounded-lg transition-all duration-200 relative group ${
-                  isCollapsed ? 'px-3 py-3 justify-center' : 'px-3 py-2 space-x-3'
-                }`}
-                style={{
-                  backgroundColor: isActive 
-                    ? themeConfig.colors.primary[500]
-                    : 'transparent',
-                  color: isActive 
-                    ? '#ffffff'
-                    : sidebarStyles.textColorSecondary
-                }}
-                title={isCollapsed ? item.label : undefined}
-                onMouseEnter={(e) => {
-                  const navLink = e.currentTarget;
-                  if (!isActive) {
-                    navLink.style.backgroundColor = themeConfig.colors.surface.sidebarSecondary || themeConfig.colors.surface.secondary;
-                    navLink.style.color = sidebarStyles.textColor;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  const navLink = e.currentTarget;
-                  if (!isActive) {
-                    navLink.style.backgroundColor = 'transparent';
-                    navLink.style.color = sidebarStyles.textColorSecondary;
-                  }
-                }}
+                passHref
+                legacyBehavior
               >
+                <a
+                  className={`flex items-center rounded-lg transition-all duration-200 relative group ${
+                    isCollapsed ? 'px-3 py-3 justify-center' : 'px-3 py-2 space-x-3'
+                  }`}
+                  style={{
+                    backgroundColor: isActive
+                      ? themeConfig.colors.primary[500]
+                      : 'transparent',
+                    color: isActive
+                      ? '#ffffff'
+                      : sidebarStyles.textColorSecondary
+                  }}
+                  title={isCollapsed ? item.label : undefined}
+                  onMouseEnter={(e) => {
+                    const navLink = e.currentTarget;
+                    if (!isActive) {
+                      navLink.style.backgroundColor = themeConfig.colors.surface.sidebarSecondary || themeConfig.colors.surface.secondary;
+                      navLink.style.color = sidebarStyles.textColor;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    const navLink = e.currentTarget;
+                    if (!isActive) {
+                      navLink.style.backgroundColor = 'transparent';
+                      navLink.style.color = sidebarStyles.textColorSecondary;
+                    }
+                  }}
+                >
                 <item.icon className={`${isCollapsed ? 'w-5 h-5' : 'w-5 h-5'} flex-shrink-0`} />
                 {!isCollapsed && (
                   <span className="text-sm font-medium truncate">{item.label}</span>
@@ -77,6 +81,7 @@ export function NavigationMenu({ visibleNavItems, isCollapsed, sidebarStyles, th
                     {item.label}
                   </div>
                 )}
+                </a>
               </Link>
               );
             })}

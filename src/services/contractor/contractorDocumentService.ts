@@ -3,7 +3,7 @@
  * Migrated from Firebase to Neon PostgreSQL
  */
 
-import { neonContractorService } from './neonContractorService';
+import { contractorApiService } from './contractorApiService';
 import { log } from '@/lib/logger';
 import { 
   ContractorDocument,
@@ -29,7 +29,7 @@ export const contractorDocumentService = {
    */
   async getByContractor(contractorId: string): Promise<ContractorDocument[]> {
     try {
-      const documents = await neonContractorService.getContractorDocuments(contractorId);
+      const documents = await contractorApiService.getContractorDocuments(contractorId);
       
       // Sort by documentType and creation date
       return documents.sort((a, b) => {
@@ -50,7 +50,7 @@ export const contractorDocumentService = {
    */
   async uploadDocument(contractorId: string, data: DocumentUploadData): Promise<string> {
     try {
-      const document = await neonContractorService.addDocument(contractorId, {
+      const document = await contractorApiService.addDocument(contractorId, {
         documentType: data.documentType as string,
         documentName: data.documentName,
         fileName: data.fileName,
@@ -73,7 +73,7 @@ export const contractorDocumentService = {
   async verifyDocument(documentId: string, verifiedBy: string, status: 'verified' | 'rejected', rejectionReason?: string): Promise<void> {
     try {
       const documentStatus = status === 'verified' ? 'approved' : 'rejected';
-      await neonContractorService.updateDocumentStatus(
+      await contractorApiService.updateDocumentStatus(
         documentId, 
         documentStatus,
         rejectionReason || `${status} by ${verifiedBy}`
@@ -102,7 +102,7 @@ export const contractorDocumentService = {
    */
   async deleteDocument(documentId: string): Promise<void> {
     try {
-      await neonContractorService.deleteDocument(documentId);
+      await contractorApiService.deleteDocument(documentId);
     } catch (error) {
       log.error('Error deleting document:', { data: error }, 'contractorDocumentService');
       throw new Error('Failed to delete document');
@@ -144,7 +144,7 @@ export const contractorDocumentService = {
    */
   async getDocumentById(documentId: string): Promise<ContractorDocument | null> {
     try {
-      // This would need a dedicated method in neonContractorService
+      // This would need a dedicated method in contractorApiService
       log.info('getDocumentById needs implementation in Neon service', 'contractorDocumentService');
       return null;
     } catch (error) {

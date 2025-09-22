@@ -145,6 +145,36 @@ npm run antihall    # Run anti-hallucination validator
 7. **Authentication**: Use Clerk patterns exclusively (Firebase Auth removed)
 8. **API Routes**: Use Next.js App Router API routes (Express server retired)
 
+### SOW Import Process (Step 1 after Project Creation)
+**Important**: After creating a new project, import SOW data using the proven scripts in `/scripts/sow-import/`:
+
+#### For Fibre Data Import:
+```bash
+# Edit the script to set your PROJECT_ID and file path, then run:
+node /home/louisdup/VF/Apps/FF_React/scripts/sow-import/import-fibre-louissep15.cjs
+
+# Verify the import:
+node /home/louisdup/VF/Apps/FF_React/scripts/sow-import/verify-fibre-louissep15.cjs
+```
+
+**Script Features**:
+- Uses `pg` library (NOT @neondatabase/serverless) - proven to be more reliable for batch operations
+- Batch processing (500 records per batch for fibre)
+- Automatic deduplication by segment_id
+- Multi-value INSERT with ON CONFLICT handling
+- Performance: ~260 segments/second
+
+**Data Visibility in UI**:
+- `/sow` - SOW Dashboard
+- `/fiber-stringing` - Fiber Stringing Dashboard
+- `/sow/list` - SOW List page
+- API: `/api/sow/fibre?projectId={PROJECT_ID}`
+
+**Similar scripts available for**:
+- Poles: `/scripts/sow-import/run-import.cjs`
+- Drops: `/scripts/sow-import/run-import-drops.cjs`
+- See `/SOW/docs/importlog.md` for detailed import history and results
+
 ### Coding Standards
 1. **File Size Limit**: Keep files under 300 lines (enforces better organization)
 2. **Component Structure**:

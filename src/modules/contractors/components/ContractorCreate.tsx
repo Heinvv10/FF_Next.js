@@ -4,23 +4,23 @@
  */
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { ArrowLeft, Save, Building2 } from 'lucide-react';
-import { contractorService } from '@/services/contractorService';
+import { contractorApiService } from '@/services/contractor/contractorApiService';
 import { ContractorFormData, ContractorStatus } from '@/types/contractor.types';
 import {
   BasicInfoSection,
   ContactInfoSection,
   AddressSection,
   FinancialSection,
+  ProfessionalInfoSection,
   StatusSection
 } from './ContractorFormSections';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 import { log } from '@/lib/logger';
 
-export function ContractorCreate() {
-  const navigate = useNavigate();
+export function ContractorCreate({ navigate }: ContractorCreateProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<ContractorFormData>({
@@ -28,27 +28,30 @@ export function ContractorCreate() {
     registrationNumber: '',
     businessType: 'pty_ltd',
     industryCategory: 'Telecommunications',
-    
+
     contactPerson: '',
     email: '',
     phone: '',
     alternatePhone: '',
-    
+
     physicalAddress: '',
     postalAddress: '',
     city: 'Johannesburg',
     province: 'Gauteng',
     postalCode: '',
-    
+
     creditRating: 'unrated',
     paymentTerms: 'net_30',
     bankName: '',
     accountNumber: '',
     branchCode: '',
-    
+
+    specializations: [],
+    certifications: [],
+
     status: 'pending' as ContractorStatus,
     complianceStatus: 'pending',
-    
+
     notes: '',
     tags: [],
   });
@@ -60,6 +63,16 @@ export function ContractorCreate() {
   const handleTagsChange = (value: string) => {
     const tags = value.split(',').map(tag => tag.trim()).filter(Boolean);
     setFormData(prev => ({ ...prev, tags }));
+  };
+
+  const handleSpecializationsChange = (value: string) => {
+    const specializations = value.split(',').map(item => item.trim()).filter(Boolean);
+    setFormData(prev => ({ ...prev, specializations }));
+  };
+
+  const handleCertificationsChange = (value: string) => {
+    const certifications = value.split(',').map(item => item.trim()).filter(Boolean);
+    setFormData(prev => ({ ...prev, certifications }));
   };
 
   const validateForm = (): string | null => {
@@ -90,22 +103,41 @@ export function ContractorCreate() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const validationError = validateForm();
     if (validationError) {
       toast.error(validationError);
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
-      await contractorService.create(formData);
-      toast.success('Contractor created successfully!');
-      navigate('/app/contractors');
-    } catch (error) {
+      const createdContractor = await contractorApiService.create(formData);
+      log.info('Contractor created successfully:', {
+        contractorId: createdContractor.id,
+        companyName: createdContractor.companyName
+      }, 'ContractorCreate');
+
+      toast.success(`Contractor "${createdContractor.companyName}" created successfully!`);
+      navigate('/contractors');
+    } catch (error: any) {
       log.error('Failed to create contractor:', { data: error }, 'ContractorCreate');
-      toast.error('Failed to create contractor. Please try again.');
+
+      // Provide more specific error messages based on the error
+      let errorMessage = 'Failed to create contractor. Please try again.';
+
+      if (error.message?.includes('duplicate key')) {
+        errorMessage = 'A contractor with this registration number or email already exists.';
+      } else if (error.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message?.includes('validation')) {
+        errorMessage = 'Please check all required fields and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -116,7 +148,7 @@ export function ContractorCreate() {
       {/* Header */}
       <div className="mb-6">
         <button
-          onClick={() => navigate('/app/contractors')}
+          onClick={() => navigate('/contractors')}
           className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
@@ -150,14 +182,21 @@ export function ContractorCreate() {
             handleInputChange={handleInputChange} 
           />
           
-          <FinancialSection 
-            formData={formData} 
-            handleInputChange={handleInputChange} 
+          <FinancialSection
+            formData={formData}
+            handleInputChange={handleInputChange}
           />
-          
-          <StatusSection 
-            formData={formData} 
-            handleInputChange={handleInputChange} 
+
+          <ProfessionalInfoSection
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleSpecializationsChange={handleSpecializationsChange}
+            handleCertificationsChange={handleCertificationsChange}
+          />
+
+          <StatusSection
+            formData={formData}
+            handleInputChange={handleInputChange}
           />
 
           {/* Additional Information */}
@@ -196,7 +235,7 @@ export function ContractorCreate() {
           <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
             <button
               type="button"
-              onClick={() => navigate('/app/contractors')}
+              onClick={() => navigate('/contractors')}
               className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Cancel

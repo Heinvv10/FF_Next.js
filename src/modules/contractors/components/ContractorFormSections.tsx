@@ -10,6 +10,7 @@ export {
   ContactInfoSection,
   AddressSection,
   FinancialSection,
+  ProfessionalInfoSection,
   StatusSection,
   type FormSectionProps
 } from './forms';

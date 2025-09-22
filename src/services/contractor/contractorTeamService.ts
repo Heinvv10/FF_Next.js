@@ -3,7 +3,7 @@
  * Migrated from Firebase to Neon PostgreSQL
  */
 
-import { neonContractorService } from './neonContractorService';
+import { contractorApiService } from './contractorApiService';
 import { log } from '@/lib/logger';
 import { 
   ContractorTeam, 
@@ -20,7 +20,7 @@ export const contractorTeamService = {
   async getTeamsByContractor(contractorId: string, filter?: TeamFilter): Promise<ContractorTeam[]> {
     try {
       // Use Neon service to get teams
-      const teams = await neonContractorService.getContractorTeams(contractorId);
+      const teams = await contractorApiService.getContractorTeams(contractorId);
       
       // Apply filters if provided
       let filteredTeams = teams;
@@ -56,7 +56,7 @@ export const contractorTeamService = {
    */
   async createTeam(contractorId: string, data: TeamFormData): Promise<string> {
     try {
-      const team = await neonContractorService.createTeam(contractorId, data);
+      const team = await contractorApiService.createTeam(contractorId, data);
       return team.id;
     } catch (error) {
       log.error('Error creating team:', { data: error }, 'contractorTeamService');
@@ -69,7 +69,7 @@ export const contractorTeamService = {
    */
   async updateTeam(teamId: string, data: Partial<TeamFormData>): Promise<void> {
     try {
-      await neonContractorService.updateTeam(teamId, data);
+      await contractorApiService.updateTeam(teamId, data);
     } catch (error) {
       log.error('Error updating team:', { data: error }, 'contractorTeamService');
       throw new Error('Failed to update team');
@@ -82,7 +82,7 @@ export const contractorTeamService = {
   async deleteTeam(teamId: string): Promise<void> {
     try {
       // TODO: Check for active assignments before deleting
-      await neonContractorService.deleteTeam(teamId);
+      await contractorApiService.deleteTeam(teamId);
     } catch (error) {
       log.error('Error deleting team:', { data: error }, 'contractorTeamService');
       throw new Error('Failed to delete team');
@@ -95,7 +95,7 @@ export const contractorTeamService = {
   async getTeamMembers(teamId: string): Promise<TeamMember[]> {
     try {
       // Get team from Neon and extract members from JSON field
-      const teams = await neonContractorService.getContractorTeams(teamId);
+      const teams = await contractorApiService.getContractorTeams(teamId);
       const team = teams.find(t => t.id === teamId);
       return team?.members || [];
     } catch (error) {
@@ -110,7 +110,7 @@ export const contractorTeamService = {
   async addTeamMember(teamId: string, contractorId: string, data: MemberFormData): Promise<string> {
     try {
       // Get existing team
-      const teams = await neonContractorService.getContractorTeams(contractorId);
+      const teams = await contractorApiService.getContractorTeams(contractorId);
       const team = teams.find(t => t.id === teamId);
       
       if (!team) {
@@ -130,7 +130,7 @@ export const contractorTeamService = {
       
       const updatedMembers = [...(team.members || []), newMember];
       
-      await neonContractorService.updateTeam(teamId, {
+      await contractorApiService.updateTeam(teamId, {
         members: updatedMembers
       } as any);
       

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { Building2, CheckCircle, Clock, UserCheck } from 'lucide-react';
 import { contractorService } from '@/services/contractorService';
 import { Contractor, ContractorFilter, ContractorAnalytics } from '@/types/contractor.types';
@@ -18,7 +18,7 @@ import toast from 'react-hot-toast';
 import { log } from '@/lib/logger';
 
 export function ContractorList() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [contractors, setContractors] = useState<Contractor[]>([]);
   const [analytics, setAnalytics] = useState<ContractorAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -160,7 +160,7 @@ export function ContractorList() {
         title="Contractors"
         description="Manage contractor relationships and performance"
         itemCount={contractors.length}
-        onAdd={() => navigate('/app/contractors/new')}
+        onAdd={() => router.push('/contractors/new')}
         showAdd={true}
         addButtonText="Add Contractor"
       />
@@ -256,7 +256,7 @@ export function ContractorList() {
         columns={tableColumns}
         isLoading={isLoading}
         getRowKey={(contractor) => contractor.id}
-        onRowClick={(contractor) => navigate(`/app/contractors/${contractor.id}`)}
+        onRowClick={(contractor) => router.push(`/contractors/${contractor.id}`)}
       />
     </div>
   );

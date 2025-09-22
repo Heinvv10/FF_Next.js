@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { 
   TrendingUp, 
   Clock, 
@@ -55,7 +55,7 @@ export function PendingApplicationsList({
   pageSize = 50,
   className = ''
 }: PendingApplicationsListProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   
   // 🟢 WORKING: Component state
   const [applications, setApplications] = useState<ApplicationSummary[]>([]);
@@ -257,12 +257,12 @@ export function PendingApplicationsList({
 
   // 🟢 WORKING: Handle navigation to application details
   const handleViewApplication = (contractorId: string) => {
-    navigate(`/app/contractors/${contractorId}`);
+    router.push(`/contractors/${contractorId}`);
   };
 
   // 🟢 WORKING: Handle navigation to application edit
   const handleEditApplication = (contractorId: string) => {
-    navigate(`/app/contractors/${contractorId}/edit`);
+    router.push(`/contractors/${contractorId}/edit`);
   };
 
   // 🟢 WORKING: Handle table sorting

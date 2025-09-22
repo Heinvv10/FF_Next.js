@@ -15,13 +15,8 @@ export {
   deleteContractorFromFirebase
 } from './firebaseOperations';
 
-// Neon operations
-export {
-  createContractorInNeon,
-  updateContractorInNeon,
-  deleteContractorFromNeon,
-  getContractorAnalytics
-} from './neonOperations';
+// Neon operations - DO NOT EXPORT (server-side only)
+// These are only used in API routes, not in client components
 
 // Subscription handlers
 export {

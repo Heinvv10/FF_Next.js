@@ -20,10 +20,11 @@ Each page log follows this format:
 
 | Page | Component | Log File | Last Updated |
 |------|-----------|----------|--------------|
-| Dashboard | `src/pages/Dashboard.tsx` | [dashboard.md](./dashboard.md) | Sep 15, 2025 - 9:00 AM |
+| Dashboard | `src/pages/Dashboard.tsx` | [dashboard.md](./dashboard.md) | Sep 15, 2025 - 11:00 AM |
 | Projects New | `pages/projects/new.tsx` | [projects-new.md](./projects-new.md) | Sep 15, 2025 - 10:55 AM |
 | Projects | `src/pages/Projects.tsx` | [projects.md](./projects.md) | - |
-| Staff | `src/pages/Staff.tsx` | [staff.md](./staff.md) | - |
+| Staff | `src/pages/Staff.tsx` | [staff.md](./staff.md) | Sep 15, 2025 - 11:30 AM |
+| Contractors New | `pages/contractors/new.tsx` | [contractors-new.md](./contractors-new.md) | Sep 19, 2025 - 10:30 AM |
 | Clients | `src/pages/Clients.tsx` | [clients.md](./clients.md) | - |
 | Procurement | `src/pages/Procurement.tsx` | [procurement.md](./procurement.md) | - |
 | SOW Management | `src/pages/SOWManagement.tsx` | [sow-management.md](./sow-management.md) | - |

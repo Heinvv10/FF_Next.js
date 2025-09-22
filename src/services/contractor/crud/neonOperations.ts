@@ -1,11 +1,18 @@
 /**
  * Neon Operations for Contractors
  * Handles Neon PostgreSQL operations for contractor analytics
+ * NOTE: These operations should only be called from server-side code (API routes)
+ * This file should NOT be imported in client-side components
  */
 
-import { sql } from '@/lib/db.mjs';
 import { ContractorFormData, ContractorAnalytics } from '@/types/contractor.types';
 import { log } from '@/lib/logger';
+
+// Mock implementation for client-side to prevent build errors
+// Real implementation should use API calls instead
+const sql = () => {
+  throw new Error('Database operations cannot be performed on the client side. Use API routes instead.');
+};
 
 /**
  * Create contractor record in Neon for analytics

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { Plus, Upload, Download } from 'lucide-react';
 
 interface StandardModuleHeaderProps {
@@ -30,13 +30,13 @@ export function StandardModuleHeader({
   showAdd = true,
   exportDisabled = false
 }: StandardModuleHeaderProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleAdd = () => {
     if (onAdd) {
       onAdd();
     } else if (addButtonPath) {
-      navigate(addButtonPath);
+      router.push(addButtonPath);
     }
   };
 

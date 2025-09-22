@@ -1,156 +1,49 @@
 /**
- * Firebase Operations for Contractors - MIGRATED TO NEON
- * This file now redirects to Neon-based operations
- * Maintained for backward compatibility
+ * Firebase Operations for Contractors - DEPRECATED
+ * These are stub functions - all operations now use API service
  */
 
-import { neonContractorService } from '../neonContractorService';
-import { 
-  Contractor, 
+import {
+  Contractor,
   ContractorFormData,
   ContractorFilter
 } from '@/types/contractor.types';
 import { log } from '@/lib/logger';
 
 /**
- * Get all contractors - now using Neon
+ * Get all contractors - DEPRECATED
  */
 export async function getAllContractorsFromFirebase(filter?: ContractorFilter): Promise<Contractor[]> {
-  try {
-    log.info('Redirecting to Neon service for contractors', 'firebaseOperations');
-    
-    // Convert filter format if needed
-    const neonFilter = filter ? {
-      status: filter.status?.[0],
-      complianceStatus: filter.complianceStatus?.[0],
-      ragOverall: filter.ragOverall?.[0],
-      isActive: filter.isActive
-    } : undefined;
-    
-    return await neonContractorService.getContractors(neonFilter);
-  } catch (error) {
-    log.error('Error fetching contractors from Neon:', { data: error }, 'firebaseOperations');
-    throw error;
-  }
-}
-
-// Legacy Firebase code kept for reference
-/*
-export async function getAllContractorsFromFirebase_OLD(filter?: ContractorFilter): Promise<Contractor[]> {
-  const constraints: QueryConstraint[] = [orderBy('companyName', 'asc')];
-  
-  if (filter?.province?.length) {
-    constraints.push(where('province', 'in', filter.province));
-  }
-  
-  if (filter?.hasActiveProjects !== undefined) {
-    if (filter.hasActiveProjects) {
-      constraints.push(where('activeProjects', '>', 0));
-    } else {
-      constraints.push(where('activeProjects', '==', 0));
-    }
-  }
-  
-  if (filter?.documentsExpiring !== undefined && filter.documentsExpiring) {
-    constraints.push(where('documentsExpiring', '>', 0));
-  }
-  
-  const q = query(collection(db, 'contractors'), ...constraints);
-  const snapshot = await getDocs(q);
-  
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-    updatedAt: doc.data().updatedAt?.toDate() || new Date(),
-    lastActivity: doc.data().lastActivity?.toDate(),
-    nextReviewDate: doc.data().nextReviewDate?.toDate(),
-    onboardingCompletedAt: doc.data().onboardingCompletedAt?.toDate(),
-  } as Contractor));
+  log.warn('Firebase operations are deprecated', 'firebaseOperations');
+  return [];
 }
 
 /**
- * Get contractor by ID from Firebase
+ * Get contractor by ID - DEPRECATED
  */
 export async function getContractorByIdFromFirebase(id: string): Promise<Contractor | null> {
-  const docRef = doc(db, 'contractors', id);
-  const snapshot = await getDoc(docRef);
-  
-  if (!snapshot.exists()) {
-    return null;
-  }
-  
-  const data = snapshot.data();
-  return {
-    id: snapshot.id,
-    ...data,
-    createdAt: data.createdAt?.toDate() || new Date(),
-    updatedAt: data.updatedAt?.toDate() || new Date(),
-    lastActivity: data.lastActivity?.toDate(),
-    nextReviewDate: data.nextReviewDate?.toDate(),
-    onboardingCompletedAt: data.onboardingCompletedAt?.toDate(),
-  } as Contractor;
+  log.warn('Firebase operations are deprecated', 'firebaseOperations');
+  return null;
 }
 
 /**
- * Create contractor in Firebase
+ * Create contractor - DEPRECATED
  */
 export async function createContractorInFirebase(data: ContractorFormData): Promise<string> {
-  const firebaseData = {
-    ...data,
-    status: data.status || 'pending',
-    complianceStatus: data.complianceStatus || 'pending',
-    ragOverall: 'amber',
-    ragFinancial: 'amber', 
-    ragCompliance: 'amber',
-    ragPerformance: 'amber',
-    ragSafety: 'amber',
-    totalProjects: 0,
-    completedProjects: 0,
-    activeProjects: 0,
-    cancelledProjects: 0,
-    onboardingProgress: 0,
-    documentsExpiring: 0,
-    isActive: true,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
-    createdBy: 'current-user', // TODO: Get from auth context
-    lastModifiedBy: 'current-user',
-  };
-  
-  const docRef = await addDoc(collection(db, 'contractors'), firebaseData);
-  return docRef.id;
+  log.warn('Firebase operations are deprecated', 'firebaseOperations');
+  return '';
 }
 
 /**
- * Update contractor in Firebase
+ * Update contractor - DEPRECATED
  */
 export async function updateContractorInFirebase(id: string, data: Partial<ContractorFormData>): Promise<void> {
-  const docRef = doc(db, 'contractors', id);
-  const updateData: any = {
-    ...data,
-    updatedAt: Timestamp.now(),
-    lastModifiedBy: 'current-user', // TODO: Get from auth context
-  };
-  
-  await updateDoc(docRef, updateData);
+  log.warn('Firebase operations are deprecated', 'firebaseOperations');
 }
 
 /**
- * Delete contractor from Firebase
+ * Delete contractor - DEPRECATED
  */
 export async function deleteContractorFromFirebase(id: string): Promise<void> {
-  // Check if contractor has active projects
-  const projectsQuery = query(
-    collection(db, 'project_assignments'),
-    where('contractorId', '==', id),
-    where('status', 'in', ['assigned', 'active'])
-  );
-  const projectsSnapshot = await getDocs(projectsQuery);
-  
-  if (!projectsSnapshot.empty) {
-    throw new Error('Cannot delete contractor with active project assignments');
-  }
-  
-  await deleteDoc(doc(db, 'contractors', id));
+  log.warn('Firebase operations are deprecated', 'firebaseOperations');
 }

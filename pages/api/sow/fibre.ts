@@ -22,9 +22,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case 'GET': {
         // Fetch fibre data from the database
         const fibreData = await sql`
-          SELECT * FROM sow_fibre 
+          SELECT * FROM sow_fibre
           WHERE project_id = ${projectId}
-          ORDER BY from_pole, to_pole
+          ORDER BY segment_id, zone_no
         `;
         
         return res.status(200).json({

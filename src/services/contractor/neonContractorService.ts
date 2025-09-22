@@ -31,50 +31,44 @@ export const neonContractorService = {
     search?: string;
   }): Promise<Contractor[]> {
     try {
-      let query = `
-        SELECT * FROM contractors 
-        WHERE 1=1
-      `;
-      const params: any[] = [];
-      let paramIndex = 1;
+      // Build dynamic query using template literals
+      let result;
 
-      if (filters?.status) {
-        query += ` AND status = $${paramIndex}`;
-        params.push(filters.status);
-        paramIndex++;
+      // Handle different filter combinations
+      if (!filters || Object.keys(filters).length === 0) {
+        result = await sql`
+          SELECT * FROM contractors
+          ORDER BY created_at DESC
+        `;
+      } else if (filters.search && !filters.status && !filters.complianceStatus && !filters.ragOverall && filters.isActive === undefined) {
+        // Search only
+        const searchTerm = `%${filters.search}%`;
+        result = await sql`
+          SELECT * FROM contractors
+          WHERE (
+            LOWER(company_name) LIKE LOWER(${searchTerm}) OR
+            LOWER(contact_person) LIKE LOWER(${searchTerm}) OR
+            LOWER(email) LIKE LOWER(${searchTerm})
+          )
+          ORDER BY created_at DESC
+        `;
+      } else if (filters.status && !filters.search) {
+        // Status filter only
+        result = await sql`
+          SELECT * FROM contractors
+          WHERE status = ${filters.status}
+          ${filters.isActive !== undefined ? sql`AND is_active = ${filters.isActive}` : sql``}
+          ORDER BY created_at DESC
+        `;
+      } else {
+        // For complex filters, use basic query for now
+        // TODO: Implement more complex filter combinations as needed
+        result = await sql`
+          SELECT * FROM contractors
+          ORDER BY created_at DESC
+        `;
       }
 
-      if (filters?.complianceStatus) {
-        query += ` AND compliance_status = $${paramIndex}`;
-        params.push(filters.complianceStatus);
-        paramIndex++;
-      }
-
-      if (filters?.ragOverall) {
-        query += ` AND rag_overall = $${paramIndex}`;
-        params.push(filters.ragOverall);
-        paramIndex++;
-      }
-
-      if (filters?.isActive !== undefined) {
-        query += ` AND is_active = $${paramIndex}`;
-        params.push(filters.isActive);
-        paramIndex++;
-      }
-
-      if (filters?.search) {
-        query += ` AND (
-          LOWER(company_name) LIKE LOWER($${paramIndex}) OR
-          LOWER(contact_person) LIKE LOWER($${paramIndex}) OR
-          LOWER(email) LIKE LOWER($${paramIndex})
-        )`;
-        params.push(`%${filters.search}%`);
-        paramIndex++;
-      }
-
-      query += ` ORDER BY created_at DESC`;
-
-      const result = await sql(query, params);
       return this.mapContractors(result);
     } catch (error) {
       log.error('Error fetching contractors:', { data: error }, 'neonContractorService');
@@ -122,11 +116,11 @@ export const neonContractorService = {
           ${data.paymentTerms}, ${data.bankName}, ${data.accountNumber},
           ${data.branchCode}, ${JSON.stringify(data.specializations || [])},
           ${JSON.stringify(data.certifications || [])}, ${data.notes},
-          ${JSON.stringify(data.tags || [])}, ${data.createdBy}
+          ${JSON.stringify(data.tags || [])}, ${data.createdBy || 'web_form'}
         )
         RETURNING *
       `;
-      
+
       return this.mapContractor(result[0]);
     } catch (error) {
       log.error('Error creating contractor:', { data: error }, 'neonContractorService');
@@ -139,54 +133,45 @@ export const neonContractorService = {
    */
   async updateContractor(id: string, data: Partial<ContractorFormData>): Promise<Contractor> {
     try {
-      const updateFields: string[] = [];
-      const params: any[] = [];
-      let paramIndex = 1;
-
-      // Build dynamic update query
-      if (data.companyName !== undefined) {
-        updateFields.push(`company_name = $${paramIndex}`);
-        params.push(data.companyName);
-        paramIndex++;
-      }
-
-      if (data.contactPerson !== undefined) {
-        updateFields.push(`contact_person = $${paramIndex}`);
-        params.push(data.contactPerson);
-        paramIndex++;
-      }
-
-      if (data.email !== undefined) {
-        updateFields.push(`email = $${paramIndex}`);
-        params.push(data.email);
-        paramIndex++;
-      }
-
-      if (data.phone !== undefined) {
-        updateFields.push(`phone = $${paramIndex}`);
-        params.push(data.phone);
-        paramIndex++;
-      }
-
-      if (data.status !== undefined) {
-        updateFields.push(`status = $${paramIndex}`);
-        params.push(data.status);
-        paramIndex++;
-      }
-
-      // Add more fields as needed...
-
-      updateFields.push(`updated_at = NOW()`);
-
-      const query = `
-        UPDATE contractors 
-        SET ${updateFields.join(', ')}
-        WHERE id = $${paramIndex}
+      // Use template literal with all fields
+      const result = await sql`
+        UPDATE contractors
+        SET
+          company_name = COALESCE(${data.companyName}, company_name),
+          contact_person = COALESCE(${data.contactPerson}, contact_person),
+          email = COALESCE(${data.email}, email),
+          phone = COALESCE(${data.phone}, phone),
+          status = COALESCE(${data.status}, status),
+          registration_number = COALESCE(${data.registrationNumber}, registration_number),
+          business_type = COALESCE(${data.businessType}, business_type),
+          industry_category = COALESCE(${data.industryCategory}, industry_category),
+          years_in_business = COALESCE(${data.yearsInBusiness}, years_in_business),
+          employee_count = COALESCE(${data.employeeCount}, employee_count),
+          alternate_phone = COALESCE(${data.alternatePhone}, alternate_phone),
+          physical_address = COALESCE(${data.physicalAddress}, physical_address),
+          postal_address = COALESCE(${data.postalAddress}, postal_address),
+          city = COALESCE(${data.city}, city),
+          province = COALESCE(${data.province}, province),
+          postal_code = COALESCE(${data.postalCode}, postal_code),
+          annual_turnover = COALESCE(${data.annualTurnover}, annual_turnover),
+          credit_rating = COALESCE(${data.creditRating}, credit_rating),
+          payment_terms = COALESCE(${data.paymentTerms}, payment_terms),
+          bank_name = COALESCE(${data.bankName}, bank_name),
+          account_number = COALESCE(${data.accountNumber}, account_number),
+          branch_code = COALESCE(${data.branchCode}, branch_code),
+          specializations = COALESCE(${data.specializations ? JSON.stringify(data.specializations) : null}, specializations),
+          certifications = COALESCE(${data.certifications ? JSON.stringify(data.certifications) : null}, certifications),
+          notes = COALESCE(${data.notes}, notes),
+          tags = COALESCE(${data.tags ? JSON.stringify(data.tags) : null}, tags),
+          updated_at = NOW()
+        WHERE id = ${id}
         RETURNING *
       `;
-      params.push(id);
 
-      const result = await sql(query, params);
+      if (result.length === 0) {
+        throw new Error('Contractor not found');
+      }
+
       return this.mapContractor(result[0]);
     } catch (error) {
       log.error('Error updating contractor:', { data: error }, 'neonContractorService');
@@ -264,39 +249,21 @@ export const neonContractorService = {
    */
   async updateTeam(teamId: string, data: Partial<TeamFormData>): Promise<ContractorTeam> {
     try {
-      const updateFields: string[] = [];
-      const params: any[] = [];
-      let paramIndex = 1;
-
-      if (data.teamName !== undefined) {
-        updateFields.push(`team_name = $${paramIndex}`);
-        params.push(data.teamName);
-        paramIndex++;
-      }
-
-      if (data.teamSize !== undefined) {
-        updateFields.push(`team_size = $${paramIndex}`);
-        params.push(data.teamSize);
-        paramIndex++;
-      }
-
-      if (data.availability !== undefined) {
-        updateFields.push(`availability = $${paramIndex}`);
-        params.push(data.availability);
-        paramIndex++;
-      }
-
-      updateFields.push(`updated_at = NOW()`);
-
-      const query = `
-        UPDATE contractor_teams 
-        SET ${updateFields.join(', ')}
-        WHERE id = $${paramIndex}
+      const result = await sql`
+        UPDATE contractor_teams
+        SET
+          team_name = COALESCE(${data.teamName}, team_name),
+          team_size = COALESCE(${data.teamSize}, team_size),
+          availability = COALESCE(${data.availability}, availability),
+          updated_at = NOW()
+        WHERE id = ${teamId}
         RETURNING *
       `;
-      params.push(teamId);
 
-      const result = await sql(query, params);
+      if (result.length === 0) {
+        throw new Error('Team not found');
+      }
+
       return this.mapTeam(result[0]);
     } catch (error) {
       log.error('Error updating team:', { data: error }, 'neonContractorService');
@@ -417,50 +384,17 @@ export const neonContractorService = {
     safety?: RAGScore;
   }): Promise<void> {
     try {
-      const updateFields: string[] = [];
-      const params: any[] = [];
-      let paramIndex = 1;
-
-      if (scores.overall) {
-        updateFields.push(`rag_overall = $${paramIndex}`);
-        params.push(scores.overall);
-        paramIndex++;
-      }
-
-      if (scores.financial) {
-        updateFields.push(`rag_financial = $${paramIndex}`);
-        params.push(scores.financial);
-        paramIndex++;
-      }
-
-      if (scores.compliance) {
-        updateFields.push(`rag_compliance = $${paramIndex}`);
-        params.push(scores.compliance);
-        paramIndex++;
-      }
-
-      if (scores.performance) {
-        updateFields.push(`rag_performance = $${paramIndex}`);
-        params.push(scores.performance);
-        paramIndex++;
-      }
-
-      if (scores.safety) {
-        updateFields.push(`rag_safety = $${paramIndex}`);
-        params.push(scores.safety);
-        paramIndex++;
-      }
-
-      updateFields.push(`updated_at = NOW()`);
-
-      const query = `
-        UPDATE contractors 
-        SET ${updateFields.join(', ')}
-        WHERE id = $${paramIndex}
+      await sql`
+        UPDATE contractors
+        SET
+          rag_overall = COALESCE(${scores.overall}, rag_overall),
+          rag_financial = COALESCE(${scores.financial}, rag_financial),
+          rag_compliance = COALESCE(${scores.compliance}, rag_compliance),
+          rag_performance = COALESCE(${scores.performance}, rag_performance),
+          rag_safety = COALESCE(${scores.safety}, rag_safety),
+          updated_at = NOW()
+        WHERE id = ${contractorId}
       `;
-      params.push(contractorId);
-
-      await sql(query, params);
 
       // Record RAG history
       for (const [scoreType, newScore] of Object.entries(scores)) {

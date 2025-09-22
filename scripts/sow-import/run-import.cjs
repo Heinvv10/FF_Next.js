@@ -149,7 +149,7 @@ async function fastBatchImport(projectId, polesFile) {
 }
 
 // Run the import
-const projectId = '7e7a6d88-8da1-4ac3-a16e-4b7a91e83439'; // louisProjectTestWed
+const projectId = 'e2a61399-275a-4c44-8008-e9e42b7a3501'; // louissep15
 const polesFile = '/home/louisdup/Downloads/Lawley Poles.xlsx';
 
 console.log('Starting import with:');

@@ -9,6 +9,7 @@ export const config = {
     bodyParser: {
       sizeLimit: '10mb',
     },
+    responseLimit: false, // Disable Next.js response size limit for this endpoint
   },
 };
 
@@ -26,30 +27,62 @@ export default async function handler(
   // Handle GET request - fetch drops
   if (req.method === 'GET') {
     try {
-      const { projectId, limit = '1000', offset = '0' } = req.query;
-      
+      const { projectId, limit = '1000', offset = '0', fields } = req.query;
+      const limitNum = Math.min(parseInt(limit as string), 5000); // Cap at 5000 to prevent large responses
+      const offsetNum = parseInt(offset as string);
+
       let query;
+      let totalQuery;
+
       if (projectId) {
         query = await sql`
           SELECT * FROM sow_drops
           WHERE project_id = ${projectId}
           ORDER BY created_at DESC
-          LIMIT ${parseInt(limit as string)}
-          OFFSET ${parseInt(offset as string)}
+          LIMIT ${limitNum} OFFSET ${offsetNum}
+        `;
+
+        totalQuery = await sql`
+          SELECT COUNT(*) as total FROM sow_drops
+          WHERE project_id = ${projectId}
         `;
       } else {
         query = await sql`
           SELECT * FROM sow_drops
           ORDER BY created_at DESC
-          LIMIT ${parseInt(limit as string)}
-          OFFSET ${parseInt(offset as string)}
+          LIMIT ${limitNum} OFFSET ${offsetNum}
+        `;
+
+        totalQuery = await sql`
+          SELECT COUNT(*) as total FROM sow_drops
         `;
       }
-      
+
+      const total = parseInt(totalQuery[0]?.total || '0');
+
+      // Apply field filtering if specified (client-side filtering)
+      let filteredData = query;
+      if (fields) {
+        const requestedFields = (fields as string).split(',').map(f => f.trim());
+        filteredData = query.map(item => {
+          const filtered: any = {};
+          requestedFields.forEach(field => {
+            if (field in item) {
+              filtered[field] = item[field];
+            }
+          });
+          return filtered;
+        });
+      }
+
       return res.status(200).json({
         success: true,
-        data: query,
-        count: query.length
+        data: filteredData,
+        count: filteredData.length,
+        total,
+        page: Math.floor(offsetNum / limitNum) + 1,
+        pageSize: limitNum,
+        totalPages: Math.ceil(total / limitNum)
       });
     } catch (error) {
       console.error('Error fetching drops:', error);

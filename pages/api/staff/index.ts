@@ -188,43 +188,74 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
       case 'POST': {
         // Create new staff member
         const staffData = req.body;
-        
-        // Extract first and last name from name field or use separate fields
-        const name = staffData.name || '';
-        const firstName = staffData.first_name || staffData.firstName || name.split(' ')[0] || '';
-        const lastName = staffData.last_name || staffData.lastName || name.split(' ').slice(1).join(' ') || '';
-        
-        const newStaff = await sql`
-          INSERT INTO staff (
-            employee_id, first_name, last_name, email, phone,
-            department, position, join_date, status
-          )
-          VALUES (
-            ${staffData.employee_id || staffData.employeeId || `EMP-${Date.now()}`},
-            ${firstName},
-            ${lastName},
-            ${staffData.email},
-            ${staffData.phone || null},
-            ${staffData.department || 'General'},
-            ${staffData.position || 'Staff'},
-            ${staffData.join_date || staffData.startDate || new Date().toISOString()},
-            ${staffData.status || 'ACTIVE'}
-          )
-          RETURNING *, CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
-        `;
-        
-        // Log successful staff creation
-        const newStaffRows = newStaff as any[];
-        if (newStaffRows[0]) {
-          logCreate('staff', newStaffRows[0].id, {
-            employee_id: newStaffRows[0].employee_id,
-            name: newStaffRows[0].full_name,
-            email: newStaffRows[0].email,
-            department: newStaffRows[0].department
-          });
+
+        try {
+          // Extract first and last name from name field or use separate fields
+          const name = staffData.name || '';
+          const firstName = staffData.first_name || staffData.firstName || name.split(' ')[0] || '';
+          const lastName = staffData.last_name || staffData.lastName || name.split(' ').slice(1).join(' ') || '';
+
+          const newStaff = await sql`
+            INSERT INTO staff (
+              employee_id, first_name, last_name, email, phone,
+              department, position, join_date, status
+            )
+            VALUES (
+              ${staffData.employee_id || staffData.employeeId || `EMP-${Date.now()}`},
+              ${firstName},
+              ${lastName},
+              ${staffData.email},
+              ${staffData.phone || null},
+              ${staffData.department || 'General'},
+              ${staffData.position || 'Staff'},
+              ${staffData.join_date || staffData.startDate || new Date().toISOString()},
+              ${staffData.status || 'ACTIVE'}
+            )
+            RETURNING *, CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
+          `;
+
+          // Log successful staff creation
+          const newStaffRows = newStaff as any[];
+          if (newStaffRows[0]) {
+            logCreate('staff', newStaffRows[0].id, {
+              employee_id: newStaffRows[0].employee_id,
+              name: newStaffRows[0].full_name,
+              email: newStaffRows[0].email,
+              department: newStaffRows[0].department
+            });
+          }
+
+          res.status(201).json({ success: true, data: newStaffRows[0] });
+        } catch (error: any) {
+          // Handle database constraint violations with user-friendly messages
+          if (error.message?.includes('staff_email_unique')) {
+            return res.status(409).json({
+              success: false,
+              data: null,
+              message: `A staff member with email "${staffData.email}" already exists. Please use a different email address.`,
+              code: 'DUPLICATE_EMAIL'
+            });
+          }
+          if (error.message?.includes('staff_employee_id_unique')) {
+            return res.status(409).json({
+              success: false,
+              data: null,
+              message: `Employee ID "${staffData.employee_id}" is already in use. Please use a different employee ID.`,
+              code: 'DUPLICATE_EMPLOYEE_ID'
+            });
+          }
+          if (error.message?.includes('duplicate key value')) {
+            return res.status(409).json({
+              success: false,
+              data: null,
+              message: 'This staff member already exists. Please check the email and employee ID.',
+              code: 'DUPLICATE_ENTRY'
+            });
+          }
+
+          // Re-throw other errors to be handled by the error handler
+          throw error;
         }
-        
-        res.status(201).json({ success: true, data: newStaffRows[0] });
         break;
       }
 

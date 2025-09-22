@@ -12,20 +12,20 @@ export interface ContractorFormData {
   industryCategory: string;
   yearsInBusiness?: number;
   employeeCount?: number;
-  
+
   // Contact Information
   contactPerson: string;
   email: string;
   phone: string;
   alternatePhone: string;
-  
+
   // Address
   physicalAddress: string;
   postalAddress: string;
   city: string;
   province: string;
   postalCode: string;
-  
+
   // Financial Information
   annualTurnover?: number;
   creditRating: string;
@@ -33,14 +33,19 @@ export interface ContractorFormData {
   bankName: string;
   accountNumber: string;
   branchCode: string;
-  
+
+  // Professional Information
+  specializations: string[];
+  certifications: string[];
+
   // Status
   status: ContractorStatus;
   complianceStatus: 'pending' | 'compliant' | 'non_compliant' | 'under_review';
-  
+
   // Metadata
   notes: string;
   tags: string[];
+  createdBy?: string;
 }
 
 export interface TeamFormData {

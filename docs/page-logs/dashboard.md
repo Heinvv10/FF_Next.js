@@ -120,3 +120,60 @@
 - Server running on port 3007 with latest fixes
 - API endpoint verified working: `/api/analytics/dashboard/stats`
 - Dashboard data updates reflect database changes in real-time
+
+---
+
+### September 15, 2025 - 11:00 AM
+**Developer**: Claude Assistant
+**Issue**: Browser cache preventing dashboard from showing updated data
+
+#### Problems Identified:
+1. **Browser Cache Issue**:
+   - Dashboard showing stale/cached data even after database updates
+   - API returns correct data but browser serves cached response
+   - Issue persists even in incognito/private windows due to aggressive browser caching
+
+2. **WebSocket Connection Error** (Persistent):
+   - Error: `Firefox can't establish a connection to the server at ws://localhost:3007/api/ws`
+   - Non-blocking - falls back to polling mode
+
+#### Changes Made:
+
+1. **Added Cache-Busting Headers** (`pages/api/analytics/dashboard/stats.ts:17-21`):
+   ```typescript
+   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+   res.setHeader('Pragma', 'no-cache');
+   res.setHeader('Expires', '0');
+   res.setHeader('Surrogate-Control', 'no-store');
+   ```
+
+2. **Added Timestamp Parameter to API Calls** (`src/services/api/analyticsApi.ts:91-92`):
+   ```typescript
+   // Add timestamp to bypass cache
+   params.append('t', Date.now().toString());
+   ```
+
+#### Verification:
+```bash
+# Cache headers confirmed working
+curl -v http://localhost:3008/api/analytics/dashboard/stats
+# Returns: Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
+
+# API returns current data
+curl http://localhost:3008/api/analytics/dashboard/stats | jq
+# Returns: {"activeProjects": 3, "teamMembers": 5, "totalRevenue": 51150000}
+```
+
+#### Result:
+✅ Cache-busting headers implemented and verified
+✅ API includes timestamp parameter to prevent caching
+✅ Dashboard should now always fetch fresh data
+✅ Browser cache issue resolved programmatically
+⚠️ WebSocket error persists but non-blocking (falls back to polling)
+
+#### Testing Notes:
+- Server rebuilt and running on port 3008 with cache-busting changes
+- Cache headers verified: `no-store, no-cache, must-revalidate`
+- API returns fresh data on every request
+- Dashboard at http://localhost:3008/dashboard should now display current data
+- WebSocket errors continue but are non-blocking (falls back to polling)

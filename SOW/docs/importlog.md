@@ -1,5 +1,136 @@
 # SOW Import Audit Log
 
+**📊 For detailed 2025 imports, see: `/SOW/docs/sow-import-log-2025.md`**
+
+## Import Record - 2025-09-15 (Drops Import for louissep15)
+
+### Import Details
+- **Date**: 2025-09-15
+- **Time**: ~13:30 UTC
+- **Project**: louissep15
+- **Project ID**: e2a61399-275a-4c44-8008-e9e42b7a3501
+- **Source File**: /home/louisdup/Downloads/Lawley Drops.xlsx
+- **Records in Excel**: 23708
+
+### Import Results ✅
+- **Drops Successfully Imported**: 23707 (one duplicate merged)
+- **Import Time**: 111.71 seconds
+- **Processing Rate**: 212 drops/second
+- **Batch Size Used**: 1000 records per batch
+- **Total Batches**: 24
+
+### Script Used
+- **Script Location**: `/scripts/sow-import/run-import-drops.cjs`
+- **Library**: pg (PostgreSQL client) - NOT @neondatabase/serverless
+- **Method**: Dynamic placeholder generation with multi-value INSERT statements
+- **Table**: sow_drops
+
+### Data Quality
+- **All drops have cable length**: ✅
+- **Total Cable Length**: 919,145 meters (919.15 km)
+- **Average Cable Length**: 38.77 meters
+- **Unique Poles Referenced**: 2965
+- **No duplicate drop numbers found**
+
+### Verification Script
+- **Location**: `/scripts/sow-import/verify-drops-louissep15.cjs`
+- **Purpose**: Comprehensive verification with statistics and sample data
+
+### UI Visibility
+Data can be viewed at:
+- `/sow` - SOW Dashboard
+- `/sow/list` - SOW List page (Drops tab)
+- API: `/api/sow/drops?projectId=e2a61399-275a-4c44-8008-e9e42b7a3501`
+
+---
+
+## Import Record - 2025-09-15 (Poles Import for louissep15)
+
+### Import Details
+- **Date**: 2025-09-15
+- **Time**: ~13:00 UTC
+- **Project**: louissep15
+- **Project ID**: e2a61399-275a-4c44-8008-e9e42b7a3501
+- **Source File**: /home/louisdup/Downloads/Lawley Poles.xlsx
+- **Records in Excel**: 4471
+
+### Import Results ✅
+- **Poles Successfully Imported**: 4471 (100% success rate)
+- **Import Time**: 13.88 seconds
+- **Processing Rate**: 322 poles/second
+- **Batch Size Used**: 1000 records per batch
+- **Total Batches**: 5
+
+### Script Used
+- **Script Location**: `/scripts/sow-import/run-import.cjs`
+- **Based On**: Proven import method from Sep 3, 2025 import
+- **Library**: pg (PostgreSQL client) - NOT @neondatabase/serverless
+- **Method**: Dynamic placeholder generation with multi-value INSERT statements
+- **Table**: sow_poles
+
+### Data Quality
+- **All poles have valid coordinates**: ✅
+- **Latitude Range**: -26.405882 to -26.372889
+- **Longitude Range**: 27.792007 to 27.833542
+- **Status**: All poles marked as 'pending'
+- **No duplicate pole numbers found**
+
+### Verification Script
+- **Location**: `/scripts/sow-import/verify-poles-louissep15.cjs`
+- **Purpose**: Comprehensive verification with statistics and sample data
+
+### UI Visibility
+Data can be viewed at:
+- `/sow` - SOW Dashboard
+- `/sow/list` - SOW List page (Poles tab)
+- API: `/api/sow/poles?projectId=e2a61399-275a-4c44-8008-e9e42b7a3501`
+
+---
+
+## Import Record - 2025-09-15 (Fibre Import for louissep15)
+
+### Import Details
+- **Date**: 2025-09-15
+- **Time**: ~12:40 UTC
+- **Project**: louissep15
+- **Project ID**: e2a61399-275a-4c44-8008-e9e42b7a3501
+- **Source File**: /home/louisdup/Downloads/Fibre_Lawley.xlsx
+- **Records in Excel**: 686 (681 unique after deduplication)
+
+### Import Results ✅
+- **Fibre Segments Successfully Imported**: 681 (100% success rate)
+- **Total Cable Length**: 118,472 meters (118.47 km)
+- **Import Time**: 2.62 seconds
+- **Processing Rate**: 260 segments/second
+- **Batch Size Used**: 500 records per batch
+- **Total Batches**: 2
+
+### Script Used
+- **Script Location**: `/home/louisdup/VF/Apps/FF_React/scripts/sow-import/import-fibre-louissep15.cjs`
+- **Based On**: Proven import method from `/scripts/sow-import/run-import-fibre.cjs`
+- **Library**: pg (PostgreSQL client) - NOT @neondatabase/serverless
+- **Method**: Dynamic placeholder generation with multi-value INSERT statements
+- **Table**: sow_fibre
+
+### Data Breakdown
+- **Cable Types**: 4 types (24F: 676, 96F: 2, 144F: 2, 288F: 1)
+- **Layers**: Distribution (633), Secondary Feeder (43), Primary Feeder (5)
+- **Status**: 508 completed, 173 planned
+- **Contractors**: Velocity (467 segments), Elevate (41 segments)
+
+### Verification Script
+- **Location**: `/home/louisdup/VF/Apps/FF_React/scripts/sow-import/verify-fibre-louissep15.cjs`
+- **Purpose**: Comprehensive verification with statistics and sample data
+
+### UI Visibility
+Data can be viewed at:
+- `/sow` - SOW Dashboard
+- `/fiber-stringing` - Fiber Stringing Dashboard
+- `/sow/list` - SOW List page
+- API: `/api/sow/fibre?projectId=e2a61399-275a-4c44-8008-e9e42b7a3501`
+
+---
+
 ## Import Record - 2025-09-03
 
 ### Import Details

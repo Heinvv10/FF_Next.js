@@ -1,0 +1,43 @@
+[dotenv@17.2.2] injecting env (18) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+Starting Nokia Velocity batch import using pg client...
+Project: louissep15
+Batch size: 500
+NOTE: Processing ONLY 1Map Field App tab (installation/drops progress)
+      Other tabs contain SOW planning data already imported
+--------------------------------------------------------------------------------
+Connected to database via pg client
+Reading Excel file: /home/louisdup/Downloads/Lawley Nokia Fibertime week ending template VELOCITY 15092025.xlsx
+Processing ONLY the 1Map Field App tab (installation progress data)
+Other tabs contain SOW data that is already imported
+
+Found 20117 rows in 1Map Field App sheet
+Cleared 7000 existing records for fresh import
+
+Batch 1: Processed 500 records (500 new, 0 updated) at 13 records/sec
+Batch 2: Processed 500 records (500 new, 0 updated) at 16 records/sec
+Batch 3: Processed 500 records (500 new, 0 updated) at 15 records/sec
+Batch 4: Processed 500 records (500 new, 0 updated) at 15 records/sec
+Batch 5: Processed 500 records (500 new, 0 updated) at 20 records/sec
+
+Progress: 2500/20117 records (12%) at avg 16 records/sec
+Batch 6: Processed 500 records (500 new, 0 updated) at 22 records/sec
+Batch 7: Processed 500 records (500 new, 0 updated) at 21 records/sec
+Batch 8: Processed 500 records (500 new, 0 updated) at 21 records/sec
+Batch 9: Processed 500 records (500 new, 0 updated) at 18 records/sec
+Batch 10: Processed 500 records (500 new, 0 updated) at 21 records/sec
+
+Progress: 5000/20117 records (25%) at avg 18 records/sec
+Batch 11: Processed 500 records (500 new, 0 updated) at 18 records/sec
+Batch 12: Processed 500 records (500 new, 0 updated) at 21 records/sec
+Batch 13: Processed 500 records (500 new, 0 updated) at 23 records/sec
+Batch 14: Processed 500 records (500 new, 0 updated) at 18 records/sec
+Batch 15: Processed 500 records (500 new, 0 updated) at 17 records/sec
+
+Progress: 7500/20117 records (37%) at avg 18 records/sec
+Batch 16: Processed 500 records (500 new, 0 updated) at 21 records/sec
+Batch 17: Processed 500 records (500 new, 0 updated) at 24 records/sec
+Batch 18: Processed 500 records (500 new, 0 updated) at 18 records/sec
+Batch 19: Processed 500 records (500 new, 0 updated) at 20 records/sec
+Batch 20: Processed 500 records (500 new, 0 updated) at 17 records/sec
+
+Progress: 10000/20117 records (50%) at avg 19 records/sec

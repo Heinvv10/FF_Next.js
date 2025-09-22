@@ -58,6 +58,31 @@ npm run db:seed      # Seed database
 npm run db:validate  # Validate database schema
 ```
 
+### 📊 SOW Data Import (After Project Creation)
+
+After creating a new project, import Statement of Work (SOW) data using the proven scripts:
+
+```bash
+# For Fibre data import (edit script to set PROJECT_ID and file path):
+node scripts/sow-import/import-fibre-louissep15.cjs
+
+# Verify the import:
+node scripts/sow-import/verify-fibre-louissep15.cjs
+
+# Similar scripts available for:
+# - Poles: scripts/sow-import/run-import.cjs
+# - Drops: scripts/sow-import/run-import-drops.cjs
+```
+
+**Import Performance**: ~260 segments/second using `pg` library with batch processing
+
+**View imported data at**:
+- `/sow` - SOW Dashboard
+- `/fiber-stringing` - Fiber Stringing Dashboard
+- API: `/api/sow/fibre?projectId={PROJECT_ID}`
+
+See `/SOW/docs/importlog.md` for detailed import history.
+
 ## ⚠️ Known Issues
 
 ### Development Server Watchpack Bug

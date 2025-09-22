@@ -5,18 +5,41 @@
 
 const API_BASE = '/api';
 
-interface Contractor {
-  id?: string;
-  company_name: string;
-  contact_person?: string;
-  email?: string;
-  phone?: string;
-  specialization?: string;
-  hourly_rate?: number;
-  status?: string;
-  rating?: number;
-  created_at?: string;
-  updated_at?: string;
+// Import proper types instead of redefining
+import type { Contractor, ContractorFormData } from '@/types/contractor.types';
+
+// Convert camelCase to snake_case for API
+function formDataToApiFormat(data: ContractorFormData): any {
+  return {
+    companyName: data.companyName,
+    registrationNumber: data.registrationNumber,
+    businessType: data.businessType,
+    industryCategory: data.industryCategory,
+    yearsInBusiness: data.yearsInBusiness,
+    employeeCount: data.employeeCount,
+    contactPerson: data.contactPerson,
+    email: data.email,
+    phone: data.phone,
+    alternatePhone: data.alternatePhone,
+    physicalAddress: data.physicalAddress,
+    postalAddress: data.postalAddress,
+    city: data.city,
+    province: data.province,
+    postalCode: data.postalCode,
+    annualTurnover: data.annualTurnover,
+    creditRating: data.creditRating,
+    paymentTerms: data.paymentTerms,
+    bankName: data.bankName,
+    accountNumber: data.accountNumber,
+    branchCode: data.branchCode,
+    specializations: data.specializations || [],
+    certifications: data.certifications || [],
+    status: data.status,
+    complianceStatus: data.complianceStatus,
+    notes: data.notes,
+    tags: data.tags,
+    createdBy: data.createdBy || 'web_form'
+  };
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -24,7 +47,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
     throw new Error(error.message || `HTTP ${response.status}`);
   }
-  
+
   const data = await response.json();
   return data.data || data;
 }
@@ -40,11 +63,12 @@ export const contractorApiService = {
     return handleResponse<Contractor | null>(response);
   },
 
-  async create(contractorData: Omit<Contractor, 'id' | 'created_at' | 'updated_at'>): Promise<Contractor> {
+  async create(contractorData: ContractorFormData): Promise<Contractor> {
+    const apiData = formDataToApiFormat(contractorData);
     const response = await fetch(`${API_BASE}/contractors`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(contractorData)
+      body: JSON.stringify(apiData)
     });
     return handleResponse<Contractor>(response);
   },
@@ -93,7 +117,7 @@ export const contractorApiService = {
     const contractors = await this.getAll();
     const withRating = contractors.filter(c => c.rating !== undefined);
     const withRate = contractors.filter(c => c.hourly_rate !== undefined);
-    
+
     return {
       totalContractors: contractors.length,
       activeContractors: contractors.filter(c => c.status === 'active').length,
@@ -104,5 +128,15 @@ export const contractorApiService = {
         ? withRate.reduce((sum, c) => sum + (c.hourly_rate || 0), 0) / withRate.length
         : 0
     };
+  },
+
+  async searchByName(searchTerm: string): Promise<Contractor[]> {
+    const contractors = await this.getAll();
+    const term = searchTerm.toLowerCase();
+    return contractors.filter(c =>
+      c.company_name?.toLowerCase().includes(term) ||
+      c.contact_person?.toLowerCase().includes(term) ||
+      c.email?.toLowerCase().includes(term)
+    );
   }
 };

@@ -88,7 +88,9 @@ class AnalyticsApiClient {
     const params = new URLSearchParams();
     if (filters?.startDate) params.append('startDate', filters.startDate);
     if (filters?.endDate) params.append('endDate', filters.endDate);
-    
+    // Add timestamp to bypass cache
+    params.append('t', Date.now().toString());
+
     return this.fetch<any>(`/analytics/dashboard/stats?${params}`);
   }
 

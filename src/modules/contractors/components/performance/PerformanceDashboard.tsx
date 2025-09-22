@@ -76,11 +76,41 @@ export function PerformanceDashboard({
       }
       setError(null);
 
-      // Fetch analytics data from contractor service
-      const analyticsData = await contractorService.getAnalytics();
-      
-      // Get RAG rankings for leaderboard data
-      const topPerformers = await contractorService.rag.getRankedContractors(10);
+      // Fetch analytics data from contractor service with fallback
+      let analyticsData: any;
+      let topPerformers: any[] = [];
+
+      try {
+        analyticsData = await contractorService.getAnalytics();
+      } catch (analyticsError) {
+        log.warn('Analytics service failed, using fallback data:', { data: analyticsError }, 'PerformanceDashboard');
+        // Provide fallback analytics data
+        analyticsData = {
+          totalContractors: 0,
+          averageRating: 0,
+          averageHourlyRate: 0,
+          topRatedContractors: [],
+          contractorsBySpecialization: {},
+          recentlyAdded: [],
+          averageRAGScore: 0,
+          performanceBreakdown: { excellent: 0, good: 0, fair: 0, poor: 0 },
+          riskDistribution: { low: 0, medium: 0, high: 0 },
+          scoreDistribution: [],
+          performanceTrends: [],
+          averageImprovement: 0,
+          trendsDirection: 'stable',
+          peerComparison: { above: 0, below: 0, at: 0 },
+          segments: []
+        };
+      }
+
+      try {
+        // Get RAG rankings for leaderboard data
+        topPerformers = await contractorService.rag.getRankedContractors(10);
+      } catch (ragError) {
+        log.warn('RAG service failed, using empty leaderboard:', { data: ragError }, 'PerformanceDashboard');
+        topPerformers = [];
+      }
       
       // Transform the data into performance dashboard format
       const performanceData: PerformanceDashboardData = {
@@ -121,8 +151,8 @@ export function PerformanceDashboard({
             },
             activeProjects: 0, // TODO: Get from analytics
             completedProjects: 0, // TODO: Get from analytics
-            performanceCategory: getPerformanceCategory(ranking.ragScore.overall),
-            riskLevel: ranking.ragScore.risk
+            performanceCategory: getPerformanceCategory(ranking.ragScore?.overall || 0),
+            riskLevel: ranking.ragScore?.risk || 'medium'
           })),
           bottomPerformers: [], // TODO: Implement bottom performers
           mostImproved: [], // TODO: Implement improvement tracking

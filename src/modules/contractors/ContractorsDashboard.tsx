@@ -1,44 +1,166 @@
-'use client';
-
 /**
  * ContractorsDashboard - Enhanced contractors dashboard with comprehensive metrics
  * Features contractor stats, performance metrics, and management tools
+ * Pages Router compatible - no client-side hooks
  */
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { UserPlus, Download, RefreshCw, Upload } from 'lucide-react';
+import { UserPlus, Download, RefreshCw, Upload, TrendingUp } from 'lucide-react';
 import { ContractorList } from './components/ContractorList';
 import { PendingApplicationsList } from './components/applications';
 import { PerformanceDashboard } from './components/performance';
 import { DocumentApprovalQueue } from './components/documents';
 import { StatsGrid } from '@/components/dashboard/EnhancedStatCard';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { useContractorsDashboardData } from '@/hooks/useDashboardData';
 import { getContractorsDashboardCards } from '@/config/dashboards/dashboardConfigs';
 import { ContractorImport } from '@/components/contractor/ContractorImport';
+import { contractorApiService } from '@/services/contractor/contractorApiService';
 import { log } from '@/lib/logger';
-export function ContractorsDashboard() {
+
+interface ContractorsDashboardProps {
+  initialStats?: any;
+  initialTrends?: any;
+}
+
+export function ContractorsDashboard({ initialStats, initialTrends }: ContractorsDashboardProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [showImportModal, setShowImportModal] = useState(false);
-  
-  const { 
-    stats, 
-    trends, 
- 
-    formatNumber, 
-    formatCurrency, 
-    formatPercentage,
-    loadDashboardData 
-  } = useContractorsDashboardData();
+  const [stats, setStats] = useState(initialStats || {
+    contractorsActive: 0,
+    contractorsPending: 0,
+    totalProjects: 0,
+    performanceScore: 0,
+    qualityScore: 0,
+    onTimeDelivery: 0,
+  });
+  const [trends, setTrends] = useState(initialTrends || {});
+  const [topContractors, setTopContractors] = useState<any[]>([]);
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // 🟢 WORKING: Get contractor dashboard cards
-  const contractorCards = getContractorsDashboardCards(
-    stats, 
-    trends, 
-    { formatNumber, formatCurrency, formatPercentage }
-  );
+  // Utility functions
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toString();
+  };
+
+  const formatCurrency = (num: number): string => {
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+    }).format(num);
+  };
+
+  const formatPercentage = (num: number): string => {
+    return `${num.toFixed(1)}%`;
+  };
+
+  // Load dashboard data from API
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const [statsResponse, contractorsResponse] = await Promise.all([
+        fetch('/api/analytics/dashboard/stats'),
+        contractorApiService.getAll()
+      ]);
+
+      if (!statsResponse.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+
+      const statsData = await statsResponse.json();
+
+      setStats({
+        contractorsActive: statsData.data.contractorsActive || 0,
+        contractorsPending: statsData.data.contractorsPending || 0,
+        totalProjects: statsData.data.totalProjects || 0,
+        performanceScore: statsData.data.performanceScore || 0,
+        qualityScore: statsData.data.qualityScore || 0,
+        onTimeDelivery: statsData.data.onTimeDelivery || 0,
+      });
+
+      // Set top contractors (all contractors for now, sorted by creation date)
+      const sortedContractors = contractorsResponse
+        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 3)
+        .map((contractor: any) => ({
+          name: contractor.companyName,
+          score: contractor.performanceScore || 0,
+          projects: contractor.activeProjects || 0,
+          status: contractor.status
+        }));
+
+      setTopContractors(sortedContractors);
+
+      // Generate recent activities from contractor data
+      const activities = contractorsResponse
+        .slice(0, 3)
+        .map((contractor: any, index: number) => ({
+          action: `New contractor application: ${contractor.companyName}`,
+          time: getTimeAgo(new Date(contractor.createdAt)),
+          status: contractor.status
+        }));
+
+      setRecentActivities(activities);
+
+      // For now, set empty trends - can be enhanced later
+      setTrends({});
+
+    } catch (err) {
+      log.error('Failed to load dashboard data:', { data: err }, 'ContractorsDashboard');
+      setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Helper function to format time ago
+  const getTimeAgo = (date: Date): string => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+    if (diffDays > 0) {
+      return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    } else if (diffHours > 0) {
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    } else if (diffMinutes > 0) {
+      return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+    } else {
+      return 'Just now';
+    }
+  };
+
+  // Load data on mount
+  useEffect(() => {
+    if (!initialStats) {
+      loadDashboardData();
+    }
+  }, []);
+
+  // 🟢 WORKING: Get contractor dashboard cards with safety checks
+  const contractorCards = React.useMemo(() => {
+    if (!stats || !trends || !formatNumber || !formatCurrency || !formatPercentage) {
+      return [];
+    }
+    return getContractorsDashboardCards(
+      stats,
+      trends,
+      { formatNumber, formatCurrency, formatPercentage }
+    );
+  }, [stats, trends, formatNumber, formatCurrency, formatPercentage]);
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -48,33 +170,67 @@ export function ContractorsDashboard() {
     { id: 'performance', label: 'Performance Analytics' },
   ];
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="ff-page-container">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading contractors dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="ff-page-container">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">⚠️ Error loading dashboard</div>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={loadDashboardData}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="ff-page-container">
-      <DashboardHeader 
+      <DashboardHeader
         title="Contractors Dashboard"
         subtitle="Manage contractor relationships and performance"
         actions={[
           {
             label: 'Add Contractor',
-            icon: UserPlus as React.ComponentType<{ className?: string; }>,
+            icon: UserPlus,
             onClick: () => router.push('/contractors/new'),
             variant: 'primary'
           },
           {
             label: 'Import Contractors',
-            icon: Upload as React.ComponentType<{ className?: string; }>,
+            icon: Upload,
             onClick: () => setShowImportModal(true),
             variant: 'secondary'
           },
           {
             label: 'Export Report',
-            icon: Download as React.ComponentType<{ className?: string; }>,
+            icon: Download,
             onClick: () => log.info('Export contractors report', undefined, 'ContractorsDashboard'),
             variant: 'secondary'
           },
           {
             label: 'Refresh Data',
-            icon: RefreshCw as React.ComponentType<{ className?: string; }>,
+            icon: RefreshCw,
             onClick: loadDashboardData,
             variant: 'secondary'
           }
@@ -117,23 +273,30 @@ export function ContractorsDashboard() {
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performers</h3>
                 <div className="space-y-4">
-                  {/* TODO: Replace with real data */}
-                  {[
-                    { name: 'Alpha Construction', score: 96, projects: 12 },
-                    { name: 'Beta Networks', score: 92, projects: 8 },
-                    { name: 'Gamma Solutions', score: 89, projects: 15 },
-                  ].map((contractor, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">{contractor.name}</p>
-                        <p className="text-sm text-gray-500">{contractor.projects} active projects</p>
+                  {topContractors.length > 0 ? (
+                    topContractors.map((contractor, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-gray-900">{contractor.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {contractor.projects} active projects • {contractor.status}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-semibold ${contractor.score > 80 ? 'text-green-600' : contractor.score > 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {contractor.score}%
+                          </p>
+                          <p className="text-xs text-gray-500">Performance</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-green-600">{contractor.score}%</p>
-                        <p className="text-xs text-gray-500">Performance</p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <TrendingUp className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <p>No contractors yet</p>
+                      <p className="text-sm">Create your first contractor to see performance metrics</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
@@ -142,24 +305,27 @@ export function ContractorsDashboard() {
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activities</h3>
                 <div className="space-y-3">
-                  {/* TODO: Replace with real activity data */}
-                  {[
-                    { action: 'New contractor application', time: '2 hours ago', status: 'pending' },
-                    { action: 'Performance review completed', time: '5 hours ago', status: 'completed' },
-                    { action: 'Contract renewal approved', time: '1 day ago', status: 'approved' },
-                  ].map((activity, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <div className={`w-2 h-2 rounded-full mt-2 ${
-                        activity.status === 'pending' ? 'bg-yellow-400' :
-                        activity.status === 'completed' ? 'bg-green-400' : 
-                        'bg-blue-400'
-                      }`} />
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900">{activity.action}</p>
-                        <p className="text-xs text-gray-500">{activity.time}</p>
+                  {recentActivities.length > 0 ? (
+                    recentActivities.map((activity, index) => (
+                      <div key={index} className="flex items-start space-x-3">
+                        <div className={`w-2 h-2 rounded-full mt-2 ${
+                          activity.status === 'pending' || activity.status === 'documentation_incomplete' ? 'bg-yellow-400' :
+                          activity.status === 'approved' ? 'bg-green-400' :
+                          activity.status === 'under_review' ? 'bg-blue-400' :
+                          'bg-gray-400'
+                        }`} />
+                        <div className="flex-1">
+                          <p className="text-sm text-gray-900">{activity.action}</p>
+                          <p className="text-xs text-gray-500">{activity.time}</p>
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      <p>No recent activities</p>
+                      <p className="text-sm">Activities will appear when contractors are created or updated</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>

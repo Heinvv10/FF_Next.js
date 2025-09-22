@@ -1,0 +1,96 @@
+[dotenv@17.2.2] injecting env (18) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+Starting Nokia Velocity batch import using pg client...
+Project: louissep15
+Batch size: 500
+NOTE: Processing ONLY 1Map Field App tab (installation/drops progress)
+      Other tabs contain SOW planning data already imported
+--------------------------------------------------------------------------------
+Connected to database via pg client
+Reading Excel file: /home/louisdup/Downloads/Lawley Nokia Fibertime week ending template VELOCITY 15092025.xlsx
+Processing ONLY the 1Map Field App tab (installation progress data)
+Other tabs contain SOW data that is already imported
+
+Found 20117 rows in 1Map Field App sheet
+Cleared 10500 existing records for fresh import
+
+Batch 1: Processed 500 records (500 new, 0 updated) at 25 records/sec
+Batch 2: Processed 500 records (500 new, 0 updated) at 31 records/sec
+Batch 3: Processed 500 records (500 new, 0 updated) at 26 records/sec
+Batch 4: Processed 500 records (500 new, 0 updated) at 32 records/sec
+Batch 5: Processed 500 records (500 new, 0 updated) at 41 records/sec
+
+Progress: 2500/20117 records (12%) at avg 30 records/sec
+Batch 6: Processed 500 records (500 new, 0 updated) at 40 records/sec
+Batch 7: Processed 500 records (500 new, 0 updated) at 40 records/sec
+Batch 8: Processed 500 records (500 new, 0 updated) at 39 records/sec
+Batch 9: Processed 500 records (500 new, 0 updated) at 53 records/sec
+Batch 10: Processed 500 records (500 new, 0 updated) at 47 records/sec
+
+Progress: 5000/20117 records (25%) at avg 36 records/sec
+Batch 11: Processed 500 records (500 new, 0 updated) at 54 records/sec
+Batch 12: Processed 500 records (500 new, 0 updated) at 51 records/sec
+Batch 13: Processed 500 records (500 new, 0 updated) at 42 records/sec
+Batch 14: Processed 500 records (500 new, 0 updated) at 38 records/sec
+Batch 15: Processed 500 records (500 new, 0 updated) at 20 records/sec
+
+Progress: 7500/20117 records (37%) at avg 36 records/sec
+Batch 16: Processed 500 records (500 new, 0 updated) at 21 records/sec
+Batch 17: Processed 500 records (500 new, 0 updated) at 21 records/sec
+Batch 18: Processed 500 records (500 new, 0 updated) at 22 records/sec
+Batch 19: Processed 500 records (500 new, 0 updated) at 15 records/sec
+Batch 20: Processed 500 records (500 new, 0 updated) at 19 records/sec
+
+Progress: 10000/20117 records (50%) at avg 30 records/sec
+Batch 21: Processed 500 records (500 new, 0 updated) at 20 records/sec
+Batch 22: Processed 500 records (500 new, 0 updated) at 23 records/sec
+Batch 23: Processed 500 records (500 new, 0 updated) at 22 records/sec
+Batch 24: Processed 500 records (500 new, 0 updated) at 17 records/sec
+Batch 25: Processed 500 records (500 new, 0 updated) at 19 records/sec
+
+Progress: 12500/20117 records (62%) at avg 27 records/sec
+Batch 26: Processed 500 records (500 new, 0 updated) at 16 records/sec
+Batch 27: Processed 500 records (500 new, 0 updated) at 18 records/sec
+Batch 28: Processed 500 records (500 new, 0 updated) at 23 records/sec
+Batch 29: Processed 500 records (500 new, 0 updated) at 20 records/sec
+Batch 30: Processed 500 records (500 new, 0 updated) at 19 records/sec
+
+Progress: 15000/20117 records (75%) at avg 25 records/sec
+Batch 31: Processed 500 records (500 new, 0 updated) at 20 records/sec
+Batch 32: Processed 500 records (500 new, 0 updated) at 23 records/sec
+Batch 33: Processed 500 records (500 new, 0 updated) at 18 records/sec
+Batch 34: Processed 500 records (500 new, 0 updated) at 23 records/sec
+Batch 35: Processed 500 records (500 new, 0 updated) at 22 records/sec
+
+Progress: 17500/20117 records (87%) at avg 24 records/sec
+Batch 36: Processed 500 records (500 new, 0 updated) at 20 records/sec
+Batch 37: Processed 500 records (500 new, 0 updated) at 29 records/sec
+Batch 38: Processed 500 records (500 new, 0 updated) at 35 records/sec
+Batch 39: Processed 500 records (500 new, 0 updated) at 41 records/sec
+Batch 40: Processed 500 records (500 new, 0 updated) at 31 records/sec
+
+Progress: 20000/20117 records (99%) at avg 25 records/sec
+Batch 41: Processed 117 records (117 new, 0 updated) at 24 records/sec
+
+Progress: 20117/20117 records (100%) at avg 25 records/sec
+
+================================================================================
+NOKIA VELOCITY BATCH IMPORT COMPLETED
+================================================================================
+Total Records Processed: 20117
+New Records Inserted: 20117
+Records Updated: 0
+Errors: 0
+Total Time: 805.11 seconds
+Average Speed: 25 records/second
+================================================================================
+
+Database Verification: 23617 total Nokia records for project
+
+📊 QUICK LINKING CHECK:
+----------------------------------------
+Drops: 0 of 0 linked (0%)
+Poles: 0 of 0 linked (0%)
+
+Note: This data shows installation progress - drops already completed
+
+Database connection closed

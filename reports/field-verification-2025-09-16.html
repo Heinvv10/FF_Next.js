@@ -1,0 +1,439 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Field Verification Report - 2025-09-16</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #0066cc;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #555;
+      margin-top: 30px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .summary-card {
+      padding: 20px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .summary-card.success {
+      background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+      color: #333;
+    }
+    .summary-card.warning {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .summary-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .summary-card .value {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 0;
+    }
+    .summary-card .subtitle {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th {
+      background: #f8f9fa;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #dee2e6;
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    tr:hover {
+      background: #f8f9fa;
+    }
+    .confidence-high {
+      background: #d4edda;
+      color: #155724;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .confidence-medium {
+      background: #fff3cd;
+      color: #856404;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .confidence-low {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .match-type {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .match-exact { background: #28a745; color: white; }
+    .match-numeric { background: #17a2b8; color: white; }
+    .match-proximity { background: #ffc107; color: #333; }
+    .match-auto { background: #6c757d; color: white; }
+    .action-required {
+      background: #fff5f5;
+      border-left: 4px solid #dc3545;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .verification-needed {
+      background: #fffbf0;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+    }
+    @media print {
+      .container { box-shadow: none; }
+      .summary-card { break-inside: avoid; }
+      table { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 SOW Field Verification Report</h1>
+    <p><strong>Generated:</strong> 9/16/2025, 1:09:01 PM</p>
+    <p><strong>Purpose:</strong> Verify SOW pole mappings with field data for accuracy</p>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h3>Total Projects</h3>
+        <p class="value">1</p>
+        <p class="subtitle">With mappings</p>
+      </div>
+      <div class="summary-card success">
+        <h3>Total Mappings</h3>
+        <p class="value">4571</p>
+        <p class="subtitle">Pole connections found</p>
+      </div>
+      <div class="summary-card">
+        <h3>Average Confidence</h3>
+        <p class="value">94%</p>
+        <p class="subtitle">Mapping accuracy</p>
+      </div>
+      <div class="summary-card warning">
+        <h3>Unique Poles</h3>
+        <p class="value">4471</p>
+        <p class="subtitle">SOW poles mapped</p>
+      </div>
+    </div>
+
+    <h2>📋 Lawley</h2>
+    <p><strong>Project ID:</strong> 31c6184f-ad32-47ce-9930-25073574cdcd</p>
+    <p><strong>Mapping Coverage:</strong> 0 of 0 poles (0%)</p>
+
+    <h2>📋 louisep15B</h2>
+    <p><strong>Project ID:</strong> d1d4b89f-299d-45a0-ae35-fabba663b3e0</p>
+    <p><strong>Mapping Coverage:</strong> 0 of 0 poles (0%)</p>
+
+    <h2>📋 louissep15</h2>
+    <p><strong>Project ID:</strong> e2a61399-275a-4c44-8008-e9e42b7a3501</p>
+    <p><strong>Mapping Coverage:</strong> 4471 of 4471 poles (100.0%)</p>
+
+    <div class="verification-needed">
+      <strong>✅ High Confidence Matches - Please Verify:</strong>
+      <p>These poles have been automatically matched with high confidence. Field teams should verify these mappings are correct.</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>SOW Pole</th>
+          <th>OneMap Field Pole</th>
+          <th>Match Type</th>
+          <th>Confidence</th>
+          <th>Distance</th>
+          <th>Field Verification</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><strong>LAW.P.A002</strong></td>
+          <td>LAW.P.A002</td>
+          <td><span class="match-type match-numeric-suffix">numeric_suffix</span></td>
+          <td><span class="confidence-high">95%</span></td>
+          <td>-</td>
+          <td>☐ Verified ☐ Incorrect</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.B003</strong></td>
+          <td>LAW.P.B003</td>
+          <td><span class="match-type match-numeric-suffix">numeric_suffix</span></td>
+          <td><span class="confidence-high">95%</span></td>
+          <td>-</td>
+          <td>☐ Verified ☐ Incorrect</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.B004</strong></td>
+          <td>LAW.P.B004</td>
+          <td><span class="match-type match-numeric-suffix">numeric_suffix</span></td>
+          <td><span class="confidence-high">95%</span></td>
+          <td>-</td>
+          <td>☐ Verified ☐ Incorrect</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.C003</strong></td>
+          <td>LAW.P.C003</td>
+          <td><span class="match-type match-numeric-suffix">numeric_suffix</span></td>
+          <td><span class="confidence-high">95%</span></td>
+          <td>-</td>
+          <td>☐ Verified ☐ Incorrect</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.C004</strong></td>
+          <td>LAW.P.C004</td>
+          <td><span class="match-type match-numeric-suffix">numeric_suffix</span></td>
+          <td><span class="confidence-high">95%</span></td>
+          <td>-</td>
+          <td>☐ Verified ☐ Incorrect</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.D003</strong></td>
+          <td>LAW.P.D003</td>
+          <td><span class="match-type match-numeric-suffix">numeric_suffix</span></td>
+          <td><span class="confidence-high">95%</span></td>
+          <td>-</td>
+          <td>☐ Verified ☐ Incorrect</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.A003</strong></td>
+          <td>LAW.P.A003</td>
+          <td><span class="match-type match-numeric-suffix">numeric_suffix</span></td>
+          <td><span class="confidence-high">95%</span></td>
+          <td>-</td>
+          <td>☐ Verified ☐ Incorrect</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.A004</strong></td>
+          <td>LAW.P.A004</td>
+          <td><span class="match-type match-numeric-suffix">numeric_suffix</span></td>
+          <td><span class="confidence-high">95%</span></td>
+          <td>-</td>
+          <td>☐ Verified ☐ Incorrect</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.A005</strong></td>
+          <td>LAW.P.A005</td>
+          <td><span class="match-type match-numeric-suffix">numeric_suffix</span></td>
+          <td><span class="confidence-high">95%</span></td>
+          <td>-</td>
+          <td>☐ Verified ☐ Incorrect</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.A001</strong></td>
+          <td>LAW.P.A001</td>
+          <td><span class="match-type match-numeric-suffix">numeric_suffix</span></td>
+          <td><span class="confidence-high">95%</span></td>
+          <td>-</td>
+          <td>☐ Verified ☐ Incorrect</td>
+        </tr>
+
+      </tbody>
+    </table>
+
+    <div class="action-required">
+      <strong>⚠️ Low Confidence Matches - Action Required:</strong>
+      <p>These matches have low confidence and require field verification to confirm or correct the mapping.</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>SOW Pole</th>
+          <th>Possible Match</th>
+          <th>Match Type</th>
+          <th>Confidence</th>
+          <th>Distance</th>
+          <th>Field Action</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><strong>LAW.P.C002</strong></td>
+          <td>LAW.P.E002</td>
+          <td><span class="match-type match-auto">numeric_suffix</span></td>
+          <td><span class="confidence-low">50%</span></td>
+          <td>-</td>
+          <td>☐ Confirm ☐ Find Correct ☐ Not Found</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.E002</strong></td>
+          <td>LAW.P.A002</td>
+          <td><span class="match-type match-auto">numeric_suffix</span></td>
+          <td><span class="confidence-low">50%</span></td>
+          <td>-</td>
+          <td>☐ Confirm ☐ Find Correct ☐ Not Found</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.B002</strong></td>
+          <td>LAW.P.D002</td>
+          <td><span class="match-type match-auto">numeric_suffix</span></td>
+          <td><span class="confidence-low">50%</span></td>
+          <td>-</td>
+          <td>☐ Confirm ☐ Find Correct ☐ Not Found</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.S.A001</strong></td>
+          <td>LAW.P.E001</td>
+          <td><span class="match-type match-auto">numeric_suffix</span></td>
+          <td><span class="confidence-low">50%</span></td>
+          <td>-</td>
+          <td>☐ Confirm ☐ Find Correct ☐ Not Found</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.D001</strong></td>
+          <td>LAW.P.E001</td>
+          <td><span class="match-type match-auto">numeric_suffix</span></td>
+          <td><span class="confidence-low">50%</span></td>
+          <td>-</td>
+          <td>☐ Confirm ☐ Find Correct ☐ Not Found</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.E001</strong></td>
+          <td>LAW.P.D001</td>
+          <td><span class="match-type match-auto">numeric_suffix</span></td>
+          <td><span class="confidence-low">50%</span></td>
+          <td>-</td>
+          <td>☐ Confirm ☐ Find Correct ☐ Not Found</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.C001</strong></td>
+          <td>LAW.S.A001</td>
+          <td><span class="match-type match-auto">numeric_suffix</span></td>
+          <td><span class="confidence-low">50%</span></td>
+          <td>-</td>
+          <td>☐ Confirm ☐ Find Correct ☐ Not Found</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.S.A001</strong></td>
+          <td>LAW.P.B001</td>
+          <td><span class="match-type match-auto">numeric_suffix</span></td>
+          <td><span class="confidence-low">50%</span></td>
+          <td>-</td>
+          <td>☐ Confirm ☐ Find Correct ☐ Not Found</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.B001</strong></td>
+          <td>LAW.S.A001</td>
+          <td><span class="match-type match-auto">numeric_suffix</span></td>
+          <td><span class="confidence-low">50%</span></td>
+          <td>-</td>
+          <td>☐ Confirm ☐ Find Correct ☐ Not Found</td>
+        </tr>
+
+        <tr>
+          <td><strong>LAW.P.C001</strong></td>
+          <td>LAW.P.E001</td>
+          <td><span class="match-type match-auto">numeric_suffix</span></td>
+          <td><span class="confidence-low">50%</span></td>
+          <td>-</td>
+          <td>☐ Confirm ☐ Find Correct ☐ Not Found</td>
+        </tr>
+
+      </tbody>
+    </table>
+
+    <h2>📋 louistest</h2>
+    <p><strong>Project ID:</strong> 7f035b5b-d453-4f81-9279-5461acc76e0f</p>
+    <p><strong>Mapping Coverage:</strong> 0 of 0 poles (0%)</p>
+
+    <h2>📝 Field Verification Checklist</h2>
+    <div class="verification-needed">
+      <p><strong>For each pole mapping, field teams should verify:</strong></p>
+      <ol>
+        <li>☐ Physical pole number matches the records</li>
+        <li>☐ GPS coordinates are accurate (within 10 meters)</li>
+        <li>☐ Pole status matches field condition</li>
+        <li>☐ Associated drops are correctly linked</li>
+        <li>☐ Any damage or maintenance issues noted</li>
+        <li>☐ Photos taken for documentation</li>
+      </ol>
+    </div>
+
+    <h2>🔧 How to Submit Corrections</h2>
+    <ol>
+      <li><strong>Document Issues:</strong> Note any incorrect mappings with correct pole numbers</li>
+      <li><strong>GPS Verification:</strong> Record accurate GPS coordinates for mislocated poles</li>
+      <li><strong>Photo Evidence:</strong> Take clear photos of pole numbers and installations</li>
+      <li><strong>Submit Report:</strong> Email corrections to project manager with this report marked up</li>
+    </ol>
+
+    <div class="footer">
+      <p>Report generated by FibreFlow SOW Linking System</p>
+      <p>For questions or support, contact the technical team</p>
+    </div>
+  </div>
+</body>
+</html>

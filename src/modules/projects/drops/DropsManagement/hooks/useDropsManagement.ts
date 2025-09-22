@@ -15,27 +15,69 @@ export function useDropsManagement() {
     averageInstallTime: 0,
     totalCableUsed: 0,
   });
+  const [allDropsStats, setAllDropsStats] = useState<DropsStats>({
+    totalDrops: 0,
+    completedDrops: 0,
+    pendingDrops: 0,
+    inProgressDrops: 0,
+    failedDrops: 0,
+    completionRate: 0,
+    averageInstallTime: 0,
+    totalCableUsed: 0,
+  });
   const [filters, setFilters] = useState<DropsFiltersState>({
     searchTerm: '',
     statusFilter: 'all',
   });
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 1000,
+    totalItems: 0,
+    totalPages: 0,
+  });
 
   useEffect(() => {
     fetchDropsData();
+    fetchAllDropsStats();
   }, []);
 
-  const fetchDropsData = async () => {
+  const fetchAllDropsStats = async () => {
+    try {
+      // Get overall statistics for all drops
+      const response = await fetch('/api/sow/drops/stats');
+      const result = await response.json();
+
+      if (result.success) {
+        setAllDropsStats(result.stats);
+      } else {
+        // Fallback: use the API total count
+        const countResponse = await fetch('/api/sow/drops?limit=1');
+        const countResult = await countResponse.json();
+        if (countResult.success) {
+          setAllDropsStats(prev => ({
+            ...prev,
+            totalDrops: countResult.total || 0
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching all drops stats:', error);
+    }
+  };
+
+  const fetchDropsData = async (page = 1) => {
     try {
       setLoading(true);
       setError(null);
-      
-      const response = await fetch('/api/sow/drops');
+
+      const offset = (page - 1) * pagination.pageSize;
+      const response = await fetch(`/api/sow/drops?limit=${pagination.pageSize}&offset=${offset}`);
       const result = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to fetch drops');
       }
-      
+
       if (result.success && result.data) {
         // Transform database records to Drop format
         const transformedDrops: Drop[] = result.data.map((dbDrop: any) => ({
@@ -56,9 +98,20 @@ export function useDropsManagement() {
           zone: dbDrop.zone_no,
           pon: dbDrop.pon_no,
         }));
-        
+
         setDrops(transformedDrops);
         calculateStats(transformedDrops);
+
+        // Update pagination info
+        if (result.total !== undefined) {
+          const totalPages = Math.ceil(result.total / pagination.pageSize);
+          setPagination(prev => ({
+            ...prev,
+            currentPage: page,
+            totalItems: result.total,
+            totalPages,
+          }));
+        }
       } else {
         // Fallback to mock data if no database records
         const mockDrops: Drop[] = [
@@ -210,14 +263,102 @@ export function useDropsManagement() {
     setFilters((prev: DropsFiltersState) => ({ ...prev, ...newFilters }));
   };
 
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= pagination.totalPages) {
+      fetchDropsData(page);
+    }
+  };
+
+  const nextPage = () => {
+    if (pagination.currentPage < pagination.totalPages) {
+      goToPage(pagination.currentPage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (pagination.currentPage > 1) {
+      goToPage(pagination.currentPage - 1);
+    }
+  };
+
+  // Search functionality
+  const searchDrops = async (searchTerm: string, statusFilter: string = 'all') => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Build search query
+      const searchParams = new URLSearchParams({
+        limit: pagination.pageSize.toString(),
+        offset: '0',
+        ...(searchTerm && { search: searchTerm }),
+        ...(statusFilter !== 'all' && { status: statusFilter })
+      });
+
+      const response = await fetch(`/api/sow/drops/search?${searchParams}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to search drops');
+      }
+
+      if (result.success && result.data) {
+        // Transform database records to Drop format
+        const transformedDrops: Drop[] = result.data.map((dbDrop: any) => ({
+          id: dbDrop.id,
+          dropNumber: dbDrop.drop_number,
+          poleNumber: dbDrop.pole_number || '',
+          customerName: dbDrop.end_point || 'Unknown Customer',
+          address: dbDrop.address || dbDrop.end_point || '',
+          status: determineStatus(dbDrop),
+          installationType: dbDrop.cable_type || 'aerial',
+          cableLength: parseFloat(dbDrop.cable_length) || 0,
+          scheduledDate: dbDrop.created_date,
+          completedDate: dbDrop.updated_at,
+          technician: dbDrop.created_by || 'Unassigned',
+          latitude: dbDrop.latitude,
+          longitude: dbDrop.longitude,
+          municipality: dbDrop.municipality,
+          zone: dbDrop.zone_no,
+          pon: dbDrop.pon_no,
+        }));
+
+        setDrops(transformedDrops);
+        calculateStats(transformedDrops);
+
+        // Update pagination for search results
+        if (result.total !== undefined) {
+          const totalPages = Math.ceil(result.total / pagination.pageSize);
+          setPagination(prev => ({
+            ...prev,
+            currentPage: 1,
+            totalItems: result.total,
+            totalPages,
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error searching drops:', error);
+      setError(error instanceof Error ? error.message : 'Failed to search drops');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     drops,
     stats,
+    allDropsStats,
     filters,
     filteredDrops,
     updateFilters,
     loading,
     error,
-    refetch: fetchDropsData
+    refetch: fetchDropsData,
+    pagination,
+    goToPage,
+    nextPage,
+    prevPage,
+    searchDrops,
   };
 }
