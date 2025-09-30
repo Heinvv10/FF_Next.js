@@ -62,10 +62,11 @@ const ClientsPage: NextPage = () => {
   );
 };
 
-// Prevent static generation to avoid Html import issues
-export const getServerSideProps = async () => {
+// Use static generation for better performance
+export const getStaticProps = async () => {
   return {
     props: {},
+    revalidate: 60,
   };
 };
 

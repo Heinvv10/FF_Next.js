@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { TrendingUp, AlertTriangle, CheckCircle, BarChart3, Shield, DollarSign, Clock, Users } from 'lucide-react';
-import { contractorService } from '@/services/contractorService';
+import { contractorClientService } from '@/services/contractor/contractorClientService';
 import { RAGScoreDetails, ContractorRAGRanking } from '@/types/contractor.types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { log } from '@/lib/logger';
@@ -28,15 +28,19 @@ export function RAGDashboard({ contractorId, showRankings = false }: RAGDashboar
     try {
       setIsLoading(true);
       
-      if (contractorId) {
-        const score = await contractorService.rag.calculateRAGScore(contractorId);
-        setRAGScore(score);
-      }
+      // TODO: Implement RAG scoring in client service
+      // if (contractorId) {
+      //   const score = await contractorClientService.calculateRAGScore(contractorId);
+      //   setRAGScore(score);
+      // }
+      // 
+      // if (showRankings) {
+      //   const rankedContractors = await contractorClientService.getRankedContractors(10);
+      //   setRankings(rankedContractors);
+      // }
       
-      if (showRankings) {
-        const rankedContractors = await contractorService.rag.getRankedContractors(10);
-        setRankings(rankedContractors);
-      }
+      // For now, show placeholder message
+      log.info('RAG functionality temporarily disabled for client safety', undefined, 'RAGDashboard');
     } catch (error) {
       log.error('Failed to load RAG data:', { data: error }, 'RAGDashboard');
     } finally {

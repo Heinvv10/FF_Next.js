@@ -5,13 +5,13 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  X, 
-  ZoomIn, 
-  ZoomOut, 
-  RotateCw, 
-  Download, 
-  ChevronLeft, 
+import {
+  X,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Download,
+  ChevronLeft,
   ChevronRight,
   Maximize2,
   Minimize2,
@@ -22,6 +22,7 @@ import {
 import { ContractorDocument } from '@/types/contractor.types';
 import { DocumentPreviewData } from './types/documentApproval.types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { contractorDocumentService } from '@/services/contractor/contractorDocumentService';
 import toast from 'react-hot-toast';
 import { log } from '@/lib/logger';
 
@@ -77,6 +78,7 @@ export function DocumentViewer({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [previewData, setPreviewData] = useState<DocumentPreviewData | null>(null);
+  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
   
   // Refs for document container
   const containerRef = useRef<HTMLDivElement>(null);
@@ -107,28 +109,36 @@ export function DocumentViewer({
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const fileType = getFileType(document);
-      
+
       if (fileType === 'unsupported') {
         setError('This file type is not supported for preview. Please download to view.');
         return;
       }
-      
+
+      // Retrieve file from Neon storage
+      const fileData = await contractorDocumentService.retrieveDocument(document.id);
+
+      // Create blob URL for viewing
+      const blob = new Blob([fileData.fileData], { type: fileData.mimeType });
+      const url = URL.createObjectURL(blob);
+      setDocumentUrl(url);
+
       // Create preview data
       const preview: DocumentPreviewData = {
         documentId: document.id,
-        fileUrl: document.fileUrl,
-        fileName: document.fileName,
-        mimeType: document.mimeType || '',
-        fileSize: document.fileSize || 0,
+        fileUrl: url,
+        fileName: fileData.fileName,
+        mimeType: fileData.mimeType,
+        fileSize: fileData.fileSize,
         metadata: {
           documentType: document.documentType,
           uploadedAt: document.createdAt,
           expiryDate: document.expiryDate
         }
       };
-      
+
       // For PDFs, we would typically get page count from a PDF library
       // For now, we'll assume single page for images and unknown for PDFs
       if (fileType === 'pdf') {
@@ -139,9 +149,9 @@ export function DocumentViewer({
         preview.pages = 1;
         setTotalPages(1);
       }
-      
+
       setPreviewData(preview);
-      
+
     } catch (err) {
       log.error('Failed to load document preview:', { data: err }, 'DocumentViewer');
       setError('Failed to load document preview');
@@ -205,19 +215,27 @@ export function DocumentViewer({
   /**
    * Download document
    */
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback(async () => {
     try {
+      // Retrieve file from Neon storage for download
+      const fileData = await contractorDocumentService.retrieveDocument(document.id);
+      const blob = new Blob([fileData.fileData], { type: fileData.mimeType });
+      const url = URL.createObjectURL(blob);
+
       const link = window.document.createElement('a');
-      link.href = document.fileUrl;
-      link.download = document.fileName;
+      link.href = url;
+      link.download = fileData.fileName;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
-      
+
       // Trigger download
       window.document.body.appendChild(link);
       link.click();
       window.document.body.removeChild(link);
-      
+
+      // Clean up the object URL
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
       toast.success('Download started');
     } catch (error) {
       log.error('Failed to download document:', { data: error }, 'DocumentViewer');
@@ -286,15 +304,15 @@ export function DocumentViewer({
    * Render document content based on type
    */
   const renderDocumentContent = () => {
-    if (!previewData) return null;
-    
+    if (!previewData || !documentUrl) return null;
+
     const fileType = getFileType(document);
-    
+
     if (fileType === 'image') {
       return (
         <img
-          src={document.fileUrl}
-          alt={document.fileName}
+          src={documentUrl}
+          alt={previewData.fileName}
           style={{
             transform: `scale(${zoom}) rotate(${rotation}deg)`,
             maxWidth: 'none',
@@ -310,20 +328,20 @@ export function DocumentViewer({
         />
       );
     }
-    
+
     if (fileType === 'pdf') {
       return (
         <div className="w-full h-full">
           {/* 🟡 PARTIAL: PDF viewer implementation */}
           {/* This would typically use PDF.js or react-pdf for proper PDF rendering */}
           <iframe
-            src={`${document.fileUrl}#page=${currentPage}&zoom=${zoom * 100}`}
+            src={`${documentUrl}#page=${currentPage}&zoom=${zoom * 100}`}
             className="w-full h-full border-0"
             style={{
               transform: `rotate(${rotation}deg)`,
               transition: 'transform 0.3s ease'
             }}
-            title={document.fileName}
+            title={previewData.fileName}
             onLoad={() => setIsLoading(false)}
             onError={() => {
               setError('Failed to load PDF');
@@ -333,7 +351,7 @@ export function DocumentViewer({
         </div>
       );
     }
-    
+
     return null;
   };
 
@@ -341,6 +359,15 @@ export function DocumentViewer({
   useEffect(() => {
     loadPreviewData();
   }, [loadPreviewData]);
+
+  // Cleanup object URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (documentUrl) {
+        URL.revokeObjectURL(documentUrl);
+      }
+    };
+  }, [documentUrl]);
 
   // Setup keyboard event listeners
   useEffect(() => {
@@ -375,12 +402,12 @@ export function DocumentViewer({
             {getDocumentIcon(fileType)}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 truncate max-w-md">
-                {document.fileName}
+                {previewData?.fileName || document.fileName}
               </h3>
               <div className="flex items-center gap-4 text-sm text-gray-600">
                 <span>{document.documentType.replace('_', ' ')}</span>
-                {document.fileSize && (
-                  <span>{formatFileSize(document.fileSize)}</span>
+                {previewData?.fileSize && (
+                  <span>{formatFileSize(previewData.fileSize)}</span>
                 )}
                 <span>Uploaded: {new Date(document.createdAt).toLocaleDateString()}</span>
               </div>

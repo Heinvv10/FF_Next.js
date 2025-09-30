@@ -80,6 +80,7 @@ npm run format                # Prettier formatting
 npm run format:check          # Check formatting
 npm run antihall              # Anti-hallucination validator
 npm run check:db-connections  # Check for direct DB connections
+npm run test:logger           # Test logging functionality
 ```
 
 ### Single Test Execution
@@ -97,6 +98,42 @@ npx vitest --run src/path/to/test.test.ts --reporter=verbose
 npm run test:e2e -- --grep "@smoke"
 npm run test:e2e -- --grep "@visual"
 npm run test:e2e -- --grep "@mobile"
+```
+
+### Custom Tooling & Specifications
+```bash
+# Project specification management
+npm run spec-kit constitution  # Create/update project constitution
+npm run spec-kit specify       # Create new specifications
+npm run spec-kit plan          # Create implementation plans
+npm run spec-kit tasks         # Generate task lists
+npm run spec-kit analyze       # Analyze project alignment
+
+# Module-specific specifications
+npm run spec-module spec        # Create module specifications
+npm run spec-module list        # List all module specifications
+
+# Direct usage alternatives
+./spec-kit <command>            # Direct CLI access
+./spec-kit-module <command>     # Direct module CLI access
+./spec.sh <command>            # Wrapper script
+```
+
+### Warp Workflow Automation
+```bash
+# Development cycle automation (recommended for Warp agents)
+npm run warp:restart           # Stop → Build → Start cycle
+npm run warp:quick-test        # Restart + smoke tests
+npm run warp:full-cycle        # Full workflow: lint → build → start → test
+
+# Project context and status (ideal for Warp agents)
+npm run warp:status            # Complete project status overview
+npm run warp:context           # Contextual project information
+npm run warp:health            # Health check of all project components
+
+# Direct script access
+node scripts/warp-dev-cycle.js [restart|quick-test|full-cycle|status]
+node scripts/warp-context.js [status|recent|health|env|server|json]
 ```
 
 ## Architecture Overview
@@ -237,6 +274,95 @@ After making significant changes to pages, update corresponding logs in `docs/pa
 - **Development Server**: `npm run dev` fails due to Watchpack bug - use production mode
 - **File Watching**: Nested package.json files in `neon/` directory cause issues
 - **Build Requirement**: Must build before starting server for local development
+
+### Troubleshooting Guide
+
+#### Common Issues
+1. **Build Failures**
+   ```bash
+   npm run type-check          # Check TypeScript errors
+   npm run lint:strict         # Check for linting issues
+   ```
+
+2. **Database Connection Issues**
+   ```bash
+   npm run db:validate         # Validate database connections
+   npm run db:test             # Run database connectivity tests
+   ```
+
+3. **Performance Issues**
+   ```bash
+   npm run analyze             # Analyze bundle size
+   npm run analyze:bundle      # Detailed bundle analysis
+   ```
+
+4. **Development Server Problems**
+   - Always use production mode: `npm run build && PORT=3005 npm start`
+   - Check for port conflicts: `lsof -ti:3005`
+   - Clear Next.js cache: `rm -rf .next`
+
+#### Debug Commands
+```bash
+# Test specific functionality
+npm run test:logger           # Test logging system
+npm run antihall:stats        # View anti-hallucination stats
+npm run check:db-connections  # Verify database access patterns
+
+# E2E debugging
+npm run test:e2e:debug        # Debug Playwright tests
+npm run test:e2e:smoke        # Run smoke tests only
+```
+
+### Performance Monitoring
+
+#### Bundle Analysis
+```bash
+npm run analyze               # Generate bundle analysis
+npm run analyze:bundle        # Detailed bundle breakdown
+```
+
+#### Performance Optimization
+- **Bundle Size**: Monitor with `npm run analyze`
+- **Database Queries**: Use direct SQL for performance
+- **Real-time Features**: Optimize Socket.io connections
+- **Image Optimization**: Leverage Next.js Image component
+- **Caching**: Implement React Query for server state
+
+## Environment Configuration
+
+### Environment Files
+- **`.env.example`**: Template for environment variables
+- **`.env.local.example`**: Local development template
+- **`.env.production`**: Production-specific configuration
+- **`.env.fireflies`**: Fireflies.ai integration configuration
+
+### Required Environment Variables
+- **Database**: Neon PostgreSQL connection strings
+- **Authentication**: Clerk API keys and configuration
+- **External Services**: API keys for integrated services
+
+⚠️ **Never commit actual environment files** - use the `.example` files as templates.
+
+### Deployment Configuration
+
+#### Vercel Configuration
+The project is configured for Vercel deployment with `vercel.json`:
+- **Build Command**: `npm run build`
+- **Framework**: Next.js with automatic detection
+- **Region**: Frankfurt (fra1) for European deployment
+- **API Functions**: 30-second timeout for database operations
+- **Output**: `.next` directory for static exports
+
+#### Production Deployment
+```bash
+# Local production testing
+npm run build                 # Build for production
+PORT=3005 npm start          # Test production build locally
+
+# Vercel deployment
+npx vercel                   # Deploy to preview
+npx vercel --prod           # Deploy to production
+```
 
 ## Environment Requirements
 

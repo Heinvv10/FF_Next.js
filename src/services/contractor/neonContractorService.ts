@@ -561,5 +561,49 @@ export const neonContractorService = {
 
   mapDocuments(rows: any[]): ContractorDocument[] {
     return rows.map(row => this.mapDocument(row));
+  },
+
+  /**
+   * Update document storage information (for Neon file storage)
+   */
+  async updateDocumentStorageInfo(documentId: string, storageInfo: {
+    storageType: 'firebase' | 'neon';
+    storageId?: string;
+    fileUrl?: string;
+  }): Promise<void> {
+    try {
+      await sql`
+        UPDATE contractor_documents
+        SET
+          storage_type = ${storageInfo.storageType},
+          storage_id = ${storageInfo.storageId || null},
+          file_url = ${storageInfo.fileUrl || null}
+        WHERE id = ${documentId}::uuid
+      `;
+
+      log.info('Document storage info updated', { documentId, storageInfo }, 'neonContractorService');
+    } catch (error) {
+      log.error('Failed to update document storage info:', { documentId, storageInfo, error }, 'neonContractorService');
+      throw new Error(`Failed to update document storage info: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
+
+  /**
+   * Get document by storage ID (for Neon file retrieval)
+   */
+  async getContractorDocumentsByStorageId(documentId: string): Promise<ContractorDocument[]> {
+    try {
+      const result = await sql`
+        SELECT d.*, c.company_name
+        FROM contractor_documents d
+        LEFT JOIN contractors c ON d.contractor_id = c.id
+        WHERE d.id = ${documentId}::uuid
+      `;
+
+      return this.mapDocuments(result);
+    } catch (error) {
+      log.error('Failed to get document by storage ID:', { documentId, error }, 'neonContractorService');
+      throw new Error(`Failed to get document: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 };

@@ -7,6 +7,30 @@ import { apiResponse, ErrorCode } from '../../../../src/lib/apiResponse';
 // Initialize database connection with logging
 const sql = createLoggedSql(process.env.DATABASE_URL!);
 
+// Simple in-memory cache (5 minute TTL)
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCacheKey(projectId: string): string {
+  return `rfq:${projectId}`;
+}
+
+function getFromCache(key: string): any | null {
+  const cached = cache.get(key);
+  if (!cached) return null;
+
+  if (Date.now() - cached.timestamp > CACHE_TTL) {
+    cache.delete(key);
+    return null;
+  }
+
+  return cached.data;
+}
+
+function setCache(key: string, data: any): void {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
 export default withErrorHandler(async (
   req: NextApiRequest,
   res: NextApiResponse
@@ -15,6 +39,16 @@ export default withErrorHandler(async (
 
   if (req.method === 'GET') {
     try {
+      // Check cache first
+      const cacheKey = getCacheKey(projectId as string);
+      const cachedData = getFromCache(cacheKey);
+
+      if (cachedData) {
+        console.log(`🎯 Cache hit for ${cacheKey}`);
+        return res.status(200).json(cachedData);
+      }
+
+      console.log(`🔍 Cache miss for ${cacheKey}, querying database`);
       // Query real data from database
       let rfqData;
       let itemsData;

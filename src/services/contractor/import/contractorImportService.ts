@@ -9,10 +9,10 @@ import type {
   ContractorImportResult,
   ContractorImportRow 
 } from '@/types/contractor/import.types';
-import type { ContractorFormData } from '@/types/contractor/form.types';
+// ContractorFormData no longer needed - conversion done server-side
 import { ContractorImportValidator } from './contractorImportValidator';
 import { CSV_HEADER_MAPPING } from '@/constants/contractor/validation';
-import { contractorService } from '@/services/contractorService';
+// Removed direct database access - using API instead
 import { log } from '@/lib/logger';
 
 class ContractorImportService {
@@ -499,170 +499,104 @@ const text = await file.text();
   }
 
   /**
-   * Import validated contractor data to database
+   * Import validated contractor data via API
    */
   async importContractors(
     data: ContractorImportData, 
     options: ContractorImportOptions
   ): Promise<ContractorImportResult> {
     const startTime = Date.now();
-    log.info('🚀 Starting real database import of contractors...', undefined, 'contractorImportService');
+    log.info('🚀 Starting contractor import via API...', undefined, 'contractorImportService');
     
     const validContractors = data.contractors.filter(c => c.isValid);
     const invalidContractors = data.contractors.filter(c => !c.isValid);
-    const duplicates = data.contractors.filter(c => c.isDuplicate);
     
     log.info('📊 Import Summary:', { data: {
       total: data.contractors.length,
       valid: validContractors.length,
-      invalid: invalidContractors.length,
-      duplicates: duplicates.length
+      invalid: invalidContractors.length
     } }, 'contractorImportService');
-    const importedIds: string[] = [];
-    const errors: Array<{row: number; message: string; data: any}> = [];
     
-    // Add invalid contractors to errors
-    invalidContractors.forEach(contractor => {
-      errors.push({
-        row: contractor.rowNumber,
-        message: contractor.errors.join(', '),
-        data: { companyName: contractor.companyName }
+    // Prepare contractors for API
+    const contractorsToImport = validContractors
+      .filter(contractor => !contractor.isDuplicate || options.mode !== 'skipDuplicates')
+      .map(contractor => ({
+        companyName: contractor.companyName,
+        contactPerson: contractor.contactPerson,
+        email: contractor.email,
+        registrationNumber: contractor.registrationNumber,
+        phone: contractor.phone,
+        businessType: contractor.businessType,
+        services: contractor.services,
+        province: contractor.province,
+        regionOfOperations: contractor.regionOfOperations,
+        address1: contractor.address1,
+        address2: contractor.address2,
+        suburb: contractor.suburb,
+        city: contractor.city,
+        postalCode: contractor.postalCode,
+        website: contractor.website
+      }));
+    
+    try {
+      // Call the import API
+      const response = await fetch('/api/contractors/import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contractors: contractorsToImport,
+          options
+        })
       });
-    });
-    
-    // Process valid contractors
-    let successCount = 0;
-    let duplicatesSkipped = 0;
-    
-    for (const contractor of validContractors) {
-      try {
-        // Skip duplicates if mode is set to skip
-        if (contractor.isDuplicate && options.mode === 'skipDuplicates') {
-          duplicatesSkipped++;
-          log.info(`⏭️ Skipping duplicate: ${contractor.companyName}`, undefined, 'contractorImportService');
-          continue;
-        }
-        
-        // Convert import format to ContractorFormData
-        const contractorData: ContractorFormData = this.convertToFormData(contractor);
-        
-        log.info(`💾 Creating contractor: ${contractorData.companyName}`, undefined, 'contractorImportService');
-        
-        // Create contractor in database
-        const contractorId = await contractorService.create(contractorData);
-        importedIds.push(contractorId);
-        successCount++;
-        
-        log.info(`✅ Successfully created contractor with ID: ${contractorId}`, undefined, 'contractorImportService');
-        
-      } catch (error) {
-        log.error(`❌ Failed to create contractor ${contractor.companyName}:`, { data: error }, 'contractorImportService');
-        errors.push({
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Import failed');
+      }
+      
+      const result = await response.json();
+      
+      // Add client-side validation errors to the result
+      const clientErrors: Array<{row: number; message: string; data: any}> = [];
+      invalidContractors.forEach(contractor => {
+        clientErrors.push({
           row: contractor.rowNumber,
-          message: error instanceof Error ? error.message : 'Unknown error during creation',
+          message: contractor.errors.join(', '),
           data: { companyName: contractor.companyName }
         });
-      }
+      });
+      
+      const finalResult: ContractorImportResult = {
+        ...result.data,
+        errors: [...result.data.errors, ...clientErrors],
+        duration: Date.now() - startTime
+      };
+      
+      log.info('🎉 Import completed via API:', { data: finalResult }, 'contractorImportService');
+      return finalResult;
+      
+    } catch (error) {
+      log.error('❌ Import API call failed:', { data: error }, 'contractorImportService');
+      
+      // Return error result
+      return {
+        totalProcessed: data.contractors.length,
+        successCount: 0,
+        duplicatesSkipped: 0,
+        errors: [{
+          row: 0,
+          message: error instanceof Error ? error.message : 'Import failed',
+          data: {}
+        }],
+        importedIds: [],
+        duration: Date.now() - startTime
+      };
     }
-    
-    const result = {
-      totalProcessed: data.contractors.length,
-      successCount,
-      duplicatesSkipped,
-      errors,
-      importedIds,
-      duration: Date.now() - startTime
-    };
-    
-    log.info('🎉 Import completed:', { data: result }, 'contractorImportService');
-    return result;
   }
 
-  /**
-   * Convert import row format to ContractorFormData format
-   */
-  private convertToFormData(contractor: ContractorImportRow): ContractorFormData {
-    // Map business type from import format to form format
-    const businessTypeMapping: Record<string, ContractorFormData['businessType']> = {
-      'Pty Ltd': 'pty_ltd',
-      'CC': 'cc', 
-      'Trust': 'cc', // Map Trust to cc for now
-      'Sole Proprietor': 'sole_proprietor'
-    };
-    
-    // Generate unique registration number if missing or is placeholder
-    let registrationNumber = contractor.registrationNumber || '';
-    if (!registrationNumber || registrationNumber === '0000/000000/00' || registrationNumber.trim() === '') {
-      // Generate unique registration number using timestamp and random number
-      const timestamp = Date.now().toString().slice(-8); // Last 8 digits
-      const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-      registrationNumber = `TEMP/${timestamp}/${random}`;
-    }
-    
-    return {
-      // Company Information
-      companyName: contractor.companyName || '',
-      registrationNumber: registrationNumber,
-      businessType: businessTypeMapping[contractor.businessType || ''] || 'pty_ltd',
-      industryCategory: 'Telecommunications', // Default category
-      yearsInBusiness: undefined,
-      employeeCount: undefined,
-      
-      // Contact Information
-      contactPerson: contractor.contactPerson || '',
-      email: contractor.email || '',
-      phone: contractor.phone || '',
-      alternatePhone: '',
-      
-      // Address - map from import format
-      physicalAddress: [contractor.address1, contractor.address2, contractor.suburb]
-        .filter(Boolean)
-        .join(', '),
-      postalAddress: [contractor.address1, contractor.address2, contractor.suburb]
-        .filter(Boolean)
-        .join(', '),
-      city: contractor.city || '',
-      province: contractor.province || '',
-      postalCode: contractor.postalCode || '',
-      
-      // Service Information
-      serviceCategory: 'Installation', // Default
-      capabilities: contractor.services || [],
-      equipmentOwned: [],
-      certifications: [],
-      
-      // Business Details
-      website: contractor.website || '',
-      socialMediaProfiles: {},
-      
-      // Financial Information
-      annualRevenue: 0,
-      creditRating: 'Not Rated',
-      taxClearance: false,
-      
-      // Compliance & Certifications
-      beeLevel: 'Not Specified',
-      insuranceCoverage: {},
-      healthSafetyCertification: false,
-      
-      // Performance & Rating
-      performanceRating: 0,
-      reliabilityScore: 0,
-      qualityScore: 0,
-      
-      // Operational Information
-      operationalRegions: contractor.regionOfOperations || [],
-      teamSize: 1,
-      projectCapacity: 1,
-      
-      // Status & Metadata
-      status: 'pending' as const, // Use lowercase to match the expected status values
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      tags: [],
-      notes: 'Imported via Excel/CSV import'
-    };
-  }
+// Removed convertToFormData method - now handled in API endpoint
 
   /**
    * Download CSV template for contractor import

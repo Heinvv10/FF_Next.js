@@ -1,0 +1,163 @@
+[2025-09-24T12:22:59.366Z] INFO: === Starting Development Cycle Restart ===
+[2025-09-24T12:22:59.372Z] INFO: Stopping existing server...
+[2025-09-24T12:22:59.373Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:22:59.427Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:22:59.428Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:22:59.429Z] INFO: Building project...
+[2025-09-24T12:22:59.430Z] INFO: Executing: npm run build
+[2025-09-24T12:23:52.602Z] INFO: Build completed successfully
+[2025-09-24T12:23:52.603Z] INFO: Starting server on port 3005...
+[2025-09-24T12:23:53.730Z] WARN: Port 3005 already in use, stopping existing server first...
+[2025-09-24T12:23:53.731Z] INFO: Stopping existing server...
+[2025-09-24T12:23:53.731Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:23:53.779Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:23:53.780Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:23:55.784Z] INFO: Starting server on port 3005...
+[2025-09-24T12:23:56.758Z] WARN: Port 3005 already in use, stopping existing server first...
+[2025-09-24T12:23:56.759Z] INFO: Stopping existing server...
+[2025-09-24T12:23:56.759Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:23:56.805Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:23:56.805Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:23:58.808Z] INFO: Starting server on port 3005...
+[2025-09-24T12:23:59.848Z] WARN: Port 3005 already in use, stopping existing server first...
+[2025-09-24T12:23:59.849Z] INFO: Stopping existing server...
+[2025-09-24T12:23:59.849Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:23:59.896Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:23:59.897Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:01.900Z] INFO: Starting server on port 3005...
+[2025-09-24T12:24:03.092Z] WARN: Port 3005 already in use, stopping existing server first...
+[2025-09-24T12:24:03.092Z] INFO: Stopping existing server...
+[2025-09-24T12:24:03.092Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:24:03.134Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:03.134Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:05.137Z] INFO: Starting server on port 3005...
+[2025-09-24T12:24:06.347Z] WARN: Port 3005 already in use, stopping existing server first...
+[2025-09-24T12:24:06.348Z] INFO: Stopping existing server...
+[2025-09-24T12:24:06.348Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:24:06.399Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:06.399Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:08.402Z] INFO: Starting server on port 3005...
+[2025-09-24T12:24:09.587Z] WARN: Port 3005 already in use, stopping existing server first...
+[2025-09-24T12:24:09.587Z] INFO: Stopping existing server...
+[2025-09-24T12:24:09.587Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:24:09.627Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:09.627Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:11.628Z] INFO: Starting server on port 3005...
+[2025-09-24T12:24:12.755Z] WARN: Port 3005 already in use, stopping existing server first...
+[2025-09-24T12:24:12.755Z] INFO: Stopping existing server...
+[2025-09-24T12:24:12.755Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:24:12.803Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:12.804Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:14.807Z] INFO: Starting server on port 3005...
+[2025-09-24T12:24:15.776Z] WARN: Port 3005 already in use, stopping existing server first...
+[2025-09-24T12:24:15.777Z] INFO: Stopping existing server...
+[2025-09-24T12:24:15.777Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:24:15.829Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:15.829Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:17.832Z] INFO: Starting server on port 3005...
+[2025-09-24T12:24:18.954Z] WARN: Port 3005 already in use, stopping existing server first...
+[2025-09-24T12:24:18.954Z] INFO: Stopping existing server...
+[2025-09-24T12:24:18.954Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:24:18.998Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:18.998Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:21.001Z] INFO: Starting server on port 3005...
+[2025-09-24T12:24:21.984Z] WARN: Port 3005 already in use, stopping existing server first...
+[2025-09-24T12:24:21.984Z] INFO: Stopping existing server...
+[2025-09-24T12:24:21.984Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:24:22.035Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:22.036Z] WARN: Failed to stop server: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:24:22.609Z] ERROR: Server startup timeout
+[2025-09-24T12:25:59.512Z] INFO: === Starting Development Cycle Restart ===
+[2025-09-24T12:25:59.517Z] INFO: Stopping existing server...
+[2025-09-24T12:25:59.517Z] INFO: Executing: pkill -f "next-server" || true
+[2025-09-24T12:25:59.556Z] ERROR: Command failed: Command failed: pkill -f "next-server" || true
+
+[2025-09-24T12:25:59.556Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T12:25:59.595Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T12:25:59.595Z] INFO: Executing: pkill -f "PORT=3005" || true
+[2025-09-24T12:25:59.639Z] ERROR: Command failed: Command failed: pkill -f "PORT=3005" || true
+
+[2025-09-24T12:25:59.640Z] INFO: Executing: lsof -ti :3005 | xargs -r kill || true
+[2025-09-24T12:25:59.717Z] INFO: Tried: lsof -ti :3005 | xargs -r kill
+[2025-09-24T12:26:02.723Z] INFO: Executing: lsof -i :3005 || echo "Port free"
+[2025-09-24T12:26:02.806Z] INFO: Server stopped successfully
+[2025-09-24T12:26:02.807Z] INFO: Building project...
+[2025-09-24T12:26:02.807Z] INFO: Executing: npm run build
+[2025-09-24T12:27:07.060Z] INFO: Build completed successfully
+[2025-09-24T12:27:07.060Z] INFO: Starting server on port 3005...
+[2025-09-24T12:27:08.202Z] INFO: Server started successfully on port 3005
+[2025-09-24T12:27:08.202Z] INFO: Access at: http://localhost:3005
+[2025-09-24T12:27:08.202Z] INFO: === Development Cycle Restart Complete ===
+[2025-09-24T12:27:08.522Z] INFO: Server started successfully on port 3005
+[2025-09-24T12:27:08.522Z] INFO: Access at: http://localhost:3005
+[2025-09-24T14:35:55.983Z] INFO: === Starting Development Cycle Restart ===
+[2025-09-24T14:35:55.989Z] INFO: Stopping existing server...
+[2025-09-24T14:35:55.990Z] INFO: Executing: pkill -f "next-server" || true
+[2025-09-24T14:35:56.029Z] ERROR: Command failed: Command failed: pkill -f "next-server" || true
+
+[2025-09-24T14:35:56.030Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T14:35:56.072Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T14:35:56.073Z] INFO: Executing: pkill -f "PORT=3005" || true
+[2025-09-24T14:35:56.121Z] ERROR: Command failed: Command failed: pkill -f "PORT=3005" || true
+
+[2025-09-24T14:35:56.121Z] INFO: Executing: lsof -ti :3005 | xargs -r kill || true
+[2025-09-24T14:35:56.230Z] INFO: Tried: lsof -ti :3005 | xargs -r kill
+[2025-09-24T14:35:59.237Z] INFO: Executing: lsof -i :3005 || echo "Port free"
+[2025-09-24T14:35:59.321Z] INFO: Server stopped successfully
+[2025-09-24T14:35:59.322Z] INFO: Building project...
+[2025-09-24T14:35:59.322Z] INFO: Executing: npm run build
+[2025-09-24T14:37:02.144Z] INFO: Build completed successfully
+[2025-09-24T14:37:02.144Z] INFO: Starting server on port 3005...
+[2025-09-24T14:37:03.143Z] INFO: Server started successfully on port 3005
+[2025-09-24T14:37:03.143Z] INFO: Access at: http://localhost:3005
+[2025-09-24T14:37:03.143Z] INFO: === Development Cycle Restart Complete ===
+[2025-09-24T14:37:03.440Z] INFO: Server started successfully on port 3005
+[2025-09-24T14:37:03.441Z] INFO: Access at: http://localhost:3005
+[2025-09-24T16:45:09.513Z] INFO: === Starting Development Cycle Restart ===
+[2025-09-24T16:45:09.519Z] INFO: Stopping existing server...
+[2025-09-24T16:45:09.519Z] INFO: Executing: pkill -f "next-server" || true
+[2025-09-24T16:45:09.566Z] ERROR: Command failed: Command failed: pkill -f "next-server" || true
+
+[2025-09-24T16:45:09.566Z] INFO: Executing: pkill -f "next start" || true
+[2025-09-24T16:45:09.607Z] ERROR: Command failed: Command failed: pkill -f "next start" || true
+
+[2025-09-24T16:45:09.608Z] INFO: Executing: pkill -f "PORT=3005" || true
+[2025-09-24T16:45:09.645Z] ERROR: Command failed: Command failed: pkill -f "PORT=3005" || true
+
+[2025-09-24T16:45:09.645Z] INFO: Executing: lsof -ti :3005 | xargs -r kill || true
+[2025-09-24T16:45:09.734Z] INFO: Tried: lsof -ti :3005 | xargs -r kill
+[2025-09-24T16:45:12.739Z] INFO: Executing: lsof -i :3005 || echo "Port free"
+[2025-09-24T16:45:12.833Z] INFO: Server stopped successfully
+[2025-09-24T16:45:12.833Z] INFO: Building project...
+[2025-09-24T16:45:12.834Z] INFO: Executing: npm run build
+[2025-09-24T16:46:16.616Z] INFO: Build completed successfully
+[2025-09-24T16:46:16.618Z] INFO: Starting server on port 3005...
+[2025-09-24T16:46:17.839Z] INFO: Server started successfully on port 3005
+[2025-09-24T16:46:17.840Z] INFO: Access at: http://localhost:3005
+[2025-09-24T16:46:17.840Z] INFO: === Development Cycle Restart Complete ===
+[2025-09-24T16:46:18.185Z] INFO: Server started successfully on port 3005
+[2025-09-24T16:46:18.185Z] INFO: Access at: http://localhost:3005

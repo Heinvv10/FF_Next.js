@@ -27,8 +27,8 @@ export default async function handler(
   // Handle GET request - fetch drops
   if (req.method === 'GET') {
     try {
-      const { projectId, limit = '1000', offset = '0', fields } = req.query;
-      const limitNum = Math.min(parseInt(limit as string), 5000); // Cap at 5000 to prevent large responses
+      const { projectId, limit = '100', offset = '0', fields } = req.query;
+      const limitNum = Math.min(parseInt(limit as string), 1000); // Cap at 1000 for performance
       const offsetNum = parseInt(offset as string);
 
       let query;

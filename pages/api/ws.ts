@@ -40,7 +40,13 @@ export default async function handler(
 ) {
   if (req.method !== 'GET') {
     res.socket.server.io = undefined;
-    return;
+    return res.status(405).end('Method not allowed');
+  }
+
+  // Ensure proper upgrade for WebSocket connections
+  if (req.headers.upgrade === 'websocket') {
+    res.socket.server.io = undefined;
+    return res.status(426).end('Upgrade required');
   }
 
   if (!res.socket.server.io) {

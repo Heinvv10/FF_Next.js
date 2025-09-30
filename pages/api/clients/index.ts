@@ -141,20 +141,26 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
         const clientData = req.body;
         const newClient = await sql`
           INSERT INTO clients (
-            client_code, company_name, contact_person, email, phone,
-            address, city, state, country, status
+            company_name, contact_person, email, phone, alternate_phone,
+            address, city, state, country, postal_code, status,
+            contact_email, client_type, industry, website
           )
           VALUES (
-            ${clientData.client_code || clientData.clientCode || `CLI-${Date.now()}`},
-            ${clientData.client_name || clientData.clientName || clientData.name || clientData.company_name},
+            ${clientData.company_name || clientData.companyName || clientData.name || 'Unnamed Client'},
             ${clientData.contact_person || clientData.contactPerson || null},
             ${clientData.email || null},
             ${clientData.phone || null},
+            ${clientData.alternate_phone || clientData.alternatePhone || null},
             ${clientData.address || null},
             ${clientData.city || null},
             ${clientData.state || null},
             ${clientData.country || 'South Africa'},
-            ${clientData.status || 'active'}
+            ${clientData.postal_code || clientData.postalCode || null},
+            ${clientData.status || 'active'},
+            ${clientData.contact_email || clientData.contactEmail || clientData.email || null},
+            ${clientData.client_type || clientData.clientType || 'COMPANY'},
+            ${clientData.industry || null},
+            ${clientData.website || null}
           )
           RETURNING *
         `;
@@ -169,29 +175,35 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
         }
         const updates = req.body;
         const updatedClient = await sql`
-          UPDATE clients 
-          SET 
-              company_name = COALESCE(${updates.client_name || updates.clientName || updates.name || updates.company_name}, company_name),
+          UPDATE clients
+          SET
+              company_name = COALESCE(${updates.company_name || updates.companyName || updates.name || updates.company_name}, company_name),
               contact_person = COALESCE(${updates.contact_person || updates.contactPerson}, contact_person),
               email = COALESCE(${updates.email}, email),
               phone = COALESCE(${updates.phone}, phone),
+              alternate_phone = COALESCE(${updates.alternate_phone || updates.alternatePhone}, alternate_phone),
               address = COALESCE(${updates.address}, address),
               city = COALESCE(${updates.city}, city),
               state = COALESCE(${updates.state}, state),
               country = COALESCE(${updates.country}, country),
+              postal_code = COALESCE(${updates.postal_code || updates.postalCode}, postal_code),
               status = COALESCE(${updates.status}, status),
+              contact_email = COALESCE(${updates.contact_email || updates.contactEmail}, contact_email),
+              client_type = COALESCE(${updates.client_type || updates.clientType}, client_type),
+              industry = COALESCE(${updates.industry}, industry),
+              website = COALESCE(${updates.website}, website),
               updated_at = NOW()
           WHERE id = ${req.query.id as string}
           RETURNING *
         `;
-        
+
         if (updatedClient.length === 0) {
-          return res.status(404).json({ 
-            success: false, 
-            error: 'Client not found' 
+          return res.status(404).json({
+            success: false,
+            error: 'Client not found'
           });
         }
-        
+
         res.status(200).json({ success: true, data: updatedClient[0] });
         break;
       }

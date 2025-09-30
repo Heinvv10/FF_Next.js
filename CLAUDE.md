@@ -199,3 +199,13 @@ node /home/louisdup/VF/Apps/FF_React/scripts/sow-import/verify-fibre-louissep15.
 5. **Index**: Update `docs/page-logs/README.md` when creating new page logs
 
 This practice ensures knowledge retention and helps debug similar issues quickly.
+
+## Claude Code GLM Agent Usage
+
+To run Claude Code with the GLM code agent, use the following command:
+
+```bash
+claude --model glm-4.5
+```
+
+This will launch Claude Code using the GLM-4.5 model instead of the default model, which may provide different capabilities or performance characteristics for code generation and analysis tasks.

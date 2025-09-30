@@ -1,11 +1,12 @@
 /**
  * Contractor Document Service - Document management operations using Neon
- * Migrated from Firebase to Neon PostgreSQL
+ * Migrated from Firebase to Neon PostgreSQL with direct file storage
  */
 
 import { contractorApiService } from './contractorApiService';
+import { neonFileStorageService } from './neonFileStorageService';
 import { log } from '@/lib/logger';
-import { 
+import {
   ContractorDocument,
   DocumentType
 } from '@/types/contractor.types';
@@ -15,7 +16,7 @@ export interface DocumentUploadData {
   documentName: string;
   documentNumber?: string;
   fileName: string;
-  fileUrl: string;
+  fileBuffer: Buffer; // Direct file upload to Neon PostgreSQL
   fileSize?: number;
   mimeType?: string;
   issueDate?: Date;
@@ -46,24 +47,58 @@ export const contractorDocumentService = {
 
 
   /**
-   * Upload new document
+   * Upload new document directly to Neon PostgreSQL
    */
   async uploadDocument(contractorId: string, data: DocumentUploadData): Promise<string> {
     try {
+      // Validate required fields
+      if (!data.fileBuffer || !data.mimeType) {
+        throw new Error('fileBuffer and mimeType are required for document upload');
+      }
+
+      // First create the document record to get the document ID
       const document = await contractorApiService.addDocument(contractorId, {
         documentType: data.documentType as string,
         documentName: data.documentName,
         fileName: data.fileName,
-        filePath: data.fileUrl, // Using fileUrl as filePath
-        fileUrl: data.fileUrl,
+        filePath: 'neon_storage',
+        fileUrl: null,
         expiryDate: data.expiryDate,
         notes: data.notes
       });
-      
+
+      // Store the file using Neon file storage
+      const storageResult = await neonFileStorageService.storeFile({
+        documentId: parseInt(document.id), // Convert string ID to number
+        fileData: data.fileBuffer,
+        fileName: data.fileName,
+        mimeType: data.mimeType,
+        compressionType: 'none' // Can add compression later
+      });
+
+      // Update the document record with storage info
+      await contractorApiService.updateDocumentStorageInfo(document.id, {
+        storageType: 'neon',
+        storageId: storageResult.id,
+        fileUrl: null // No external URL needed for Neon storage
+      });
+
+      log.info('Document stored in Neon PostgreSQL', {
+        documentId: document.id,
+        storageId: storageResult.id,
+        originalSize: storageResult.originalSize,
+        fileName: data.fileName
+      }, 'contractorDocumentService');
+
       return document.id;
+
     } catch (error) {
-      log.error('Error uploading document:', { data: error }, 'contractorDocumentService');
-      throw new Error('Failed to upload document');
+      log.error('Error uploading document to Neon:', {
+        contractorId,
+        fileName: data.fileName,
+        error
+      }, 'contractorDocumentService');
+      throw new Error(`Failed to upload document: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   },
 
@@ -85,6 +120,75 @@ export const contractorDocumentService = {
   },
 
   /**
+   * Retrieve document file from Neon storage
+   */
+  async retrieveDocument(documentId: string): Promise<{
+    fileData: Buffer;
+    fileName: string;
+    mimeType: string;
+    fileSize: number;
+  }> {
+    try {
+      // Get document metadata to find storage reference
+      const documents = await contractorApiService.getContractorDocumentsByStorageId(documentId);
+
+      if (!documents || documents.length === 0) {
+        throw new Error('Document not found');
+      }
+
+      const document = documents[0];
+
+      if (!document.storageId || document.storageType !== 'neon') {
+        throw new Error('Document is not stored in Neon PostgreSQL');
+      }
+
+      // Retrieve file from Neon storage
+      const fileData = await neonFileStorageService.retrieveFile(document.storageId);
+
+      return {
+        fileData: fileData.fileData,
+        fileName: document.fileName,
+        mimeType: fileData.mimeType,
+        fileSize: fileData.originalSize
+      };
+
+    } catch (error) {
+      log.error('Error retrieving document from Neon:', { documentId, error }, 'contractorDocumentService');
+      throw new Error(`Failed to retrieve document: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
+
+  /**
+   * Delete document from Neon storage
+   */
+  async deleteDocument(documentId: string): Promise<void> {
+    try {
+      // Get document metadata
+      const documents = await contractorApiService.getContractorDocumentsByStorageId(documentId);
+
+      if (!documents || documents.length === 0) {
+        throw new Error('Document not found');
+      }
+
+      const document = documents[0];
+
+      // Delete file from Neon storage if it's stored there
+      if (document.storageId && document.storageType === 'neon') {
+        await neonFileStorageService.deleteFile(document.storageId);
+        log.info('File deleted from Neon PostgreSQL', { storageId: document.storageId }, 'contractorDocumentService');
+      }
+
+      // Delete document record
+      await contractorApiService.deleteDocument(documentId);
+      log.info('Document deleted successfully', { documentId }, 'contractorDocumentService');
+
+    } catch (error) {
+      log.error('Error deleting document from Neon:', { documentId, error }, 'contractorDocumentService');
+      throw new Error(`Failed to delete document: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  },
+
+  /**
    * Update document details
    */
   async updateDocument(documentId: string, data: Partial<DocumentUploadData>): Promise<void> {
@@ -94,18 +198,6 @@ export const contractorDocumentService = {
     } catch (error) {
       log.error('Error updating document:', { data: error }, 'contractorDocumentService');
       throw new Error('Failed to update document');
-    }
-  },
-
-  /**
-   * Delete document
-   */
-  async deleteDocument(documentId: string): Promise<void> {
-    try {
-      await contractorApiService.deleteDocument(documentId);
-    } catch (error) {
-      log.error('Error deleting document:', { data: error }, 'contractorDocumentService');
-      throw new Error('Failed to delete document');
     }
   },
 

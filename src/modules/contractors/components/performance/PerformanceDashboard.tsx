@@ -17,7 +17,7 @@ import {
   Calendar,
   Target
 } from 'lucide-react';
-import { contractorService } from '@/services/contractorService';
+import { contractorApiService } from '@/services/contractor/contractorApiService';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { RAGScoreChart } from './components/RAGScoreChart';
 import { TrendIndicators } from './components/TrendIndicators';
@@ -76,12 +76,31 @@ export function PerformanceDashboard({
       }
       setError(null);
 
-      // Fetch analytics data from contractor service with fallback
+      // Fetch analytics data from contractor API service with fallback
       let analyticsData: any;
       let topPerformers: any[] = [];
 
       try {
-        analyticsData = await contractorService.getAnalytics();
+        const summary = await contractorApiService.getContractorSummary();
+        const contractors = await contractorApiService.getAll();
+        
+        analyticsData = {
+          totalContractors: summary.totalContractors,
+          averageRating: summary.averageRating,
+          averageHourlyRate: summary.averageHourlyRate,
+          topRatedContractors: contractors.slice(0, 5),
+          contractorsBySpecialization: {},
+          recentlyAdded: contractors.slice(0, 5),
+          averageRAGScore: summary.averageRating,
+          performanceBreakdown: { excellent: 0, good: 0, fair: 0, poor: 0 },
+          riskDistribution: { low: 0, medium: 0, high: 0 },
+          scoreDistribution: [],
+          performanceTrends: [],
+          averageImprovement: 0,
+          trendsDirection: 'stable' as const,
+          peerComparison: { above: 0, below: 0, at: 0 },
+          segments: []
+        };
       } catch (analyticsError) {
         log.warn('Analytics service failed, using fallback data:', { data: analyticsError }, 'PerformanceDashboard');
         // Provide fallback analytics data
@@ -98,17 +117,23 @@ export function PerformanceDashboard({
           scoreDistribution: [],
           performanceTrends: [],
           averageImprovement: 0,
-          trendsDirection: 'stable',
+          trendsDirection: 'stable' as const,
           peerComparison: { above: 0, below: 0, at: 0 },
           segments: []
         };
       }
 
       try {
-        // Get RAG rankings for leaderboard data
-        topPerformers = await contractorService.rag.getRankedContractors(10);
+        // Get top rated contractors for leaderboard data
+        topPerformers = await contractorApiService.getTopRatedContractors(10);
+        topPerformers = topPerformers.map(contractor => ({
+          contractorId: contractor.id,
+          companyName: contractor.companyName,
+          ragScore: { overall: contractor.performanceScore || 0 },
+          performanceScore: contractor.performanceScore || 0
+        }));
       } catch (ragError) {
-        log.warn('RAG service failed, using empty leaderboard:', { data: ragError }, 'PerformanceDashboard');
+        log.warn('Top contractors service failed, using empty leaderboard:', { data: ragError }, 'PerformanceDashboard');
         topPerformers = [];
       }
       

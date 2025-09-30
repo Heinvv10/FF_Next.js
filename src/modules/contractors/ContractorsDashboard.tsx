@@ -11,6 +11,7 @@ import { ContractorList } from './components/ContractorList';
 import { PendingApplicationsList } from './components/applications';
 import { PerformanceDashboard } from './components/performance';
 import { DocumentApprovalQueue } from './components/documents';
+import ContractorDropsTab from './components/ContractorDropsTab';
 import { StatsGrid } from '@/components/dashboard/EnhancedStatCard';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { getContractorsDashboardCards } from '@/config/dashboards/dashboardConfigs';

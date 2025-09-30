@@ -1,0 +1,386 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+class ModuleSpecCLI {
+  constructor() {
+    this.projectDir = process.cwd();
+    this.specsDir = path.join(this.projectDir, 'specs');
+    this.modulesDir = path.join(this.projectDir, 'src/modules');
+    this.availableModules = this.getAvailableModules();
+  }
+
+  getAvailableModules() {
+    const modules = [];
+    if (fs.existsSync(this.modulesDir)) {
+      const items = fs.readdirSync(this.modulesDir);
+      items.forEach(item => {
+        const modulePath = path.join(this.modulesDir, item);
+        if (fs.statSync(modulePath).isDirectory()) {
+          const hasComponents = fs.existsSync(path.join(modulePath, 'components'));
+          const hasServices = fs.existsSync(path.join(modulePath, 'services'));
+          const hasTypes = fs.existsSync(path.join(modulePath, 'types'));
+          if (hasComponents || hasServices || hasTypes) {
+            modules.push({
+              name: item,
+              path: modulePath,
+              hasComponents,
+              hasServices,
+              hasTypes
+            });
+          }
+        }
+      });
+    }
+    return modules;
+  }
+
+  async askQuestion(question) {
+    return new Promise((resolve) => {
+      rl.question(question, (answer) => {
+        resolve(answer);
+      });
+    });
+  }
+
+  async createModuleSpec() {
+    console.log('📝 Creating Module-Specific Specification');
+    console.log('=========================================');
+
+    // Show available modules
+    console.log('\n📁 Available Modules:');
+    this.availableModules.forEach((module, index) => {
+      console.log(`   ${index + 1}. ${module.name}`);
+      const features = [];
+      if (module.hasComponents) features.push('components');
+      if (module.hasServices) features.push('services');
+      if (module.hasTypes) features.push('types');
+      console.log(`      (${features.join(', ')})`);
+    });
+
+    const moduleChoice = await this.askQuestion('\nSelect module (number): ');
+    const moduleIndex = parseInt(moduleChoice) - 1;
+
+    if (moduleIndex < 0 || moduleIndex >= this.availableModules.length) {
+      console.log('❌ Invalid module selection');
+      rl.close();
+      return;
+    }
+
+    const selectedModule = this.availableModules[moduleIndex];
+    console.log(`\n🎯 Module: ${selectedModule.name}`);
+
+    // Get existing components in this module
+    const componentsDir = path.join(selectedModule.path, 'components');
+    const existingComponents = [];
+    if (fs.existsSync(componentsDir)) {
+      const files = fs.readdirSync(componentsDir);
+      files.forEach(file => {
+        if (file.endsWith('.tsx')) {
+          existingComponents.push(path.basename(file, '.tsx'));
+        }
+      });
+    }
+
+    if (existingComponents.length > 0) {
+      console.log('\n🔧 Existing Components:');
+      existingComponents.forEach(comp => {
+        console.log(`   - ${comp}`);
+      });
+    }
+
+    const specName = await this.askQuestion('\nSpecification name (e.g., "User Authentication"): ');
+    const specType = await this.askQuestion('Spec type (new-feature/update/refactor): ');
+    const priority = await this.askQuestion('Priority (high/medium/low): ');
+    const stakeholders = await this.askQuestion('Stakeholders (comma separated): ');
+
+    // Get requirements
+    console.log('\n📋 Requirements (leave blank to finish):');
+    const requirements = [];
+    let i = 1;
+    while (true) {
+      const req = await this.askQuestion(`   Requirement ${i}: `);
+      if (!req.trim()) break;
+      requirements.push(req);
+      i++;
+    }
+
+    // Get acceptance criteria
+    console.log('\n✅ Acceptance Criteria (leave blank to finish):');
+    const acceptanceCriteria = [];
+    let j = 1;
+    while (true) {
+      const criteria = await this.askQuestion(`   Criteria ${j}: `);
+      if (!criteria.trim()) break;
+      acceptanceCriteria.push(criteria);
+      j++;
+    }
+
+    // Generate spec content
+    const specContent = this.generateSpecContent(
+      selectedModule.name,
+      specName,
+      specType,
+      priority,
+      stakeholders,
+      requirements,
+      acceptanceCriteria,
+      existingComponents
+    );
+
+    // Save spec
+    const moduleSpecsDir = path.join(this.specsDir, selectedModule.name);
+    if (!fs.existsSync(moduleSpecsDir)) {
+      fs.mkdirSync(moduleSpecsDir, { recursive: true });
+    }
+
+    const fileName = `${specName.toLowerCase().replace(/\s+/g, '-')}.md`;
+    const specPath = path.join(moduleSpecsDir, fileName);
+    fs.writeFileSync(specPath, specContent);
+
+    console.log(`\n✅ Module specification created: ${specPath}`);
+
+    // Ask if user wants to create implementation plan
+    const createPlan = await this.askQuestion('\nCreate implementation plan? (y/n): ');
+    if (createPlan.toLowerCase() === 'y') {
+      await this.createImplementationPlan(selectedModule.name, specName, requirements);
+    }
+
+    rl.close();
+  }
+
+  generateSpecContent(moduleName, specName, specType, priority, stakeholders, requirements, acceptanceCriteria, existingComponents) {
+    const today = new Date().toISOString().split('T')[0];
+
+    return `# ${specName} Specification
+
+## Module
+**${moduleName}**
+
+## Overview
+${this.generateOverview(specName, specType)}
+
+## Type
+- **Spec Type**: ${specType}
+- **Priority**: ${priority}
+- **Stakeholders**: ${stakeholders}
+- **Created**: ${today}
+- **Status**: Draft
+
+## Requirements
+${requirements.map((req, i) => `${i + 1}. ${req}`).join('\n')}
+
+## Acceptance Criteria
+${acceptanceCriteria.map((criteria, i) => `${i + 1}. ${criteria}`).join('\n')}
+
+## Existing Components
+${existingComponents.length > 0 ? existingComponents.map(comp => `- \`${comp}\``).join('\n') : 'No existing components identified'}
+
+## Technical Considerations
+- **Database Impact**: [Describe any database changes needed]
+- **API Changes**: [Describe any API modifications required]
+- **UI/UX Impact**: [Describe user interface changes]
+- **Performance**: [Consider performance implications]
+- **Security**: [Security considerations]
+
+## Dependencies
+- [ ] Database schema changes
+- [ ] API endpoint updates
+- [ ] New components needed
+- [ ] Existing component modifications
+- [ ] Testing requirements
+
+## Implementation Notes
+[Additional context, constraints, or considerations]
+
+## Related Files
+- Module path: \`src/modules/${moduleName}/\`
+- Service files: \`src/modules/${moduleName}/services/\`
+- Type definitions: \`src/modules/${moduleName}/types/\`
+
+---
+**Created**: ${today} | **Module**: ${moduleName} | **Priority**: ${priority}`;
+  }
+
+  generateOverview(specName, specType) {
+    const overviews = {
+      'new-feature': `This specification outlines a new feature to be implemented in the module. The feature will provide new functionality and capabilities to enhance the user experience and system capabilities.`,
+      'update': `This specification describes updates to existing functionality within the module. The changes will improve current features, fix issues, or enhance performance while maintaining backward compatibility.`,
+      'refactor': `This specification covers refactoring of existing code within the module. The refactoring will improve code quality, maintainability, and performance without changing external behavior.`
+    };
+    return overviews[specType] || overviews['new-feature'];
+  }
+
+  async createImplementationPlan(moduleName, specName, requirements) {
+    console.log('\n🗺️  Creating Implementation Plan');
+    console.log('==============================');
+
+    const phases = parseInt(await this.askQuestion('Number of implementation phases: ')) || 3;
+    const estimatedHours = await this.askQuestion('Estimated total hours: ');
+    const leadDeveloper = await this.askQuestion('Lead developer: ');
+
+    const planContent = this.generatePlanContent(moduleName, specName, requirements, phases, estimatedHours, leadDeveloper);
+
+    const plansDir = path.join(this.projectDir, 'plans', moduleName);
+    if (!fs.existsSync(plansDir)) {
+      fs.mkdirSync(plansDir, { recursive: true });
+    }
+
+    const fileName = `${specName.toLowerCase().replace(/\s+/g, '-')}-plan.md`;
+    const planPath = path.join(plansDir, fileName);
+    fs.writeFileSync(planPath, planContent);
+
+    console.log(`✅ Implementation plan created: ${planPath}`);
+  }
+
+  generatePlanContent(moduleName, specName, requirements, phases, estimatedHours, leadDeveloper) {
+    const today = new Date().toISOString().split('T')[0];
+    const phaseRequirements = Math.ceil(requirements.length / phases);
+
+    let phasesContent = '';
+    for (let i = 1; i <= phases; i++) {
+      const startReq = (i - 1) * phaseRequirements;
+      const endReq = Math.min(i * phaseRequirements, requirements.length);
+      const phaseReqs = requirements.slice(startReq, endReq);
+
+      phasesContent += `
+### Phase ${i}
+- **Timeline**: [Phase ${i} timeline]
+- **Hours**: ${Math.round(estimatedHours / phases)}h
+- **Requirements**: ${phaseReqs.map(req => req.split(' ')[0]).join(', ')}
+- **Deliverables**:
+  - [ ] Implement phase ${i} requirements
+  - [ ] Create/update components
+  - [ ] Write tests
+  - [ ] Update documentation
+- **Dependencies**: [List phase dependencies]
+`;
+    }
+
+    return `# ${specName} Implementation Plan
+
+## Module
+**${moduleName}**
+
+## Overview
+Implementation plan for ${specName} specification.
+
+## Project Details
+- **Specification**: ${specName}
+- **Module**: ${moduleName}
+- **Lead Developer**: ${leadDeveloper}
+- **Estimated Hours**: ${estimatedHours}
+- **Phases**: ${phases}
+- **Created**: ${today}
+- **Status**: Planning
+
+## Implementation Phases
+${phasesContent}
+
+## Resource Allocation
+- **Development**: ${Math.round(estimatedHours * 0.7)}h
+- **Testing**: ${Math.round(estimatedHours * 0.2)}h
+- **Documentation**: ${Math.round(estimatedHours * 0.1)}h
+
+## Risk Assessment
+- **Technical Risk**: [Assess technical complexity]
+- **Timeline Risk**: [Assess timeline feasibility]
+- **Resource Risk**: [Assess resource availability]
+
+## Success Criteria
+- [ ] All requirements implemented
+- [ ] All tests passing
+- [ ] Documentation updated
+- [ ] Code review completed
+- [ ] Performance benchmarks met
+
+## Milestone Dates
+- **Project Start**: [Start date]
+- **Phase 1 Complete**: [Phase 1 date]
+- **Phase 2 Complete**: [Phase 2 date]
+- **Phase 3 Complete**: [Phase 3 date]
+- **Project Complete**: [Completion date]
+
+---
+**Created**: ${today} | **Lead**: ${leadDeveloper} | **Hours**: ${estimatedHours}`;
+  }
+
+  async listModuleSpecs() {
+    console.log('📋 Module Specifications');
+    console.log('======================');
+
+    if (!fs.existsSync(this.specsDir)) {
+      console.log('No specifications directory found.');
+      rl.close();
+      return;
+    }
+
+    const modules = fs.readdirSync(this.specsDir);
+    if (modules.length === 0) {
+      console.log('No module specifications found.');
+      rl.close();
+      return;
+    }
+
+    modules.forEach(module => {
+      const moduleSpecsDir = path.join(this.specsDir, module);
+      if (fs.statSync(moduleSpecsDir).isDirectory()) {
+        const specs = fs.readdirSync(moduleSpecsDir).filter(file => file.endsWith('.md'));
+        if (specs.length > 0) {
+          console.log(`\n📁 ${module}:`);
+          specs.forEach(spec => {
+            const specPath = path.join(moduleSpecsDir, spec);
+            const content = fs.readFileSync(specPath, 'utf8');
+            const match = content.match(/^# (.+)$/m);
+            const title = match ? match[1] : spec.replace('.md', '');
+            const statusMatch = content.match(/\*\*Status\*\*:\s*(.+)$/m);
+            const status = statusMatch ? statusMatch[1] : 'Unknown';
+            console.log(`   📄 ${title} (${status})`);
+          });
+        }
+      }
+    });
+
+    rl.close();
+  }
+
+  async help() {
+    console.log('🚀 Module Spec Kit Commands');
+    console.log('============================');
+    console.log('');
+    console.log('Available commands:');
+    console.log('  spec      - Create module-specific specification');
+    console.log('  list      - List all module specifications');
+    console.log('  help      - Show this help message');
+    console.log('');
+    console.log('Usage: spec-kit-module <command>');
+    console.log('Example: spec-kit-module spec');
+    console.log('');
+    console.log('Module specs are stored in: specs/<module-name>/');
+    console.log('Implementation plans are stored in: plans/<module-name>/');
+    rl.close();
+  }
+}
+
+// Main execution
+const command = process.argv[2];
+const moduleSpecCLI = new ModuleSpecCLI();
+
+if (!command || command === 'help') {
+  moduleSpecCLI.help();
+} else if (command === 'spec') {
+  moduleSpecCLI.createModuleSpec();
+} else if (command === 'list') {
+  moduleSpecCLI.listModuleSpecs();
+} else {
+  console.log(`❌ Unknown command: ${command}`);
+  console.log('Use "spec-kit-module help" to see available commands');
+  rl.close();
+}

@@ -18,11 +18,11 @@ export function ProjectSummaryCards({ summary, projects = [] }: ProjectSummaryCa
   // Calculate summary from projects if not provided
   const calculatedSummary = summary || {
     totalProjects: projects.length,
-    activeProjects: projects.filter(p => p.status === 'IN_PROGRESS' || p.status === 'ACTIVE').length,
-    completedProjects: projects.filter(p => p.status === 'COMPLETED').length,
+    activeProjects: projects.filter(p => p.status === 'active' || p.status === 'ACTIVE' || p.status === 'IN_PROGRESS').length,
+    completedProjects: projects.filter(p => p.status === 'completed' || p.status === 'COMPLETED').length,
     totalBudget: projects.reduce((sum, p) => sum + (Number(p.budget_allocated) || 0), 0),
-    onHoldProjects: projects.filter(p => p.status === 'ON_HOLD').length,
-    highPriorityProjects: projects.filter(p => p.priority === 'HIGH' || p.priority === 'CRITICAL').length,
+    onHoldProjects: projects.filter(p => p.status === 'on-hold' || p.status === 'ON_HOLD').length,
+    highPriorityProjects: projects.filter(p => p.priority === 'high' || p.priority === 'HIGH' || p.priority === 'critical' || p.priority === 'CRITICAL').length,
   };
 
   const formatCurrency = (amount: number) => {

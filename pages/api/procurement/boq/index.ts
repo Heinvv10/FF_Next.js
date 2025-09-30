@@ -6,6 +6,30 @@ import { createLoggedSql, logCreate, logUpdate } from '@/lib/db-logger';
 // Initialize database connection with logging
 const sql = createLoggedSql(process.env.DATABASE_URL!);
 
+// Simple in-memory cache (5 minute TTL)
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCacheKey(projectId: string): string {
+  return `boq:${projectId}`;
+}
+
+function getFromCache(key: string): any | null {
+  const cached = cache.get(key);
+  if (!cached) return null;
+
+  if (Date.now() - cached.timestamp > CACHE_TTL) {
+    cache.delete(key);
+    return null;
+  }
+
+  return cached.data;
+}
+
+function setCache(key: string, data: any): void {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
 export default withErrorHandler(async (
   req: NextApiRequest,
   res: NextApiResponse
@@ -14,49 +38,110 @@ export default withErrorHandler(async (
 
   if (req.method === 'GET') {
     try {
+      // Check cache first
+      const cacheKey = getCacheKey(projectId as string);
+      const cachedData = getFromCache(cacheKey);
+
+      if (cachedData) {
+        console.log(`🎯 Cache hit for ${cacheKey}`);
+        return res.status(200).json(cachedData);
+      }
+
+      console.log(`🔍 Cache miss for ${cacheKey}, querying database`);
       // Query real data from database
       let boqData;
       let items;
       
       if (projectId && projectId !== 'all') {
-        // Get BOQ data for specific project
+        // Optimized: Get BOQ data for specific project with selective columns
         boqData = await sql`
-          SELECT * FROM boqs 
+          SELECT
+            id,
+            project_id,
+            title,
+            version,
+            status,
+            created_at,
+            updated_at
+          FROM boqs
           WHERE project_id = ${projectId}
           ORDER BY created_at DESC
+          LIMIT 50
         `;
-        
-        // Get BOQ items if we have BOQs
+
+        // Optimized: Get only essential BOQ items data
         if (boqData.length > 0) {
           items = await sql`
-            SELECT * FROM boq_items 
+            SELECT
+              id,
+              boq_id,
+              project_id,
+              item_code,
+              description,
+              uom,
+              quantity,
+              unit_price,
+              total_price,
+              category,
+              catalog_item_name,
+              procurement_status,
+              line_number,
+              created_at,
+              updated_at
+            FROM boq_items
             WHERE project_id = ${projectId}
             ORDER BY line_number
+            LIMIT 1000
           `;
         } else {
           items = [];
         }
       } else {
-        // Get all BOQs with their items count
+        // Optimized: Get all BOQs with efficient count query
         const boqWithCount = await sql`
-          SELECT 
-            b.*,
-            COUNT(bi.id)::int as items_count
+          SELECT
+            b.id,
+            b.project_id,
+            b.title,
+            b.version,
+            b.status,
+            b.created_at,
+            b.updated_at,
+            COALESCE(items_count.count, 0)::int as items_count
           FROM boqs b
-          LEFT JOIN boq_items bi ON b.id = bi.boq_id
-          GROUP BY b.id
+          LEFT JOIN (
+            SELECT boq_id, COUNT(*) as count
+            FROM boq_items
+            GROUP BY boq_id
+          ) items_count ON b.id = items_count.boq_id
           ORDER BY b.created_at DESC
-          LIMIT 100
+          LIMIT 50
         `;
-        
+
         boqData = boqWithCount;
-        
-        // Get items for all BOQs
+
+        // Optimized: Get items only for the most recent BOQs to reduce data
         if (boqData.length > 0) {
-          const boqIds = boqData.map(b => b.id);
+          const recentBoqIds = boqData.slice(0, 10).map(b => b.id); // Only first 10 BOQs
           items = await sql`
-            SELECT * FROM boq_items
-            WHERE boq_id = ANY(${boqIds})
+            SELECT
+              id,
+              boq_id,
+              project_id,
+              item_code,
+              description,
+              uom,
+              quantity,
+              unit_price,
+              total_price,
+              category,
+              catalog_item_name,
+              procurement_status,
+              line_number,
+              created_at,
+              updated_at
+            FROM boq_items
+            WHERE boq_id = ANY(${recentBoqIds})
             ORDER BY line_number
             LIMIT 500
           `;
@@ -90,12 +175,18 @@ export default withErrorHandler(async (
         categories: [...new Set(transformedItems.map(item => item.category))],
       };
 
-      res.status(200).json({ 
+      // Prepare response data
+      const responseData = {
         items: transformedItems,
         total: transformedItems.length,
         boqs: boqData,
         stats
-      });
+      };
+
+      // Store in cache
+      setCache(cacheKey, responseData);
+
+      res.status(200).json(responseData);
     } catch (error) {
       console.error('Error fetching BOQ items:', error);
       res.status(500).json({ error: 'Failed to fetch BOQ items' });

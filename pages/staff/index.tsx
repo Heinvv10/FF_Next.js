@@ -161,7 +161,22 @@ export default function StaffPage() {
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this staff member?')) {
-      setStaff(staff.filter(s => s.id !== id));
+      try {
+        const response = await fetch(`/api/staff?id=${id}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          // Remove from local state
+          setStaff(staff.filter(s => s.id !== id));
+        } else {
+          console.error('Failed to delete staff member');
+          alert('Failed to delete staff member. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error deleting staff member:', error);
+        alert('Error deleting staff member. Please try again.');
+      }
     }
   };
 
@@ -418,8 +433,9 @@ export default function StaffPage() {
 }
 
 // Prevent static generation to avoid router mounting issues
-export const getServerSideProps = async () => {
+export const getStaticProps = async () => {
   return {
     props: {},
+    revalidate: 60,
   };
 };

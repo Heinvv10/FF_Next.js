@@ -97,36 +97,45 @@ export const contractorApiService = {
 
   async getContractorsBySpecialization(specialization: string): Promise<Contractor[]> {
     const contractors = await this.getAll();
-    return contractors.filter(c => c.specialization === specialization);
+    return contractors.filter(c => c.specializations?.includes(specialization));
   },
 
   async getTopRatedContractors(limit: number = 10): Promise<Contractor[]> {
     const contractors = await this.getAll();
     return contractors
-      .filter(c => c.rating !== undefined)
-      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .filter(c => c.ragOverall !== undefined && c.ragOverall === 'green')
+      .sort((a, b) => (b.performanceScore || 0) - (a.performanceScore || 0))
       .slice(0, limit);
   },
 
   async getContractorSummary(): Promise<{
     totalContractors: number;
     activeContractors: number;
+    approvedContractors: number;
+    pendingApproval: number;
+    averagePerformanceScore: number;
+    averageSafetyScore: number;
     averageRating: number;
     averageHourlyRate: number;
   }> {
     const contractors = await this.getAll();
-    const withRating = contractors.filter(c => c.rating !== undefined);
-    const withRate = contractors.filter(c => c.hourly_rate !== undefined);
+    const withPerformance = contractors.filter(c => c.performanceScore !== undefined);
+    const withSafety = contractors.filter(c => c.safetyScore !== undefined);
+    const withRating = contractors.filter(c => c.ragOverall === 'green');
 
     return {
       totalContractors: contractors.length,
-      activeContractors: contractors.filter(c => c.status === 'active').length,
-      averageRating: withRating.length > 0
-        ? withRating.reduce((sum, c) => sum + (c.rating || 0), 0) / withRating.length
+      activeContractors: contractors.filter(c => c.status === 'approved').length,
+      approvedContractors: contractors.filter(c => c.status === 'approved').length,
+      pendingApproval: contractors.filter(c => c.status === 'pending' || c.status === 'under_review').length,
+      averagePerformanceScore: withPerformance.length > 0
+        ? withPerformance.reduce((sum, c) => sum + (c.performanceScore || 0), 0) / withPerformance.length
         : 0,
-      averageHourlyRate: withRate.length > 0
-        ? withRate.reduce((sum, c) => sum + (c.hourly_rate || 0), 0) / withRate.length
-        : 0
+      averageSafetyScore: withSafety.length > 0
+        ? withSafety.reduce((sum, c) => sum + (c.safetyScore || 0), 0) / withSafety.length
+        : 0,
+      averageRating: withRating.length > 0 ? (withRating.length / contractors.length) * 100 : 0,
+      averageHourlyRate: 0 // Placeholder - this would need to be calculated from actual rate data
     };
   },
 
@@ -134,8 +143,8 @@ export const contractorApiService = {
     const contractors = await this.getAll();
     const term = searchTerm.toLowerCase();
     return contractors.filter(c =>
-      c.company_name?.toLowerCase().includes(term) ||
-      c.contact_person?.toLowerCase().includes(term) ||
+      c.companyName?.toLowerCase().includes(term) ||
+      c.contactPerson?.toLowerCase().includes(term) ||
       c.email?.toLowerCase().includes(term)
     );
   }

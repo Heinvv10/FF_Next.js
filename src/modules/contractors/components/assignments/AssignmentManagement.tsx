@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Briefcase, Calendar, DollarSign, TrendingUp, Clock, CheckCircle } from 'lucide-react';
-import { contractorService } from '@/services/contractorService';
+import { contractorClientService } from '@/services/contractor/contractorClientService';
 import { ProjectAssignment, ContractorTeam } from '@/types/contractor.types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { AssignmentForm } from './AssignmentForm';

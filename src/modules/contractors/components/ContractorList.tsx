@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Building2, CheckCircle, Clock, UserCheck } from 'lucide-react';
-import { contractorService } from '@/services/contractorService';
+import { contractorApiService } from '@/services/contractor/contractorApiService';
 import { Contractor, ContractorFilter, ContractorAnalytics } from '@/types/contractor.types';
 import {
   StandardModuleHeader,
@@ -38,7 +38,7 @@ export function ContractorList() {
   const loadContractors = async () => {
     try {
       setIsLoading(true);
-      const data = await contractorService.getAll(filter);
+      const data = await contractorApiService.getAll();
       setContractors(data);
     } catch (error) {
       log.error('Failed to load contractors:', { data: error }, 'ContractorList');
@@ -50,7 +50,18 @@ export function ContractorList() {
 
   const loadAnalytics = async () => {
     try {
-      const data = await contractorService.getAnalytics();
+      const summary = await contractorApiService.getContractorSummary();
+      // Map summary to analytics format
+      const data = {
+        totalContractors: summary.totalContractors,
+        approvedContractors: summary.approvedContractors,
+        pendingApproval: summary.pendingApproval,
+        ragDistribution: {
+          green: Math.round(summary.averageRating / 10), // Approximate
+          amber: 0,
+          red: 0
+        }
+      } as ContractorAnalytics;
       setAnalytics(data);
     } catch (error) {
       log.error('Failed to load analytics:', { data: error }, 'ContractorList');

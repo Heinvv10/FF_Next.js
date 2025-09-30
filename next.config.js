@@ -10,6 +10,9 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  // Handle MUI CSS imports
+  transpilePackages: ['@mui/x-data-grid', '@mui/material'],
+
   // Disable static generation to prevent SSR issues
   experimental: {
     disableOptimizedLoading: true,
@@ -20,34 +23,22 @@ const nextConfig = {
   generateEtags: false,
   poweredByHeader: false,
 
-  // Fix file watching issues
-  webpack: (config, { dev, isServer }) => {
-    // Try to fix Watchpack issues with minimal configuration
-    if (dev && !isServer) {
-      config.watchOptions = {
-        ignored: ['**/node_modules/**'],
-        aggregateTimeout: 300,
-        poll: 1000,
-      };
-    }
-
-    // Ensure proper handling of undefined paths
-    if (config.resolve && config.resolve.alias) {
-      // Remove any undefined aliases that might cause issues
-      Object.keys(config.resolve.alias).forEach(key => {
-        if (config.resolve.alias[key] === undefined) {
-          delete config.resolve.alias[key];
-        }
-      });
-    }
-
+  // Explicitly use Pages Router (pages directory)
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  
+  // Simplified webpack config with proper path handling
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Ensure proper path resolution
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      os: false,
+    };
+    
     return config;
   },
 
-  // Disable static optimization to prevent router mounting issues
-  trailingSlash: false,
-  generateEtags: false,
-  poweredByHeader: false,
 };
 
 module.exports = nextConfig;

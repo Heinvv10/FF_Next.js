@@ -71,8 +71,8 @@ async function handleResponse<T>(response: Response): Promise<T> {
 function transformDbToClient(dbClient: DbClient): any {
   return {
     id: dbClient.id,
-    name: dbClient.name,
-    companyName: dbClient.name, // Alias for compatibility
+    name: dbClient.company_name || dbClient.name || 'Unnamed Client',
+    companyName: dbClient.company_name || dbClient.name || 'Unnamed Client', // Alias for compatibility
     email: dbClient.email,
     phone: dbClient.phone,
     address: dbClient.address,

@@ -9,9 +9,10 @@ export default function ActionItemsPage() {
   );
 }
 
-// Prevent static generation to avoid router mounting issues
-export const getServerSideProps = async () => {
+// Use static generation for better performance
+export const getStaticProps = async () => {
   return {
     props: {},
+    revalidate: 60,
   };
 };

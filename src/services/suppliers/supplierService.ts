@@ -1,209 +1,176 @@
 /**
- * Supplier Management Service - Legacy Compatibility Layer
- * 
- * @deprecated This file has been split into modular components for better maintainability.
- * 
- * New modular structure:
- * - supplier.crud.ts: Core CRUD operations
- * - supplier.status.ts: Status and preference management
- * - supplier.rating.ts: Rating and performance management
- * - supplier.search.ts: Search and filter operations
- * - supplier.compliance.ts: Compliance and document management
- * - supplier.subscriptions.ts: Real-time subscriptions
- * - supplier.statistics.ts: Statistics and analytics
- * 
- * For new code, import from the specific modules:
- * ```typescript
- * import { SupplierCrudService, SupplierSearchService } from '@/services/suppliers';
- * // or
- * import SupplierServices from '@/services/suppliers';
- * ```
- * 
- * This legacy layer maintains backward compatibility while the codebase transitions.
+ * Supplier Management Service - Updated to use Neon PostgreSQL
+ *
+ * This service now uses Neon PostgreSQL instead of Firebase for better performance
+ * and compatibility with the main application architecture.
+ *
+ * The service maintains the same interface as the original Firebase service
+ * for backward compatibility.
  */
 
-import { SupplierCrudService } from './supplier.crud';
-import { SupplierStatusService } from './supplier.status';
-import { SupplierRatingService } from './supplier.rating';
-import { SupplierSearchService } from './supplier.search';
-import { SupplierComplianceService } from './supplier.compliance';
-import { SupplierSubscriptionService } from './supplier.subscriptions';
-import { SupplierStatisticsService } from './supplier.statistics';
-import type { 
-  Supplier, 
-  SupplierFormData, 
+import { SupplierNeonService } from './supplierNeonService';
+import type {
+  Supplier,
+  SupplierFormData,
   SupplierStatus,
   SupplierRating,
   PerformancePeriod
 } from '@/types/supplier/base.types';
 
 /**
- * @deprecated Use the new modular services for better type safety and organization
- * 
- * Legacy supplier service object that delegates to new modular architecture
+ * Supplier Service - Now using Neon PostgreSQL
+ *
+ * This service provides the same interface as the original Firebase service
+ * but now uses the Neon PostgreSQL database for better performance and scalability.
  */
 export const supplierService = {
   // ============= CRUD Operations =============
-  
+
   /**
-   * @deprecated Use SupplierCrudService.getAll() instead
+   * Get all suppliers with optional filtering
    */
-  async getAll(filter?: { 
-    status?: SupplierStatus; 
-    category?: string; 
-    isPreferred?: boolean 
+  async getAll(filter?: {
+    status?: SupplierStatus;
+    category?: string;
+    isPreferred?: boolean
   }) {
-    return SupplierCrudService.getAll(filter);
+    return SupplierNeonService.getAll(filter);
   },
 
   /**
-   * @deprecated Use SupplierCrudService.getById() instead
+   * Get supplier by ID
    */
   async getById(id: string): Promise<Supplier> {
-    return SupplierCrudService.getById(id);
+    return SupplierNeonService.getById(id);
   },
 
   /**
-   * @deprecated Use SupplierCrudService.create() instead
+   * Create new supplier
    */
   async create(data: SupplierFormData): Promise<string> {
-    return SupplierCrudService.create(data);
+    return SupplierNeonService.create(data);
   },
 
   /**
-   * @deprecated Use SupplierCrudService.update() instead
+   * Update existing supplier
    */
   async update(id: string, data: Partial<SupplierFormData>): Promise<void> {
-    return SupplierCrudService.update(id, data);
+    return SupplierNeonService.update(id, data);
   },
 
   /**
-   * @deprecated Use SupplierCrudService.delete() instead
+   * Delete supplier
    */
   async delete(id: string): Promise<void> {
-    return SupplierCrudService.delete(id);
+    return SupplierNeonService.delete(id);
   },
 
   // ============= Status Management =============
-  
+
   /**
-   * @deprecated Use SupplierStatusService.updateStatus() instead
+   * Update supplier status
    */
   async updateStatus(id: string, status: SupplierStatus, reason?: string): Promise<void> {
-    return SupplierStatusService.updateStatus(id, status, reason);
+    return SupplierNeonService.updateStatus(id, status, reason);
   },
 
   /**
-   * @deprecated Use SupplierStatusService.setPreferred() instead
+   * Set preferred supplier
    */
   async setPreferred(id: string, isPreferred: boolean): Promise<void> {
-    return SupplierStatusService.setPreferred(id, isPreferred);
+    return SupplierNeonService.setPreferred(id, isPreferred);
   },
 
   // ============= Performance & Rating =============
-  
+
   /**
-   * @deprecated Use SupplierRatingService.updateRating() instead
+   * Update supplier rating
    */
   async updateRating(id: string, rating: Partial<SupplierRating>): Promise<void> {
-    return SupplierRatingService.updateRating(id, rating);
+    return SupplierNeonService.updateRating(id, rating);
   },
 
   /**
-   * @deprecated Use SupplierRatingService.calculatePerformance() instead
+   * Calculate supplier performance
    */
   async calculatePerformance(supplierId: string, period: PerformancePeriod) {
-    return SupplierRatingService.calculatePerformance(supplierId, period);
+    return SupplierNeonService.calculatePerformance(supplierId, period);
   },
 
   // ============= Search & Filter =============
-  
+
   /**
-   * @deprecated Use SupplierSearchService.searchByName() instead
+   * Search suppliers by name
    */
   async searchByName(searchTerm: string): Promise<Supplier[]> {
-    return SupplierSearchService.searchByName(searchTerm);
+    return SupplierNeonService.searchByName(searchTerm);
   },
 
   /**
-   * @deprecated Use SupplierSearchService.getPreferredSuppliers() instead
+   * Get preferred suppliers
    */
   async getPreferredSuppliers(): Promise<Supplier[]> {
-    return SupplierSearchService.getPreferredSuppliers();
+    return SupplierNeonService.getPreferredSuppliers();
   },
 
   /**
-   * @deprecated Use SupplierSearchService.getByCategory() instead
+   * Get suppliers by category
    */
   async getByCategory(category: string): Promise<Supplier[]> {
-    return SupplierSearchService.getByCategory(category);
+    return SupplierNeonService.getByCategory(category);
   },
 
   // ============= Compliance & Documents =============
-  
+
   /**
-   * @deprecated Use SupplierComplianceService.updateCompliance() instead
+   * Update supplier compliance
    */
   async updateCompliance(id: string, compliance: any): Promise<void> {
-    return SupplierComplianceService.updateCompliance(id, compliance);
+    return SupplierNeonService.updateCompliance(id, compliance);
   },
 
   /**
-   * @deprecated Use SupplierComplianceService.addDocument() instead
+   * Add supplier document
    */
   async addDocument(id: string, document: any): Promise<void> {
-    await SupplierComplianceService.addDocument(id, document);
+    return SupplierNeonService.addDocument(id, document);
   },
 
   // ============= Real-time Subscription =============
-  
+
   /**
-   * @deprecated Use SupplierSubscriptionService.subscribeToSupplier() instead
+   * Subscribe to supplier updates (now using polling)
    */
   subscribeToSupplier(supplierId: string, callback: (supplier: Supplier) => void) {
-    return SupplierSubscriptionService.subscribeToSupplier(supplierId, callback);
+    return SupplierNeonService.subscribeToSupplier(supplierId, callback);
   },
 
   /**
-   * @deprecated Use SupplierSubscriptionService.subscribeToSuppliers() instead
+   * Subscribe to suppliers list updates (now using polling)
    */
   subscribeToSuppliers(callback: (suppliers: Supplier[]) => void) {
-    return SupplierSubscriptionService.subscribeToSuppliers(callback);
+    return SupplierNeonService.subscribeToSuppliers(callback);
   },
 
   // ============= Statistics =============
-  
+
   /**
-   * @deprecated Use SupplierStatisticsService.getStatistics() instead
+   * Get supplier statistics
    */
   async getStatistics() {
-    return SupplierStatisticsService.getStatistics();
+    return SupplierNeonService.getStatistics();
   },
 
   /**
-   * @deprecated Use SupplierStatisticsService.countByCategory() instead
+   * Count suppliers by category
    */
   countByCategory(suppliers: Supplier[]) {
-    const counts: Record<string, number> = {};
-    
-    suppliers.forEach(supplier => {
-      supplier.categories?.forEach(category => {
-        counts[category] = (counts[category] || 0) + 1;
-      });
-    });
-    
-    return counts;
+    return SupplierNeonService.countByCategory(suppliers);
   }
 };
 
-// Re-export new modular services for migration convenience
-export { SupplierCrudService } from './supplier.crud';
-export { SupplierStatusService } from './supplier.status';
-export { SupplierRatingService } from './supplier.rating';
-export { SupplierSearchService } from './supplier.search';
-export { SupplierComplianceService } from './supplier.compliance';
-export { SupplierSubscriptionService } from './supplier.subscriptions';
-export { SupplierStatisticsService } from './supplier.statistics';
+// Export the Neon service for direct access if needed
+export { SupplierNeonService };
 
 // Default export maintains compatibility
 export default supplierService;

@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Upload, File, CheckCircle, AlertTriangle, X, Eye, Download, Plus } from 'lucide-react';
-import { contractorService } from '@/services/contractorService';
+import { contractorClientService } from '@/services/contractor/contractorClientService';
 import { ContractorDocument, DocumentType } from '@/types/contractor.types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';

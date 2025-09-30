@@ -24,7 +24,8 @@ export default async function handler(
   // Handle GET requests to fetch poles data
   if (req.method === 'GET') {
     try {
-      const { projectId, limit = '1000', offset = '0' } = req.query;
+      const { projectId, limit = '100000', offset = '0' } = req.query;
+      const limitNum = Math.min(parseInt(limit as string), 100000); // Cap at 100000 to allow all records
 
       if (!projectId) {
         return res.status(400).json({
@@ -40,7 +41,7 @@ export default async function handler(
         SELECT * FROM sow_poles
         WHERE project_id = ${projectId}
         ORDER BY pole_number ASC
-        LIMIT ${parseInt(limit as string)}
+        LIMIT ${limitNum}
         OFFSET ${parseInt(offset as string)}
       `;
 

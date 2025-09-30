@@ -15,8 +15,12 @@ export function DropsManagement() {
     filteredDrops,
     updateFilters,
     loading,
+    loadingMore,
     error,
-    searchDrops
+    searchDrops,
+    loadMore,
+    hasMore,
+    pagination
   } = useDropsManagement();
 
   if (loading) {
@@ -53,7 +57,13 @@ export function DropsManagement() {
       <DropsHeader stats={allDropsStats} />
       <DropsStatsCards stats={stats} allDropsStats={allDropsStats} />
       <DropsFilters filters={filters} onFiltersChange={handleFiltersChange} />
-      <DropsGrid drops={filteredDrops} />
+      <DropsGrid
+        drops={filteredDrops}
+        loading={loadingMore}
+        hasMore={hasMore}
+        onLoadMore={loadMore}
+        totalCount={pagination.totalItems}
+      />
     </div>
   );
 }

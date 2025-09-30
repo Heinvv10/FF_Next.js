@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { contractorService } from '@/services/contractorService';
+import { contractorClientService } from '@/services/contractor/contractorClientService';
 import { ContractorFormData, Contractor } from '@/types/contractor.types';
 import toast from 'react-hot-toast';
 import { log } from '@/lib/logger';
@@ -55,7 +55,7 @@ export function useContractorEdit() {
       }
 
       try {
-        const contractorData = await contractorService.getById(id);
+        const contractorData = await contractorClientService.getById(id);
         if (!contractorData) {
           toast.error('Contractor not found');
           navigate('/app/contractors');
@@ -132,7 +132,7 @@ export function useContractorEdit() {
     setIsSubmitting(true);
     
     try {
-      await contractorService.update(id, formData);
+      await contractorClientService.update(id, formData);
       toast.success('Contractor updated successfully!');
       navigate('/app/contractors');
     } catch (error) {

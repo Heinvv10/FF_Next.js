@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { contractorService } from '@/services/contractorService';
+import { contractorClientService } from '@/services/contractor/contractorClientService';
 import { Contractor } from '@/types/contractor.types';
 import toast from 'react-hot-toast';
 import { log } from '@/lib/logger';
@@ -29,7 +29,7 @@ export function useContractorView() {
       }
 
       try {
-        const contractorData = await contractorService.getById(id);
+        const contractorData = await contractorClientService.getById(id);
         if (!contractorData) {
           toast.error('Contractor not found');
           navigate('/app/contractors');
@@ -53,7 +53,7 @@ export function useContractorView() {
     
     setIsDeleting(true);
     try {
-      await contractorService.delete(id);
+      await contractorClientService.delete(id);
       toast.success('Contractor deleted successfully');
       navigate('/app/contractors');
     } catch (error: any) {

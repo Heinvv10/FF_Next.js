@@ -14,9 +14,10 @@ export default function Contractors() {
   );
 }
 
-// Prevent static generation to avoid router mounting issues
-export const getServerSideProps = async () => {
+// Use client-side rendering to avoid SSR/ISR issues
+// This allows the page to work properly with dynamic content and tabs
+export async function getServerSideProps() {
   return {
-    props: {},
+    props: {}, // Empty props for client-side rendering
   };
-};
+}

@@ -1,0 +1,318 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+class SpecKitCLI {
+  constructor() {
+    this.projectDir = process.cwd();
+    this.specifyDir = path.join(this.projectDir, '.specify');
+    this.memoryDir = path.join(this.specifyDir, 'memory');
+    this.templatesDir = path.join(this.specifyDir, 'templates');
+  }
+
+  async askQuestion(question) {
+    return new Promise((resolve) => {
+      rl.question(question, (answer) => {
+        resolve(answer);
+      });
+    });
+  }
+
+  async constitution() {
+    console.log('📋 Creating Project Constitution');
+    console.log('=================================');
+
+    const projectName = await this.askQuestion('Project name: ');
+    const numPrinciples = parseInt(await this.askQuestion('Number of core principles (3-7): ')) || 5;
+
+    const principles = [];
+    for (let i = 1; i <= numPrinciples; i++) {
+      console.log(`\nPrinciple ${i}:`);
+      const name = await this.askQuestion('  Name: ');
+      const description = await this.askQuestion('  Description: ');
+      principles.push({ name, description });
+    }
+
+    const governance = await this.askQuestion('Governance rules: ');
+    const version = '1.0.0';
+    const ratified = new Date().toISOString().split('T')[0];
+
+    const constitution = `# ${projectName} Constitution
+
+## Core Principles
+
+${principles.map((p, i) => `
+### ${i}. ${p.name}
+${p.description}
+`).join('')}
+
+## Governance
+
+${governance}
+
+## Version Control
+- Version: ${version}
+- Ratified: ${ratified}
+- Last Amended: ${ratified}
+
+**Version**: ${version} | **Ratified**: ${ratified} | **Last Amended**: ${ratified}
+`;
+
+    const constitutionPath = path.join(this.memoryDir, 'constitution.md');
+    fs.writeFileSync(constitutionPath, constitution);
+
+    console.log(`\n✅ Constitution created at: ${constitutionPath}`);
+    console.log('📝 Version: 1.0.0');
+    console.log('🗓️  Ratified:', ratified);
+
+    rl.close();
+  }
+
+  async specify() {
+    console.log('📝 Creating Specification');
+    console.log('==========================');
+
+    const specName = await this.askQuestion('Specification name: ');
+    const purpose = await this.askQuestion('Purpose/Goal: ');
+    const scope = await this.askQuestion('Scope (in scope/out of scope): ');
+    const requirements = await this.askQuestion('Key requirements (comma separated): ');
+
+    const spec = `# ${specName} Specification
+
+## Purpose
+${purpose}
+
+## Scope
+${scope}
+
+## Requirements
+${requirements.split(',').map((req, i) => `${i + 1}. ${req.trim()}`).join('\n')}
+
+## Acceptance Criteria
+- [ ] All requirements must be met
+- [ ] Code follows project standards
+- [ ] Tests pass successfully
+- [ ] Documentation is updated
+
+## Dependencies
+- List any dependencies or prerequisites
+
+## Notes
+- Additional context or considerations
+
+---
+**Created**: ${new Date().toISOString().split('T')[0]}
+**Status**: Draft
+`;
+
+    const specsDir = path.join(this.projectDir, 'specs');
+    if (!fs.existsSync(specsDir)) {
+      fs.mkdirSync(specsDir);
+    }
+
+    const specPath = path.join(specsDir, `${specName.toLowerCase().replace(/\s+/g, '-')}.md`);
+    fs.writeFileSync(specPath, spec);
+
+    console.log(`\n✅ Specification created at: ${specPath}`);
+    rl.close();
+  }
+
+  async plan() {
+    console.log('🗺️  Creating Implementation Plan');
+    console.log('===============================');
+
+    const planName = await this.askQuestion('Plan name: ');
+    const specReference = await this.askQuestion('Reference specification (if any): ');
+    const phases = parseInt(await this.askQuestion('Number of phases: ')) || 3;
+
+    const plan = `# ${planName} Implementation Plan
+
+## Reference Specification
+${specReference}
+
+## Implementation Phases
+${Array.from({length: phases}, (_, i) => `
+### Phase ${i + 1}
+- **Goal**: [Define phase goal]
+- **Tasks**:
+  - [ ] Task 1
+  - [ ] Task 2
+  - [ ] Task 3
+- **Deliverables**: [List deliverables]
+- **Timeline**: [Estimated timeline]
+`).join('')}
+
+## Dependencies
+- [ ] Phase 1
+- [ ] Phase 2
+- [ ] Phase 3
+
+## Risk Assessment
+- **High**: [List high-risk items]
+- **Medium**: [List medium-risk items]
+- **Low**: [List low-risk items]
+
+## Success Criteria
+- [ ] All phases completed
+- [ ] All requirements met
+- [ ] Testing complete
+- [ ] Documentation updated
+
+---
+**Created**: ${new Date().toISOString().split('T')[0]}
+**Status**: Draft
+`;
+
+    const plansDir = path.join(this.projectDir, 'plans');
+    if (!fs.existsSync(plansDir)) {
+      fs.mkdirSync(plansDir);
+    }
+
+    const planPath = path.join(plansDir, `${planName.toLowerCase().replace(/\s+/g, '-')}.md`);
+    fs.writeFileSync(planPath, plan);
+
+    console.log(`\n✅ Implementation plan created at: ${planPath}`);
+    rl.close();
+  }
+
+  async tasks() {
+    console.log('✅ Generating Tasks');
+    console.log('==================');
+
+    const taskName = await this.askQuestion('Task category/name: ');
+    const numTasks = parseInt(await this.askQuestion('Number of tasks: ')) || 5;
+
+    const tasks = Array.from({length: numTasks}, (_, i) => `
+### Task ${i + 1}
+- **Title**: [Task title]
+- **Description**: [Task description]
+- **Priority**: [High/Medium/Low]
+- **Estimate**: [Time estimate]
+- **Dependencies**: [List dependencies]
+- **Acceptance Criteria**:
+  - [ ] Criterion 1
+  - [ ] Criterion 2
+  - [ ] Criterion 3
+`).join('');
+
+    const taskList = `# ${taskName} Tasks
+
+## Task Breakdown
+${tasks}
+
+## Overall Timeline
+- **Start**: [Start date]
+- **End**: [End date]
+- **Milestones**: [Key milestones]
+
+## Resources Needed
+- [ ] Team members
+- [ ] Tools/Software
+- [ ] Documentation
+- [ ] Testing resources
+
+---
+**Generated**: ${new Date().toISOString().split('T')[0]}
+**Status**: Ready for assignment
+`;
+
+    const tasksDir = path.join(this.projectDir, 'tasks');
+    if (!fs.existsSync(tasksDir)) {
+      fs.mkdirSync(tasksDir);
+    }
+
+    const taskPath = path.join(tasksDir, `${taskName.toLowerCase().replace(/\s+/g, '-')}.md`);
+    fs.writeFileSync(taskPath, taskList);
+
+    console.log(`\n✅ Tasks generated at: ${taskPath}`);
+    rl.close();
+  }
+
+  async analyze() {
+    console.log('🔍 Analyzing Project Alignment');
+    console.log('============================');
+
+    const constitutionPath = path.join(this.memoryDir, 'constitution.md');
+    const specsDir = path.join(this.projectDir, 'specs');
+    const plansDir = path.join(this.projectDir, 'plans');
+    const tasksDir = path.join(this.projectDir, 'tasks');
+
+    const analysis = {
+      constitution: fs.existsSync(constitutionPath),
+      specs: fs.existsSync(specsDir) ? fs.readdirSync(specsDir).length : 0,
+      plans: fs.existsSync(plansDir) ? fs.readdirSync(plansDir).length : 0,
+      tasks: fs.existsSync(tasksDir) ? fs.readdirSync(tasksDir).length : 0
+    };
+
+    console.log('\n📊 Project Analysis Report');
+    console.log('=========================');
+    console.log(`✅ Constitution: ${analysis.constitution ? 'Exists' : 'Missing'}`);
+    console.log(`📝 Specifications: ${analysis.specs} found`);
+    console.log(`🗺️  Plans: ${analysis.plans} found`);
+    console.log(`✅ Tasks: ${analysis.tasks} found`);
+
+    if (!analysis.constitution) {
+      console.log('\n⚠️  Recommended: Run /constitution to establish project principles');
+    }
+
+    if (analysis.specs === 0) {
+      console.log('⚠️  Recommended: Run /specify to create specifications');
+    }
+
+    if (analysis.plans === 0) {
+      console.log('⚠️  Recommended: Run /plan to create implementation plans');
+    }
+
+    if (analysis.tasks === 0) {
+      console.log('⚠️  Recommended: Run /tasks to generate task lists');
+    }
+
+    rl.close();
+  }
+
+  async help() {
+    console.log('🚀 Spec Kit CLI Commands');
+    console.log('========================');
+    console.log('');
+    console.log('Available commands:');
+    console.log('  constitution - Create or update project constitution');
+    console.log('  specify      - Create a new specification');
+    console.log('  plan         - Create an implementation plan');
+    console.log('  tasks        - Generate task lists');
+    console.log('  analyze      - Analyze project alignment');
+    console.log('  help         - Show this help message');
+    console.log('');
+    console.log('Usage: spec-kit <command>');
+    console.log('Example: spec-kit constitution');
+    rl.close();
+  }
+}
+
+// Main execution
+const command = process.argv[2];
+const specKit = new SpecKitCLI();
+
+if (!command || command === 'help') {
+  specKit.help();
+} else if (command === 'constitution') {
+  specKit.constitution();
+} else if (command === 'specify') {
+  specKit.specify();
+} else if (command === 'plan') {
+  specKit.plan();
+} else if (command === 'tasks') {
+  specKit.tasks();
+} else if (command === 'analyze') {
+  specKit.analyze();
+} else {
+  console.log(`❌ Unknown command: ${command}`);
+  console.log('Use "spec-kit help" to see available commands');
+  rl.close();
+}

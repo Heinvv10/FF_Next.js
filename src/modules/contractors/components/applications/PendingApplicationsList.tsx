@@ -21,7 +21,7 @@ import {
   ApprovalActionResult,
   BulkApprovalRequest
 } from '@/types/contractor.types';
-import { contractorService } from '@/services/contractorService';
+import { contractorApiService } from '@/services/contractor/contractorApiService';
 import { ApplicationFilters } from './ApplicationFilters';
 import { ApplicationTable } from './ApplicationTable';
 import { BulkApplicationActions } from './ApplicationActions';
@@ -86,7 +86,7 @@ export function PendingApplicationsList({
       // TODO: Implement actual API call to get filtered applications
       // For now, using mock data that simulates the API response structure
       
-      const response = await contractorService.getAll();
+      const response = await contractorApiService.getAll();
 
       // Transform contractor data to application summary format
       const applicationSummaries: ApplicationSummary[] = response.map((contractor: any) => ({

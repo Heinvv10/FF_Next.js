@@ -33,6 +33,9 @@ export function ClientForm() {
   const createMutation = useCreateClient();
   const updateMutation = useUpdateClient();
 
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
   const [formData, setFormData] = useState<ClientFormData>({
     name: '',
     contactPerson: '',
@@ -105,16 +108,53 @@ export function ClientForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setError(null);
+    setSuccess(null);
+
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({ id: id!, data: formData });
+        setSuccess('Client updated successfully!');
       } else {
         await createMutation.mutateAsync(formData);
+        setSuccess('Client created successfully!');
+        // Reset form for new client creation
+        setFormData({
+          name: '',
+          contactPerson: '',
+          email: '',
+          phone: '',
+          alternativeEmail: '',
+          alternativePhone: '',
+          registrationNumber: '',
+          vatNumber: '',
+          address: {
+            street: '',
+            city: 'Johannesburg',
+            state: 'Gauteng',
+            postalCode: '',
+            country: 'South Africa'
+          },
+          industry: '',
+          website: '',
+          status: ClientStatus.PROSPECT,
+          category: ClientCategory.SME,
+          priority: ClientPriority.MEDIUM,
+          creditLimit: 100000,
+          paymentTerms: PaymentTerms.NET_30,
+          creditRating: CreditRating.UNRATED,
+          preferredContactMethod: ContactMethod.EMAIL,
+          communicationLanguage: 'English',
+          timezone: 'Africa/Johannesburg',
+          serviceTypes: [],
+          tags: [],
+          notes: '',
+          specialRequirements: ''
+        });
       }
-      router.push('/app/clients');
-    } catch (error) {
+    } catch (error: any) {
       log.error('Failed to save client:', { data: error }, 'ClientForm');
+      setError(error.message || 'Failed to save client. Please try again.');
     }
   };
 
@@ -148,7 +188,7 @@ export function ClientForm() {
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
         <button
-          onClick={() => router.push('/app/clients')}
+          onClick={() => router.push('/clients')}
           className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
@@ -164,6 +204,19 @@ export function ClientForm() {
               {isEditing ? 'Edit Client' : 'Add New Client'}
             </h1>
           </div>
+
+          {/* Error/Success Messages */}
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
+          {success && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">{success}</p>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -259,7 +312,7 @@ export function ClientForm() {
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
-              onClick={() => router.push('/app/clients')}
+              onClick={() => router.push('/clients')}
               className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Cancel

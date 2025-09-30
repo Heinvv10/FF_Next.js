@@ -1,13 +1,12 @@
 /**
  * Document Upload Hook
  * Custom hook for document upload operations and state management
+ * Updated to use Neon PostgreSQL for file storage (Firebase Storage removed)
  */
 
 import { useState } from 'react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import toast from 'react-hot-toast';
-import { storage } from '@/config/firebase';
-import { contractorService } from '@/services/contractorService';
+import { contractorDocumentService } from '@/services/contractor/contractorDocumentService';
 import { DocumentType, ContractorDocument } from '@/types/contractor.types';
 import { DOCUMENT_TYPE_LABELS } from '../types/documentUpload.types';
 import { validateUploadFile } from '../utils/documentUtils';
@@ -37,37 +36,30 @@ export function useDocumentUpload(
     setUploadProgress(0);
 
     try {
-      // Create storage reference
-      const timestamp = Date.now();
-      const fileName = `contractors/${contractorId}/${documentType}/${timestamp}_${file.name}`;
-      const storageRef = ref(storage, fileName);
+      // Convert file to Buffer for Neon storage
+      const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-      // Upload file
-      const snapshot = await uploadBytes(storageRef, file);
-      setUploadProgress(50);
+      setUploadProgress(25);
 
-      // Get download URL
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      setUploadProgress(75);
-
-      // Save document metadata to Firestore
+      // Upload document directly to Neon PostgreSQL
       const documentData = {
         documentType,
         documentName: documentTitle || DOCUMENT_TYPE_LABELS[documentType],
         fileName: file.name,
-        fileUrl: downloadURL,
+        fileBuffer,
         fileSize: file.size,
         mimeType: file.type,
         issueDate: new Date(),
         notes: `Uploaded for ${DOCUMENT_TYPE_LABELS[documentType]}`
       };
 
-      const documentId = await contractorService.documents.uploadDocument(contractorId, documentData);
+      const documentId = await contractorDocumentService.uploadDocument(contractorId, documentData);
       setUploadProgress(100);
 
-      // Get the created document
-      const newDocument = await contractorService.documents.getDocumentById(documentId);
-      
+      // Get the created document from contractor service
+      const documents = await contractorDocumentService.getByContractor(contractorId);
+      const newDocument = documents.find(doc => doc.id === documentId);
+
       if (newDocument && onUploadComplete) {
         onUploadComplete(newDocument);
       }
@@ -88,7 +80,7 @@ export function useDocumentUpload(
     }
 
     try {
-      await contractorService.documents.deleteDocument(currentDocument.id);
+      await contractorDocumentService.deleteDocument(currentDocument.id);
       if (onDocumentRemove) {
         onDocumentRemove(currentDocument.id);
       }
@@ -99,18 +91,39 @@ export function useDocumentUpload(
     }
   };
 
-  const handleViewDocument = (currentDocument: ContractorDocument) => {
-    if (currentDocument.fileUrl) {
-      window.open(currentDocument.fileUrl, '_blank');
+  const handleViewDocument = async (currentDocument: ContractorDocument) => {
+    try {
+      // Retrieve file from Neon storage and create blob URL for viewing
+      const fileData = await contractorDocumentService.retrieveDocument(currentDocument.id);
+      const blob = new Blob([fileData.fileData], { type: fileData.mimeType });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+
+      // Clean up the object URL after a short delay
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error: any) {
+      log.error('View error:', { data: error }, 'useDocumentUpload');
+      toast.error(error.message || 'Failed to view document');
     }
   };
 
-  const handleDownloadDocument = (currentDocument: ContractorDocument) => {
-    if (currentDocument.fileUrl) {
+  const handleDownloadDocument = async (currentDocument: ContractorDocument) => {
+    try {
+      // Retrieve file from Neon storage for download
+      const fileData = await contractorDocumentService.retrieveDocument(currentDocument.id);
+      const blob = new Blob([fileData.fileData], { type: fileData.mimeType });
+      const url = URL.createObjectURL(blob);
+
       const link = document.createElement('a');
-      link.href = currentDocument.fileUrl;
-      link.download = currentDocument.fileName;
+      link.href = url;
+      link.download = fileData.fileName;
       link.click();
+
+      // Clean up the object URL
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error: any) {
+      log.error('Download error:', { data: error }, 'useDocumentUpload');
+      toast.error(error.message || 'Failed to download document');
     }
   };
 

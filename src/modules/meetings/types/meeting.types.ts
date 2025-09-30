@@ -40,3 +40,18 @@ export interface UpcomingMeeting {
   type: string;
   participants: number;
 }
+
+// Fireflies specific types
+export interface FirefliesMeetingData {
+  id: string;
+  title: string;
+  created_at: string;
+  participants: Array<{ email: string; name?: string }>;
+  duration: number;
+  transcript?: string;
+  summary?: {
+    overview: string;
+    bullet_points: string[];
+  };
+  fireflies_id: string;
+}

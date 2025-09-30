@@ -31,27 +31,30 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
 
   useEffect(() => {
     let adapter = mode === 'polling' ? pollingAdapter : socketIOAdapter;
-    
+    let isMounted = true;
+
     // Try WebSocket first, fallback to polling if auto mode
     if (mode === 'auto') {
       adapter = socketIOAdapter;
     }
 
     const handleConnected = () => {
+      if (!isMounted) return;
       setStatus('connected');
       setConnectionMode(adapter === socketIOAdapter ? 'websocket' : 'polling');
       setLastUpdate(new Date());
-      
+
       // Auto-hide after connection if enabled
       if (autoHide && status !== 'connected') {
         const timer = setTimeout(() => {
-          setIsVisible(false);
+          if (isMounted) setIsVisible(false);
         }, autoHideDelay);
         setHideTimer(timer);
       }
     };
 
     const handleDisconnected = () => {
+      if (!isMounted) return;
       setStatus('disconnected');
       setIsVisible(true);
       if (hideTimer) {
@@ -61,23 +64,31 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
     };
 
     const handleError = () => {
+      if (!isMounted) return;
       setStatus('error');
       setIsVisible(true);
       if (hideTimer) {
         clearTimeout(hideTimer);
         setHideTimer(null);
       }
-      
+
       // If WebSocket fails in auto mode, try polling
       if (mode === 'auto' && adapter === socketIOAdapter) {
         console.log('WebSocket failed, switching to polling mode');
         adapter = pollingAdapter;
         pollingAdapter.start();
         setConnectionMode('polling');
+        // Don't show error status when switching to polling
+        setTimeout(() => {
+          if (isMounted && pollingAdapter.isActive()) {
+            setStatus('connected');
+          }
+        }, 1000);
       }
     };
 
     const handleEvent = () => {
+      if (!isMounted) return;
       setLastUpdate(new Date());
     };
 
@@ -87,6 +98,17 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
     adapter.on('error', handleError);
     adapter.on('event', handleEvent);
 
+    // For production mode, prefer polling to avoid WebSocket issues
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    if (isProduction && mode === 'auto') {
+      console.log('Production mode detected, using polling adapter');
+      adapter = pollingAdapter;
+      pollingAdapter.start();
+      setConnectionMode('polling');
+      return;
+    }
+
     // Check initial connection status
     if (adapter === socketIOAdapter && socketIOAdapter.isConnected()) {
       handleConnected();
@@ -94,15 +116,34 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
       handleConnected();
     } else {
       setStatus('connecting');
-      // Attempt connection
+      // Attempt connection with timeout
       if (adapter === socketIOAdapter) {
-        socketIOAdapter.connect().catch(() => {
-          if (mode === 'auto') {
-            // Fallback to polling
+        const timeoutId = setTimeout(() => {
+          if (isMounted && mode === 'auto') {
+            // Fallback to polling after timeout
+            console.log('WebSocket connection timeout, switching to polling');
+            adapter = pollingAdapter;
             pollingAdapter.start();
             setConnectionMode('polling');
+            setStatus('connected');
           }
-        });
+        }, 3000); // 3 second timeout for WebSocket
+
+        socketIOAdapter.connect()
+          .then(() => {
+            clearTimeout(timeoutId);
+            if (isMounted) handleConnected();
+          })
+          .catch(() => {
+            clearTimeout(timeoutId);
+            if (isMounted && mode === 'auto') {
+              // Fallback to polling
+              adapter = pollingAdapter;
+              pollingAdapter.start();
+              setConnectionMode('polling');
+              setStatus('connected');
+            }
+          });
       } else {
         pollingAdapter.start();
       }
@@ -110,11 +151,12 @@ export const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
 
     // Cleanup
     return () => {
+      isMounted = false;
       adapter.off('connected', handleConnected);
       adapter.off('disconnected', handleDisconnected);
       adapter.off('error', handleError);
       adapter.off('event', handleEvent);
-      
+
       if (hideTimer) {
         clearTimeout(hideTimer);
       }

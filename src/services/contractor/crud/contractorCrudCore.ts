@@ -109,14 +109,31 @@ export class ContractorCrudCore {
       const contractors = await baseService.getAll();
       const summary = await baseService.getContractorSummary();
 
+      // Calculate RAG distribution
+      const ragDistribution = {
+        green: contractors.filter(c => c.ragOverall === 'green').length,
+        amber: contractors.filter(c => c.ragOverall === 'amber').length,
+        red: contractors.filter(c => c.ragOverall === 'red').length
+      };
+
       return {
         totalContractors: summary.totalContractors,
         activeContractors: summary.activeContractors,
-        averageRating: summary.averageRating,
-        averageHourlyRate: summary.averageHourlyRate,
-        topRatedContractors: await baseService.getTopRatedContractors(5),
-        contractorsBySpecialization: {},
-        recentlyAdded: contractors.slice(0, 5)
+        approvedContractors: summary.approvedContractors,
+        pendingApproval: summary.pendingApproval,
+        suspended: contractors.filter(c => c.status === 'suspended').length,
+        blacklisted: contractors.filter(c => c.status === 'blacklisted').length,
+        ragDistribution,
+        averagePerformanceScore: summary.averagePerformanceScore,
+        averageSafetyScore: summary.averageSafetyScore,
+        averageQualityScore: summary.averagePerformanceScore, // Use performance as fallback
+        averageTimelinessScore: summary.averagePerformanceScore, // Use performance as fallback
+        totalActiveProjects: 0, // Would need actual project data
+        totalCompletedProjects: 0, // Would need actual project data
+        averageProjectsPerContractor: 0, // Would need actual project data
+        documentsExpiringSoon: 0, // Would need document data
+        complianceIssues: 0, // Would need compliance data
+        pendingDocuments: 0 // Would need document data
       };
     } catch (error) {
       log.error('Error getting contractor analytics:', { data: error }, 'contractorCrudCore');

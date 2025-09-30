@@ -5,7 +5,8 @@ const sql = neon(process.env.DATABASE_URL!);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    const { projectId, weekEnding, limit = '1000', offset = '0' } = req.query;
+    const { projectId, weekEnding, limit = '100000', offset = '0' } = req.query;
+    const limitNum = Math.min(parseInt(limit as string), 100000); // Cap at 100000 to allow all records
 
     if (!projectId) {
       return res.status(400).json({
@@ -57,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           WHERE nv.project_id = ${projectId}
             AND nv.week_ending = ${weekEnding}
           ORDER BY nv.property_id
-          LIMIT ${parseInt(limit as string)}
+          LIMIT ${limitNum}
           OFFSET ${parseInt(offset as string)}
         `;
       } else {
@@ -105,7 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           WHERE nv.project_id = ${projectId}
             AND nv.week_ending = (SELECT max_week FROM latest_week)
           ORDER BY nv.property_id
-          LIMIT ${parseInt(limit as string)}
+          LIMIT ${limitNum}
           OFFSET ${parseInt(offset as string)}
         `;
       }

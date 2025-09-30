@@ -1,9 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Drop, DropsStats, DropsFiltersState } from '../types/drops.types';
+
+// Simple cache key generator
+const getCacheKey = (page: number, filters: DropsFiltersState) => {
+  return `drops_${page}_${filters.statusFilter}_${filters.searchTerm}`;
+};
+
+// Simple in-memory cache
+const dropsCache = new Map<string, { data: Drop[]; timestamp: number; total: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export function useDropsManagement() {
   const [drops, setDrops] = useState<Drop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<DropsStats>({
     totalDrops: 0,
@@ -31,10 +41,11 @@ export function useDropsManagement() {
   });
   const [pagination, setPagination] = useState({
     currentPage: 1,
-    pageSize: 1000,
+    pageSize: 100, // Reduced for better performance
     totalItems: 0,
     totalPages: 0,
   });
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     fetchDropsData();
@@ -65,11 +76,53 @@ export function useDropsManagement() {
     }
   };
 
-  const fetchDropsData = async (page = 1) => {
+  const fetchDropsData = async (page = 1, append = false) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setError(null);
+      }
 
+      // Check cache first
+      const cacheKey = getCacheKey(page, filters);
+      const cached = dropsCache.get(cacheKey);
+      const now = Date.now();
+
+      if (cached && (now - cached.timestamp) < CACHE_TTL) {
+        // Use cached data
+        const transformedDrops = cached.data;
+
+        if (append) {
+          setDrops(prev => [...prev, ...transformedDrops]);
+        } else {
+          setDrops(transformedDrops);
+        }
+
+        calculateStats(append ? [...drops, ...transformedDrops] : transformedDrops);
+
+        const totalPages = Math.ceil(cached.total / pagination.pageSize);
+        const hasMoreItems = page < totalPages;
+
+        setPagination(prev => ({
+          ...prev,
+          currentPage: page,
+          totalItems: cached.total,
+          totalPages,
+        }));
+
+        setHasMore(hasMoreItems);
+
+        if (append) {
+          setLoadingMore(false);
+        } else {
+          setLoading(false);
+        }
+        return;
+      }
+
+      // Fetch from API if not cached or cache expired
       const offset = (page - 1) * pagination.pageSize;
       const response = await fetch(`/api/sow/drops?limit=${pagination.pageSize}&offset=${offset}`);
       const result = await response.json();
@@ -78,7 +131,7 @@ export function useDropsManagement() {
         throw new Error(result.error || 'Failed to fetch drops');
       }
 
-      if (result.success && result.data) {
+      if (result.success && Array.isArray(result.data)) {
         // Transform database records to Drop format
         const transformedDrops: Drop[] = result.data.map((dbDrop: any) => ({
           id: dbDrop.id,
@@ -99,110 +152,58 @@ export function useDropsManagement() {
           pon: dbDrop.pon_no,
         }));
 
-        setDrops(transformedDrops);
-        calculateStats(transformedDrops);
+        // Cache the result
+        dropsCache.set(cacheKey, {
+          data: transformedDrops,
+          timestamp: now,
+          total: result.total || 0
+        });
+
+        // Append or replace drops based on the operation
+        if (append) {
+          setDrops(prev => [...prev, ...transformedDrops]);
+        } else {
+          setDrops(transformedDrops);
+        }
+
+        calculateStats(append ? [...drops, ...transformedDrops] : transformedDrops);
 
         // Update pagination info
         if (result.total !== undefined) {
           const totalPages = Math.ceil(result.total / pagination.pageSize);
+          const hasMoreItems = page < totalPages;
+
           setPagination(prev => ({
             ...prev,
             currentPage: page,
             totalItems: result.total,
             totalPages,
           }));
+
+          setHasMore(hasMoreItems);
         }
       } else {
-        // Fallback to mock data if no database records
-        const mockDrops: Drop[] = [
-      {
-        id: '1',
-        dropNumber: 'D001',
-        poleNumber: 'P001',
-        customerName: 'John Smith',
-        address: '123 Main St',
-        status: 'completed',
-        installationType: 'aerial',
-        cableLength: 45,
-        scheduledDate: '2024-01-15',
-        completedDate: '2024-01-15',
-        technician: 'Mike Johnson',
-      },
-      {
-        id: '2',
-        dropNumber: 'D002',
-        poleNumber: 'P001',
-        customerName: 'Jane Doe',
-        address: '125 Main St',
-        status: 'in_progress',
-        installationType: 'aerial',
-        cableLength: 52,
-        scheduledDate: '2024-01-20',
-        technician: 'Tom Wilson',
-      },
-      {
-        id: '3',
-        dropNumber: 'D003',
-        poleNumber: 'P002',
-        customerName: 'Bob Wilson',
-        address: '456 Oak Ave',
-        status: 'scheduled',
-        installationType: 'underground',
-        cableLength: 78,
-        scheduledDate: '2024-01-22',
-        technician: 'Sarah Lee',
-      },
-      {
-        id: '4',
-        dropNumber: 'D004',
-        poleNumber: 'P002',
-        customerName: 'Alice Brown',
-        address: '458 Oak Ave',
-        status: 'pending',
-        installationType: 'aerial',
-        cableLength: 60,
-      },
-      {
-        id: '5',
-        dropNumber: 'D005',
-        poleNumber: 'P003',
-        customerName: 'Charlie Davis',
-        address: '789 Pine Rd',
-        status: 'failed',
-        installationType: 'hybrid',
-        cableLength: 95,
-        scheduledDate: '2024-01-18',
-        technician: 'Mike Johnson',
-        issues: ['Customer not available', 'Rescheduling required'],
-      },
-    ];
-
-        setDrops(mockDrops);
-        calculateStats(mockDrops);
+        // No data available from API
+        if (!append) {
+          setDrops([]);
+          calculateStats([]);
+        }
+        setHasMore(false);
       }
     } catch (err) {
       console.error('Error fetching drops:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch drops');
-      // Use mock data as fallback
-      const mockDrops: Drop[] = [
-        {
-          id: '1',
-          dropNumber: 'D001',
-          poleNumber: 'P001',
-          customerName: 'John Smith',
-          address: '123 Main St',
-          status: 'completed',
-          installationType: 'aerial',
-          cableLength: 45,
-          scheduledDate: '2024-01-15',
-          completedDate: '2024-01-15',
-          technician: 'Mike Johnson',
-        },
-      ];
-      setDrops(mockDrops);
-      calculateStats(mockDrops);
+      if (!append) {
+        setDrops([]);
+        calculateStats([]);
+      }
+      setHasMore(false);
     } finally {
-      setLoading(false);
+      if (append) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
@@ -281,6 +282,14 @@ export function useDropsManagement() {
     }
   };
 
+  // Load more functionality for infinite scroll
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingMore || loading) return;
+
+    const nextPage = pagination.currentPage + 1;
+    await fetchDropsData(nextPage, true);
+  }, [hasMore, loadingMore, loading, pagination.currentPage]);
+
   // Search functionality
   const searchDrops = async (searchTerm: string, statusFilter: string = 'all') => {
     try {
@@ -302,7 +311,7 @@ export function useDropsManagement() {
         throw new Error(result.error || 'Failed to search drops');
       }
 
-      if (result.success && result.data) {
+      if (result.success && Array.isArray(result.data)) {
         // Transform database records to Drop format
         const transformedDrops: Drop[] = result.data.map((dbDrop: any) => ({
           id: dbDrop.id,
@@ -353,12 +362,15 @@ export function useDropsManagement() {
     filteredDrops,
     updateFilters,
     loading,
+    loadingMore,
     error,
     refetch: fetchDropsData,
     pagination,
+    hasMore,
     goToPage,
     nextPage,
     prevPage,
+    loadMore,
     searchDrops,
   };
 }

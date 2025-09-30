@@ -32,6 +32,9 @@ Each page log follows this format:
 | Field Operations | `src/pages/Field.tsx` | [field.md](./field.md) | - |
 | Analytics | `src/pages/Analytics.tsx` | [analytics.md](./analytics.md) | - |
 | Reports | `src/pages/Reports.tsx` | [reports.md](./reports.md) | - |
+| Meetings | `pages/meetings.tsx` | [meetings.md](./meetings.md) | Sep 24, 2025 - 12:30 PM |
+| Drops | `pages/drops.tsx` | [drops.md](./drops.md) | Sep 22, 2025 - 01:40 PM |
+| Fiber Stringing | `pages/fiber-stringing.tsx` | [fiber-stringing.md](./fiber-stringing.md) | Sep 15, 2025 - 02:30 PM |
 
 ## Log Entry Template
 
