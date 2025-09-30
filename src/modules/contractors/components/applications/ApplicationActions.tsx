@@ -101,3 +101,6 @@ export function ApplicationActions({
 }
 
 export default ApplicationActions;
+
+// Re-export BulkApplicationActions from actions directory
+export { BulkApplicationActions } from './actions/BulkApplicationActions';
