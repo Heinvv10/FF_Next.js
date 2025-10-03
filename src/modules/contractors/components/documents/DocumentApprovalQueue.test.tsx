@@ -9,17 +9,15 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DocumentApprovalQueue } from './DocumentApprovalQueue';
-import { contractorService } from '@/services/contractorService';
+import { contractorDocumentService } from '@/services/contractor/contractorDocumentService';
 import { ContractorDocument } from '@/types/contractor.types';
 import toast from 'react-hot-toast';
 
 // Mock dependencies
-vi.mock('@/services/contractorService', () => ({
-  contractorService: {
-    documents: {
-      getByContractor: vi.fn(),
-      verifyDocument: vi.fn()
-    }
+vi.mock('@/services/contractor/contractorDocumentService', () => ({
+  contractorDocumentService: {
+    getByContractor: vi.fn(),
+    verifyDocument: vi.fn()
   }
 }));
 
@@ -28,6 +26,85 @@ vi.mock('react-hot-toast', () => ({
     success: vi.fn(),
     error: vi.fn()
   }
+}));
+
+// Mock logger
+vi.mock('@/lib/logger', () => ({
+  log: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn()
+  }
+}));
+
+// Mock UI components
+vi.mock('@/components/ui/LoadingSpinner', () => ({
+  LoadingSpinner: () => <div data-testid="loading-spinner">Loading...</div>
+}));
+
+// Mock useDocumentQueue hook
+vi.mock('../../hooks/useDocumentQueue', () => ({
+  useDocumentQueue: () => ({
+    documents: [
+      {
+        id: '1',
+        documentName: 'Test Document',
+        documentType: 'certificate',
+        verificationStatus: 'pending',
+        uploadedAt: new Date('2024-01-01'),
+        contractor: {
+          id: '1',
+          companyName: 'Test Company'
+        }
+      }
+    ],
+    filteredDocuments: [
+      {
+        id: '1',
+        documentName: 'Test Document',
+        documentType: 'certificate',
+        verificationStatus: 'pending',
+        uploadedAt: new Date('2024-01-01'),
+        contractor: {
+          id: '1',
+          companyName: 'Test Company'
+        }
+      }
+    ],
+    selectedDocuments: new Set(),
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    isProcessing: false,
+    processingDocuments: new Set(),
+    searchTerm: '',
+    statusFilter: 'pending',
+    documentTypeFilter: 'all',
+    expiryFilter: 'all',
+    actions: {
+      loadDocuments: vi.fn(),
+      setSearchTerm: vi.fn(),
+      setStatusFilter: vi.fn(),
+      setDocumentTypeFilter: vi.fn(),
+      setExpiryFilter: vi.fn(),
+      setSelectedDocuments: vi.fn(),
+      approveDocument: vi.fn(),
+      rejectDocument: vi.fn(),
+      bulkApproveDocuments: vi.fn()
+    },
+    stats: {
+      total: 1,
+      pending: 1,
+      approved: 0,
+      rejected: 0,
+      expired: 0,
+      expiringWithin30Days: 0,
+      averageProcessingTime: 0,
+      queuedToday: 1,
+      processedToday: 0
+    }
+  })
 }));
 
 // Mock child components

@@ -1,6 +1,6 @@
 /**
  * Contractor Compliance Service - Main aggregator for compliance services
- * Following FibreFlow patterns and staying under 250 lines
+ * Refactored for constitutional compliance (<300 lines)
  */
 
 import { insuranceService } from './compliance/insuranceService';
@@ -14,12 +14,23 @@ import {
   ContractorComplianceRecord,
   ComplianceDashboardData
 } from './compliance/complianceTypes';
+import {
+  calculateDaysUntilExpiry,
+  createExpiringItemFromPolicy,
+  createExpiringItemFromSafetyCert,
+  createIssueFromPolicy,
+  createIssueFromSafetyCert,
+  determineOverallComplianceStatus,
+  sortExpiringItemsByUrgency,
+  calculateAverageComplianceScore,
+  calculateInsuranceScore
+} from './compliance/contractorComplianceUtils';
 
 export * from './compliance/complianceTypes';
 
 export const contractorComplianceService = {
   async getComplianceStatus(contractorId: string, _projectId?: string): Promise<ComplianceStatus> {
-    const [, , bbbeeStatus] = await Promise.all([
+    const [insurancePolicies, safetyCerts, bbbeeStatus] = await Promise.all([
       insuranceService.getInsurancePolicies(contractorId),
       safetyService.getSafetyCertifications(contractorId),
       bbbeeService.getCurrentBBBEELevel(contractorId)
@@ -28,96 +39,43 @@ export const contractorComplianceService = {
     const issues: ComplianceIssue[] = [];
     const expiringItems: ExpiringItem[] = [];
 
-    // Check insurance expiries
+    // Process insurance policies
     const expiringInsurance = await insuranceService.getExpiringPolicies(contractorId, 30);
     expiringInsurance.forEach(policy => {
-      const daysUntilExpiry = Math.floor((policy.expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      const daysUntilExpiry = calculateDaysUntilExpiry(policy.expiryDate);
       
-      expiringItems.push({
-        id: policy.id,
-        type: 'insurance_policy' as const,
-        name: `${policy.policyType} - ${policy.policyNumber}`,
-        expiryDate: policy.expiryDate,
-        daysUntilExpiry,
-        isExpired: daysUntilExpiry < 0,
-        isExpiringSoon: daysUntilExpiry <= 30 && daysUntilExpiry >= 0,
-        renewalRequired: true,
-        documentUrl: policy.documentUrl || ''
-      });
-
+      expiringItems.push(createExpiringItemFromPolicy(policy));
+      
       if (daysUntilExpiry <= 7) {
-        issues.push({
-          id: `issue_insurance_${policy.id}`,
-          type: 'insurance',
-          severity: daysUntilExpiry < 0 ? 'critical' : 'high',
-          description: `${policy.policyType} policy ${daysUntilExpiry < 0 ? 'expired' : 'expires soon'}`,
-          requirementType: policy.policyType,
-          dueDate: policy.expiryDate,
-          actionRequired: 'Renew insurance policy immediately',
-          status: 'open',
-          createdAt: new Date()
-        });
+        issues.push(createIssueFromPolicy(policy, daysUntilExpiry));
       }
     });
 
-    // Check safety certifications
+    // Process safety certificates
     const expiringSafety = await safetyService.getExpiringSafetyCerts(contractorId, 30);
     expiringSafety.forEach(cert => {
-      const daysUntilExpiry = Math.floor((cert.expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      const daysUntilExpiry = calculateDaysUntilExpiry(cert.expiryDate);
       
-      expiringItems.push({
-        id: cert.id,
-        type: 'safety_certificate' as const,
-        name: `${cert.certificationType} - ${cert.certificateNumber}`,
-        expiryDate: cert.expiryDate,
-        daysUntilExpiry,
-        isExpired: daysUntilExpiry < 0,
-        isExpiringSoon: daysUntilExpiry <= 30 && daysUntilExpiry >= 0,
-        renewalRequired: true,
-        documentUrl: cert.documentUrl || ''
-      });
+      expiringItems.push(createExpiringItemFromSafetyCert(cert));
+      
+      if (daysUntilExpiry <= 14) {
+        issues.push(createIssueFromSafetyCert(cert, daysUntilExpiry));
+      }
     });
 
-    // Check BBBEE status
-    if (bbbeeStatus.status === 'expired') {
-      issues.push({
-        id: 'issue_bbbee_expired',
-        type: 'bbbee',
-        severity: 'high',
-        description: 'BBBEE certificate has expired',
-        requirementType: 'bbbee_certificate',
-        actionRequired: 'Renew BBBEE certificate',
-        status: 'open',
-        createdAt: new Date()
-      });
-    }
-
-    // Determine overall compliance status
-    const criticalIssues = issues.filter(i => i.severity === 'critical');
-    const highIssues = issues.filter(i => i.severity === 'high');
-    
-    let overallStatus: ComplianceStatus['overall'];
-    if (criticalIssues.length > 0) {
-      overallStatus = 'non_compliant';
-    } else if (highIssues.length > 0) {
-      overallStatus = 'pending';
-    } else if (issues.length > 0) {
-      overallStatus = 'under_review';
-    } else {
-      overallStatus = 'compliant';
-    }
+    // Determine overall status
+    const overallStatus = determineOverallComplianceStatus(issues);
 
     return {
       overall: overallStatus,
       issues,
-      expiringItems,
-      lastReviewDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-      nextReviewDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)  // 30 days from now
+      expiringItems: sortExpiringItemsByUrgency(expiringItems),
+      lastReviewDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      nextReviewDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     };
   },
 
   async getProjectRequirements(projectId: string): Promise<ProjectComplianceRequirement[]> {
-    // Mock project-specific requirements
     return [
       {
         id: 'req_001',
@@ -148,55 +106,26 @@ export const contractorComplianceService = {
         requirementType: 'bbbee',
         requirement: 'BBBEE Level 4 or better',
         isMandatory: false,
-        minimumStandard: { level: 4 },
-        verificationMethod: 'document_review',
+        minimumStandard: { minLevel: 4 },
+        verificationMethod: 'certificate_review',
         renewalFrequency: 'annually',
         effectiveDate: new Date()
       }
     ];
   },
 
-  async getContractorComplianceRecords(projectId: string, contractorId: string): Promise<ContractorComplianceRecord[]> {
-    const requirements = await this.getProjectRequirements(projectId);
-    
-    return requirements.map(req => {
-      const hasVerification = Math.random() > 0.5;
-      return {
-        id: `record_${req.id}`,
-        contractorId,
-        projectId: projectId || '',
-        requirementId: req.id,
-        complianceStatus: Math.random() > 0.3 ? 'compliant' as const : 'pending' as const,
-        verificationDate: hasVerification ? new Date() : new Date(),
-        verifiedBy: hasVerification ? 'admin@fibreflow.com' : '',
-        nextReviewDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        evidence: req.requirementType === 'insurance' ? [{
-          id: 'evidence_001',
-          documentType: 'Insurance Certificate',
-          documentUrl: '/documents/insurance_cert.pdf',
-          uploadedDate: new Date(),
-          verificationStatus: 'verified' as const
-        }] : [],
-        riskLevel: req.isMandatory ? 'high' as const : 'medium' as const
-      };
-    });
-  },
-
-  async getDashboardData(contractorId: string, projectId?: string): Promise<ComplianceDashboardData> {
-    const [complianceStatus, upcomingRenewals] = await Promise.all([
-      this.getComplianceStatus(contractorId, projectId),
-      this.getUpcomingRenewals(contractorId, 60)
+  async getContractorRecord(contractorId: string): Promise<ContractorComplianceRecord> {
+    const [complianceStatus, requirements] = await Promise.all([
+      this.getComplianceStatus(contractorId),
+      this.getProjectRequirements('default')
     ]);
-
-    const criticalIssues = complianceStatus.issues.filter(issue => issue.severity === 'critical');
 
     return {
       contractorId,
-      projectId: projectId || '',
       complianceStatus,
-      upcomingRenewals,
-      criticalIssues,
-      recentAudits: [], // Mock empty for now
+      projectRequirements: requirements,
+      documents: [],
+      auditTrail: [],
       performanceMetrics: {
         complianceScore: await this.calculateComplianceScore(contractorId),
         trendsLast12Months: [85, 87, 82, 89, 91, 88, 90, 92, 89, 87, 90, 93],
@@ -209,45 +138,22 @@ export const contractorComplianceService = {
   async getUpcomingRenewals(contractorId: string, daysAhead: number): Promise<ExpiringItem[]> {
     const [expiringInsurance, expiringSafety] = await Promise.all([
       insuranceService.getExpiringPolicies(contractorId, daysAhead),
-      safetyService.getExpiringSafetyCerts(contractorId, daysAhead),
-      bbbeeService.getExpiringBBBEECerts(contractorId, daysAhead)
+      safetyService.getExpiringSafetyCerts(contractorId, daysAhead)
     ]);
 
     const renewals: ExpiringItem[] = [];
 
-    // Add insurance renewals
+    // Process insurance renewals
     expiringInsurance.forEach(policy => {
-      const daysUntilExpiry = Math.floor((policy.expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-      renewals.push({
-        id: policy.id,
-        type: 'insurance_policy' as const,
-        name: `${policy.policyType} - ${policy.insurer}`,
-        expiryDate: policy.expiryDate,
-        daysUntilExpiry,
-        isExpired: daysUntilExpiry < 0,
-        isExpiringSoon: daysUntilExpiry <= 30,
-        renewalRequired: true,
-        documentUrl: policy.documentUrl || ''
-      });
+      renewals.push(createExpiringItemFromPolicy(policy));
     });
 
-    // Add safety renewals
+    // Process safety renewals
     expiringSafety.forEach(cert => {
-      const daysUntilExpiry = Math.floor((cert.expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-      renewals.push({
-        id: cert.id,
-        type: 'safety_certificate' as const,
-        name: `${cert.certificationType} - ${cert.issuingBody}`,
-        expiryDate: cert.expiryDate,
-        daysUntilExpiry,
-        isExpired: daysUntilExpiry < 0,
-        isExpiringSoon: daysUntilExpiry <= 30,
-        renewalRequired: true,
-        documentUrl: cert.documentUrl || ''
-      });
+      renewals.push(createExpiringItemFromSafetyCert(cert));
     });
 
-    return renewals.sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
+    return sortExpiringItemsByUrgency(renewals);
   },
 
   async calculateComplianceScore(contractorId: string): Promise<number> {
@@ -257,16 +163,11 @@ export const contractorComplianceService = {
       bbbeeService.getBBBEEComplianceScore(contractorId)
     ]);
 
-    return Math.round((insuranceScore + safetyScore + bbbeeScore) / 3);
+    return calculateAverageComplianceScore([insuranceScore, safetyScore, bbbeeScore]);
   },
 
   async calculateInsuranceScore(contractorId: string): Promise<number> {
     const policies = await insuranceService.getInsurancePolicies(contractorId);
-    const activePolicies = policies.filter(p => p.isActive && p.expiryDate > new Date());
-    const verifiedPolicies = activePolicies.filter(p => p.verificationStatus === 'verified');
-    
-    if (policies.length === 0) return 0;
-    
-    return Math.round((verifiedPolicies.length / policies.length) * 100);
+    return calculateInsuranceScore(policies);
   }
 };

@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--headless",
+        "--viewport", "1280x720"
+      ]
+    }
+  },
+  "targets": {
+    "fibreFlow": {
+      "url": "http://localhost:3005",
+      "pages": [
+        "/contractors",
+        "/contractors/create",
+        "/api/contractors",
+        "/sow",
+        "/fiber-stringing"
+      ]
+    }
+  }
+}

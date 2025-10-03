@@ -4,7 +4,6 @@
  */
 
 import { useState } from 'react';
-import { useRouter } from 'next/router';
 import { ArrowLeft, Save, Building2 } from 'lucide-react';
 import { contractorApiService } from '@/services/contractor/contractorApiService';
 import { ContractorFormData, ContractorStatus } from '@/types/contractor.types';
@@ -56,7 +55,7 @@ export function ContractorCreate({ navigate }: ContractorCreateProps) {
     tags: [],
   });
 
-  const handleInputChange = (field: keyof ContractorFormData, value: any) => {
+  const handleInputChange = (field: keyof ContractorFormData, value: string | number | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -121,20 +120,22 @@ export function ContractorCreate({ navigate }: ContractorCreateProps) {
 
       toast.success(`Contractor "${createdContractor.companyName}" created successfully!`);
       navigate('/contractors');
-    } catch (error: any) {
+    } catch (error: unknown) {
       log.error('Failed to create contractor:', { data: error }, 'ContractorCreate');
 
       // Provide more specific error messages based on the error
       let errorMessage = 'Failed to create contractor. Please try again.';
 
-      if (error.message?.includes('duplicate key')) {
-        errorMessage = 'A contractor with this registration number or email already exists.';
-      } else if (error.message?.includes('network')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else if (error.message?.includes('validation')) {
-        errorMessage = 'Please check all required fields and try again.';
-      } else if (error.message) {
-        errorMessage = error.message;
+      if (error instanceof Error) {
+        if (error.message?.includes('duplicate key')) {
+          errorMessage = 'A contractor with this registration number or email already exists.';
+        } else if (error.message?.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message?.includes('validation')) {
+          errorMessage = 'Please check all required fields and try again.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
       }
 
       toast.error(errorMessage);

@@ -25,7 +25,16 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(PORT=3005 npm start)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebSearch",
+      "Bash(sudo:*)",
+      "Bash(sudo apt-get install:*)",
+      "Bash(npx:*)",
+      "Bash(for:*)",
+      "Bash(do curl -s -w \"Request $i: %{time_total}s\\n\" http://localhost:3005/api/contractors)",
+      "Bash(done:*)",
+      "Bash(env:*)",
+      "Read(//tmp/**)"
     ],
     "deny": [],
     "ask": [],

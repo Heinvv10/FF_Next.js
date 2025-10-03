@@ -5,7 +5,6 @@
 
 import { useState, useEffect } from 'react';
 import { TrendingUp, AlertTriangle, CheckCircle, BarChart3, Shield, DollarSign, Clock, Users } from 'lucide-react';
-import { contractorClientService } from '@/services/contractor/contractorClientService';
 import { RAGScoreDetails, ContractorRAGRanking } from '@/types/contractor.types';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { log } from '@/lib/logger';
@@ -16,8 +15,8 @@ interface RAGDashboardProps {
 }
 
 export function RAGDashboard({ contractorId, showRankings = false }: RAGDashboardProps) {
-  const [ragScore, setRAGScore] = useState<RAGScoreDetails | null>(null);
-  const [rankings, setRankings] = useState<ContractorRAGRanking[]>([]);
+  const [ragScore, _setRAGScore] = useState<RAGScoreDetails | null>(null);
+  const [rankings, _setRankings] = useState<ContractorRAGRanking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

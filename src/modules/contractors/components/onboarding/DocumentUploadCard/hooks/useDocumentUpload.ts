@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { contractorDocumentService } from '@/services/contractor/contractorDocumentService';
+import { contractorClientService } from '@/services/contractor/contractorClientService';
 import { DocumentType, ContractorDocument } from '@/types/contractor.types';
 import { DOCUMENT_TYPE_LABELS } from '../types/documentUpload.types';
 import { validateUploadFile } from '../utils/documentUtils';

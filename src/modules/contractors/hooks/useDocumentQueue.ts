@@ -2,14 +2,21 @@
  * useDocumentQueue - Business logic hook for document approval queue
  * Extracted from DocumentApprovalQueue.tsx to comply with project constitution
  * Handles data fetching, filtering, and document operations
+ * Refactored for constitutional compliance using utility functions
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ContractorDocument } from '@/types/contractor.types';
 import { DocumentQueueStats, DocumentSortOptions, BulkApprovalRequest } from '../components/documents/types/documentApproval.types';
-import { contractorApiService } from '@/services/contractor/contractorApiService';
 import { log } from '@/lib/logger';
 import toast from 'react-hot-toast';
+import { filterDocuments, calculateQueueStats } from './utils/documentQueueUtils';
+import {
+  approveDocumentOperation,
+  rejectDocumentOperation,
+  bulkApproveDocumentsOperation,
+  loadAllPendingDocuments
+} from './utils/documentOperations';
 
 interface UseDocumentQueueProps {
   contractorId?: string;
@@ -80,11 +87,11 @@ export function useDocumentQueue({
     try {
       if (showLoader) setIsLoading(true);
       else setIsRefreshing(true);
-      
+
       setError(null);
-      
+
       let docs: ContractorDocument[];
-      
+
       if (contractorId) {
         // Load documents for specific contractor
         // TODO: Implement API call for contractor documents
@@ -93,9 +100,9 @@ export function useDocumentQueue({
         // Load all pending documents across contractors
         docs = await loadAllPendingDocuments();
       }
-      
+
       setDocuments(docs);
-      
+
     } catch (err) {
       log.error('Failed to load documents:', { data: err }, 'useDocumentQueue');
       setError('Failed to load documents. Please try again.');
@@ -107,77 +114,32 @@ export function useDocumentQueue({
   }, [contractorId]);
 
   /**
-   * Load all pending documents across contractors
-   */
-  const loadAllPendingDocuments = async (): Promise<ContractorDocument[]> => {
-    // Return empty array for now - no documents in system yet
-    // In a real implementation, this would call an API to get all pending documents
-    return [];
-  };
-
-  /**
    * Approve a document
    */
   const approveDocument = useCallback(async (id: string, notes?: string) => {
-    try {
-      setProcessingDocuments(prev => new Set([...prev, id]));
-      
-      // TODO: Implement actual approval API call
-      // await documentService.approve(id, { notes });
-      
-      // Update local state
-      setDocuments(prev => prev.map(doc => 
-        doc.id === id 
-          ? { ...doc, verificationStatus: 'verified', verifiedAt: new Date().toISOString(), verificationNotes: notes }
-          : doc
-      ));
-      
-      toast.success('Document approved successfully');
-      
-    } catch (err) {
-      log.error('Failed to approve document:', { data: err, documentId: id }, 'useDocumentQueue');
-      toast.error('Failed to approve document');
-      throw err;
-    } finally {
-      setProcessingDocuments(prev => {
-        const updated = new Set(prev);
-        updated.delete(id);
-        return updated;
-      });
-    }
-  }, []);
+    await approveDocumentOperation(
+      documents,
+      setDocuments,
+      processingDocuments,
+      setProcessingDocuments,
+      id,
+      notes
+    );
+  }, [documents, processingDocuments]);
 
   /**
    * Reject a document
    */
   const rejectDocument = useCallback(async (id: string, notes: string) => {
-    try {
-      setProcessingDocuments(prev => new Set([...prev, id]));
-      
-      // TODO: Implement actual rejection API call
-      // await documentService.reject(id, { notes });
-      
-      // Update local state
-      setDocuments(prev => prev.map(doc => 
-        doc.id === id 
-          ? { ...doc, verificationStatus: 'rejected', rejectionReason: notes }
-          : doc
-      ));
-      
-      toast.success('Document rejected');
-      
-    } catch (err) {
-      log.error('Failed to reject document:', { data: err, documentId: id }, 'useDocumentQueue');
-      toast.error('Failed to reject document');
-      throw err;
-    } finally {
-      setProcessingDocuments(prev => {
-        const updated = new Set(prev);
-        updated.delete(id);
-        return updated;
-      });
-    }
-  }, []);
+    await rejectDocumentOperation(
+      documents,
+      setDocuments,
+      processingDocuments,
+      setProcessingDocuments,
+      id,
+      notes
+    );
+  }, [documents, processingDocuments]);
 
   /**
    * Bulk approve documents
@@ -185,114 +147,26 @@ export function useDocumentQueue({
   const bulkApproveDocuments = useCallback(async (request: BulkApprovalRequest) => {
     try {
       setIsProcessing(true);
-      
-      // TODO: Implement bulk approval API call
-      // await documentService.bulkApprove(request);
-      
-      // Update local state
-      setDocuments(prev => prev.map(doc => 
-        request.documentIds.includes(doc.id)
-          ? { ...doc, verificationStatus: 'verified', verifiedAt: new Date().toISOString(), verificationNotes: request.notes }
-          : doc
-      ));
-      
+
+      await bulkApproveDocumentsOperation(documents, setDocuments, request);
+
       setSelectedDocuments(new Set());
-      toast.success(`${request.documentIds.length} documents approved successfully`);
-      
     } catch (err) {
-      log.error('Failed to bulk approve documents:', { data: err, request }, 'useDocumentQueue');
-      toast.error('Failed to approve documents');
+      // Error handling is done in the utility function
       throw err;
     } finally {
       setIsProcessing(false);
     }
-  }, []);
+  }, [documents]);
 
-  // Filtered documents based on search and filters
+  // Filtered documents using utility function
   const filteredDocuments = useMemo(() => {
-    let filtered = [...documents];
-    
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      switch (statusFilter) {
-        case 'pending':
-          filtered = filtered.filter(d => d.verificationStatus === 'pending');
-          break;
-        case 'approved':
-          filtered = filtered.filter(d => d.verificationStatus === 'verified');
-          break;
-        case 'rejected':
-          filtered = filtered.filter(d => d.verificationStatus === 'rejected');
-          break;
-        case 'expired':
-          filtered = filtered.filter(d => d.expiryDate && new Date(d.expiryDate) < new Date());
-          break;
-      }
-    }
-    
-    // Apply document type filter
-    if (documentTypeFilter !== 'all') {
-      filtered = filtered.filter(d => d.documentType === documentTypeFilter);
-    }
-    
-    // Apply expiry filter
-    if (expiryFilter !== 'all') {
-      const now = new Date();
-      const thirtyDaysFromNow = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
-      
-      switch (expiryFilter) {
-        case 'expiring':
-          filtered = filtered.filter(d => 
-            d.expiryDate && 
-            new Date(d.expiryDate) > now && 
-            new Date(d.expiryDate) <= thirtyDaysFromNow
-          );
-          break;
-        case 'expired':
-          filtered = filtered.filter(d => d.expiryDate && new Date(d.expiryDate) < now);
-          break;
-      }
-    }
-    
-    // Apply search term
-    if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(d => 
-        d.documentName?.toLowerCase().includes(term) ||
-        d.documentType?.toLowerCase().includes(term) ||
-        d.documentNumber?.toLowerCase().includes(term) ||
-        d.notes?.toLowerCase().includes(term)
-      );
-    }
-    
-    return filtered;
+    return filterDocuments(documents, statusFilter, documentTypeFilter, expiryFilter, searchTerm);
   }, [documents, statusFilter, documentTypeFilter, expiryFilter, searchTerm]);
 
-  // Calculate queue statistics
+  // Calculate queue statistics using utility function
   const stats = useMemo((): DocumentQueueStats => {
-    const now = new Date();
-    const thirtyDaysFromNow = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    return {
-      total: documents.length,
-      pending: documents.filter(d => d.verificationStatus === 'pending').length,
-      approved: documents.filter(d => d.verificationStatus === 'verified').length,
-      rejected: documents.filter(d => d.verificationStatus === 'rejected').length,
-      expired: documents.filter(d => d.expiryDate && new Date(d.expiryDate) < now).length,
-      expiringWithin30Days: documents.filter(d => 
-        d.expiryDate && 
-        new Date(d.expiryDate) > now && 
-        new Date(d.expiryDate) <= thirtyDaysFromNow
-      ).length,
-      averageProcessingTime: 0, // Would need processing time data
-      queuedToday: documents.filter(d => 
-        d.createdAt && new Date(d.createdAt) >= todayStart
-      ).length,
-      processedToday: documents.filter(d => 
-        d.verifiedAt && new Date(d.verifiedAt) >= todayStart
-      ).length
-    };
+    return calculateQueueStats(documents);
   }, [documents]);
 
   // Auto-refresh setup
