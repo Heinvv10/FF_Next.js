@@ -27,8 +27,8 @@ export class NeonSupplierService {
     searchTerm?: string;
   }): Promise<Supplier[]> {
     try {
-      let query = `
-        SELECT 
+      let baseQuery = sql`
+        SELECT
           id,
           code,
           name,
@@ -65,38 +65,25 @@ export class NeonSupplierService {
         WHERE 1=1
       `;
 
-      const params: any[] = [];
-      let paramCount = 0;
-
+      // Apply filters
       if (filter?.status) {
-        paramCount++;
-        query += ` AND status = $${paramCount}`;
-        params.push(filter.status);
+        baseQuery = sql`${baseQuery} AND status = ${filter.status}`;
       }
 
       if (filter?.isPreferred !== undefined) {
-        paramCount++;
-        query += ` AND is_preferred = $${paramCount}`;
-        params.push(filter.isPreferred);
+        baseQuery = sql`${baseQuery} AND is_preferred = ${filter.isPreferred}`;
       }
 
       if (filter?.category) {
-        paramCount++;
-        query += ` AND $${paramCount} = ANY(categories)`;
-        params.push(filter.category);
+        baseQuery = sql`${baseQuery} AND ${filter.category} = ANY(categories)`;
       }
 
       if (filter?.searchTerm) {
-        paramCount++;
-        query += ` AND search_vector @@ plainto_tsquery('english', $${paramCount})`;
-        params.push(filter.searchTerm);
+        const searchTerm = `%${filter.searchTerm}%`;
+        baseQuery = sql`${baseQuery} AND (name ILIKE ${searchTerm} OR company_name ILIKE ${searchTerm} OR email ILIKE ${searchTerm})`;
       }
 
-      query += ` ORDER BY name ASC`;
-
-      const result = params.length > 0 
-        ? await sql(query, params)
-        : await sql(query);
+      const result = await sql`${baseQuery} ORDER BY name ASC`;
 
       return this.mapSuppliers(result);
     } catch (error) {
