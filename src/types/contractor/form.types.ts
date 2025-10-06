@@ -34,6 +34,12 @@ export interface ContractorFormData {
   accountNumber: string;
   branchCode: string;
 
+  // Performance Metrics
+  performanceScore?: number;
+  safetyScore?: number;
+  qualityScore?: number;
+  timelinessScore?: number;
+
   // Professional Information
   specializations: string[];
   certifications: string[];

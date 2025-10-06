@@ -34,7 +34,13 @@
       "Bash(do curl -s -w \"Request $i: %{time_total}s\\n\" http://localhost:3005/api/contractors)",
       "Bash(done:*)",
       "Bash(env:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__resize_page",
+      "Bash(do echo:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": [],

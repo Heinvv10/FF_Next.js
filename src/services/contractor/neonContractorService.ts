@@ -133,7 +133,7 @@ export const neonContractorService = {
    */
   async updateContractor(id: string, data: Partial<ContractorFormData>): Promise<Contractor> {
     try {
-      // Use template literal with all fields
+      // Use template literal with all fields including performance scores
       const result = await sql`
         UPDATE contractors
         SET
@@ -159,6 +159,11 @@ export const neonContractorService = {
           bank_name = COALESCE(${data.bankName}, bank_name),
           account_number = COALESCE(${data.accountNumber}, account_number),
           branch_code = COALESCE(${data.branchCode}, branch_code),
+          compliance_status = COALESCE(${data.complianceStatus}, compliance_status),
+          performance_score = COALESCE(${data.performanceScore}, performance_score),
+          safety_score = COALESCE(${data.safetyScore}, safety_score),
+          quality_score = COALESCE(${data.qualityScore}, quality_score),
+          timeliness_score = COALESCE(${data.timelinessScore}, timeliness_score),
           specializations = COALESCE(${data.specializations ? JSON.stringify(data.specializations) : null}, specializations),
           certifications = COALESCE(${data.certifications ? JSON.stringify(data.certifications) : null}, certifications),
           notes = COALESCE(${data.notes}, notes),
@@ -170,6 +175,13 @@ export const neonContractorService = {
 
       if (result.length === 0) {
         throw new Error('Contractor not found');
+      }
+
+      // If performance scores were updated, recalculate RAG scores
+      if (data.performanceScore !== undefined || data.safetyScore !== undefined ||
+          data.qualityScore !== undefined || data.timelinessScore !== undefined ||
+          data.creditRating !== undefined || data.complianceStatus !== undefined) {
+        await this.recalculateRAGScores(id);
       }
 
       return this.mapContractor(result[0]);
@@ -423,6 +435,343 @@ export const neonContractorService = {
     } catch (error) {
       log.error('Error recording RAG history:', { data: error }, 'neonContractorService');
       throw error;
+    }
+  },
+
+  /**
+   * Recalculate RAG scores based on current contractor data
+   */
+  async recalculateRAGScores(contractorId: string): Promise<void> {
+    try {
+      // Get current contractor data
+      const contractor = await this.getContractorById(contractorId);
+      if (!contractor) {
+        throw new Error('Contractor not found for RAG recalculation');
+      }
+
+      // Calculate RAG scores based on current data
+      const ragScores = this.calculateRAGScoresFromData(contractor);
+
+      // Update RAG scores in database
+      await this.updateRAGScores(contractorId, ragScores);
+
+      log.info('RAG scores recalculated', {
+        contractorId,
+        companyName: contractor.companyName,
+        newScores: ragScores
+      }, 'neonContractorService');
+    } catch (error) {
+      log.error('Error recalculating RAG scores:', { data: error }, 'neonContractorService');
+      throw error;
+    }
+  },
+
+  /**
+   * Calculate RAG scores from contractor data
+   */
+  private calculateRAGScoresFromData(contractor: Contractor): {
+    overall: RAGScore;
+    financial: RAGScore;
+    compliance: RAGScore;
+    performance: RAGScore;
+    safety: RAGScore;
+  } {
+    // Financial RAG (25% weight)
+    const financialRAG = this.calculateFinancialRAG(contractor);
+
+    // Compliance RAG (30% weight)
+    const complianceRAG = this.calculateComplianceRAG(contractor);
+
+    // Performance RAG (25% weight)
+    const performanceRAG = this.calculatePerformanceRAG(contractor);
+
+    // Safety RAG (20% weight)
+    const safetyRAG = this.calculateSafetyRAG(contractor);
+
+    // Overall RAG (weighted average)
+    const overallRAG = this.calculateOverallRAG({
+      financial: financialRAG,
+      compliance: complianceRAG,
+      performance: performanceRAG,
+      safety: safetyRAG
+    });
+
+    return {
+      overall: overallRAG,
+      financial: financialRAG,
+      compliance: complianceRAG,
+      performance: performanceRAG,
+      safety: safetyRAG
+    };
+  },
+
+  /**
+   * Calculate Financial RAG score
+   */
+  private calculateFinancialRAG(contractor: Contractor): RAGScore {
+    let score = 0;
+    let factors = 0;
+
+    // Credit rating assessment
+    if (contractor.creditRating) {
+      factors++;
+      switch (contractor.creditRating.toLowerCase()) {
+        case 'excellent':
+        case 'aaa':
+        case 'aa+':
+          score += 90;
+          break;
+        case 'good':
+        case 'a+':
+        case 'a':
+          score += 75;
+          break;
+        case 'fair':
+        case 'bbb':
+          score += 60;
+          break;
+        case 'poor':
+        case 'bb':
+        case 'b':
+          score += 40;
+          break;
+        case 'unrated':
+        default:
+          score += 50; // Neutral for unknown
+          break;
+      }
+    }
+
+    // Annual turnover assessment
+    if (contractor.annualTurnover) {
+      factors++;
+      const turnover = parseFloat(contractor.annualTurnover.toString());
+      if (turnover >= 10000000) { // > R10M
+        score += 90;
+      } else if (turnover >= 5000000) { // > R5M
+        score += 75;
+      } else if (turnover >= 1000000) { // > R1M
+        score += 60;
+      } else {
+        score += 45;
+      }
+    }
+
+    // Years in business assessment
+    if (contractor.yearsInBusiness) {
+      factors++;
+      if (contractor.yearsInBusiness >= 10) {
+        score += 85;
+      } else if (contractor.yearsInBusiness >= 5) {
+        score += 70;
+      } else if (contractor.yearsInBusiness >= 2) {
+        score += 55;
+      } else {
+        score += 40;
+      }
+    }
+
+    const averageScore = factors > 0 ? score / factors : 50;
+    return this.scoreToRAG(averageScore);
+  },
+
+  /**
+   * Calculate Compliance RAG score
+   */
+  private calculateComplianceRAG(contractor: Contractor): RAGScore {
+    let score = 0;
+    let factors = 0;
+
+    // Compliance status
+    factors++;
+    switch (contractor.complianceStatus) {
+      case 'compliant':
+        score += 90;
+        break;
+      case 'under_review':
+        score += 65;
+        break;
+      case 'non_compliant':
+        score += 30;
+        break;
+      case 'pending':
+      default:
+        score += 50;
+        break;
+    }
+
+    // Status consideration
+    factors++;
+    switch (contractor.status) {
+      case 'approved':
+        score += 85;
+        break;
+      case 'under_review':
+        score += 65;
+        break;
+      case 'suspended':
+        score += 25;
+        break;
+      case 'pending':
+      default:
+        score += 50;
+        break;
+    }
+
+    // Onboarding progress
+    factors++;
+    if (contractor.onboardingProgress >= 90) {
+      score += 85;
+    } else if (contractor.onboardingProgress >= 70) {
+      score += 70;
+    } else if (contractor.onboardingProgress >= 40) {
+      score += 55;
+    } else {
+      score += 40;
+    }
+
+    const averageScore = score / factors;
+    return this.scoreToRAG(averageScore);
+  },
+
+  /**
+   * Calculate Performance RAG score
+   */
+  private calculatePerformanceRAG(contractor: Contractor): RAGScore {
+    let score = 0;
+    let factors = 0;
+
+    // Performance score
+    const perfScore = typeof contractor.performanceScore === 'string'
+      ? parseFloat(contractor.performanceScore)
+      : contractor.performanceScore;
+    if (perfScore !== undefined && perfScore > 0) {
+      factors++;
+      score += perfScore;
+    }
+
+    // Quality score
+    const qualScore = typeof contractor.qualityScore === 'string'
+      ? parseFloat(contractor.qualityScore)
+      : contractor.qualityScore;
+    if (qualScore !== undefined && qualScore > 0) {
+      factors++;
+      score += qualScore;
+    }
+
+    // Timeliness score
+    const timeScore = typeof contractor.timelinessScore === 'string'
+      ? parseFloat(contractor.timelinessScore)
+      : contractor.timelinessScore;
+    if (timeScore !== undefined && timeScore > 0) {
+      factors++;
+      score += timeScore;
+    }
+
+    // Project completion rate
+    if (contractor.totalProjects > 0) {
+      factors++;
+      const completionRate = (contractor.completedProjects / contractor.totalProjects) * 100;
+      score += Math.min(completionRate, 100);
+    }
+
+    // If no performance data available, use project success rate if available
+    if (factors === 0 && contractor.successRate !== undefined) {
+      factors++;
+      score += contractor.successRate;
+    }
+
+    const averageScore = factors > 0 ? score / factors : 50; // Default to neutral if no data
+    return this.scoreToRAG(averageScore);
+  },
+
+  /**
+   * Calculate Safety RAG score
+   */
+  private calculateSafetyRAG(contractor: Contractor): RAGScore {
+    let score = 0;
+    let factors = 0;
+
+    // Safety score
+    const safeScore = typeof contractor.safetyScore === 'string'
+      ? parseFloat(contractor.safetyScore)
+      : contractor.safetyScore;
+    if (safeScore !== undefined && safeScore > 0) {
+      factors++;
+      score += safeScore;
+    }
+
+    // Safety-related certifications
+    if (contractor.certifications && contractor.certifications.length > 0) {
+      factors++;
+      const safetyCerts = contractor.certifications.filter(cert =>
+        cert.toLowerCase().includes('safety') ||
+        cert.toLowerCase().includes('ohsa') ||
+        cert.toLowerCase().includes('iso 45001') ||
+        cert.toLowerCase().includes('health and safety')
+      );
+
+      if (safetyCerts.length > 0) {
+        score += 80; // Good rating for having safety certs
+      } else {
+        score += 55; // Neutral for having other certs but no safety-specific ones
+      }
+    }
+
+    // Industry category safety considerations
+    factors++;
+    if (contractor.industryCategory) {
+      const highRiskIndustries = ['Construction', 'Electrical', 'Telecommunications', 'Mining'];
+      if (highRiskIndustries.includes(contractor.industryCategory)) {
+        score += contractor.safetyScore !== undefined && contractor.safetyScore > 70 ? 80 : 60;
+      } else {
+        score += 75; // Slightly better for lower risk industries
+      }
+    }
+
+    const averageScore = factors > 0 ? score / factors : 50;
+    return this.scoreToRAG(averageScore);
+  },
+
+  /**
+   * Calculate Overall RAG score as weighted average
+   */
+  private calculateOverallRAG(scores: {
+    financial: RAGScore;
+    compliance: RAGScore;
+    performance: RAGScore;
+    safety: RAGScore;
+  }): RAGScore {
+    // Convert RAG to numeric values for calculation
+    const ragToScore = (rag: RAGScore): number => {
+      switch (rag) {
+        case 'green': return 85;
+        case 'amber': return 65;
+        case 'red': return 35;
+        default: return 50;
+      }
+    };
+
+    // Weighted calculation (Financial: 25%, Compliance: 30%, Performance: 25%, Safety: 20%)
+    const weightedScore =
+      (ragToScore(scores.financial) * 0.25) +
+      (ragToScore(scores.compliance) * 0.30) +
+      (ragToScore(scores.performance) * 0.25) +
+      (ragToScore(scores.safety) * 0.20);
+
+    return this.scoreToRAG(weightedScore);
+  },
+
+  /**
+   * Convert numeric score to RAG rating
+   */
+  private scoreToRAG(score: number): RAGScore {
+    if (score >= 75) {
+      return 'green';
+    } else if (score >= 50) {
+      return 'amber';
+    } else {
+      return 'red';
     }
   },
 
