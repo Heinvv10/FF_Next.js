@@ -24,6 +24,7 @@ Each page log follows this format:
 | Projects New | `pages/projects/new.tsx` | [projects-new.md](./projects-new.md) | Sep 15, 2025 - 10:55 AM |
 | Projects | `src/pages/Projects.tsx` | [projects.md](./projects.md) | - |
 | Staff | `src/pages/Staff.tsx` | [staff.md](./staff.md) | Sep 15, 2025 - 11:30 AM |
+| Contractors | `pages/contractors.tsx` | [contractors.md](./contractors.md) | Oct 21, 2025 - 12:06 PM |
 | Contractors New | `pages/contractors/new.tsx` | [contractors-new.md](./contractors-new.md) | Sep 19, 2025 - 10:30 AM |
 | Clients | `src/pages/Clients.tsx` | [clients.md](./clients.md) | - |
 | Procurement | `src/pages/Procurement.tsx` | [procurement.md](./procurement.md) | - |
