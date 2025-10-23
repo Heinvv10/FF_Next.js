@@ -27,7 +27,7 @@ import {
   RateCardManagementProps 
 } from '@/types/contractor';
 import { RateCardApiService } from '@/services/contractor';
-import { formatDate } from '@/src/utils/dateHelpers';
+import { formatDate } from '@/utils/dateHelpers';
 import { formatCurrency } from '@/lib/utils';
 import { log } from '@/lib/logger';
 

@@ -152,6 +152,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Project name is required' });
     }
     
+    // Helper to convert empty strings to null
+    const toNullIfEmpty = (val: any) => (val === '' || val === undefined) ? null : val;
+
     const newProject = await sql`
       INSERT INTO projects (
         name, description, client_id, project_manager_id,
@@ -162,20 +165,20 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       )
       VALUES (
         ${projectData.name},
-        ${projectData.description || null},
-        ${projectData.client_id || projectData.clientId || null},
-        ${projectData.project_manager_id || projectData.projectManagerId || null},
+        ${toNullIfEmpty(projectData.description)},
+        ${toNullIfEmpty(projectData.client_id || projectData.clientId)},
+        ${toNullIfEmpty(projectData.project_manager_id || projectData.projectManagerId)},
         ${projectData.status || 'PLANNING'},
         ${projectData.priority || 'MEDIUM'},
-        ${projectData.start_date || projectData.startDate || new Date().toISOString()},
-        ${projectData.end_date || projectData.endDate || null},
+        ${toNullIfEmpty(projectData.start_date || projectData.startDate) || new Date().toISOString()},
+        ${toNullIfEmpty(projectData.end_date || projectData.endDate)},
         ${projectData.budget_allocated || projectData.budgetAllocated || 0},
         ${projectData.budget_spent || projectData.budgetSpent || 0},
-        ${projectData.municipal_district || projectData.municipalDistrict || null},
-        ${projectData.gps_latitude || projectData.gpsLatitude || null},
-        ${projectData.gps_longitude || projectData.gpsLongitude || null},
-        ${projectData.city || null},
-        ${projectData.state || null}
+        ${toNullIfEmpty(projectData.municipal_district || projectData.municipalDistrict)},
+        ${toNullIfEmpty(projectData.gps_latitude || projectData.gpsLatitude)},
+        ${toNullIfEmpty(projectData.gps_longitude || projectData.gpsLongitude)},
+        ${toNullIfEmpty(projectData.city)},
+        ${toNullIfEmpty(projectData.state)}
       )
       RETURNING *
     `;
@@ -207,25 +210,28 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   
   try {
     const updates = req.body;
-    
+
+    // Helper to convert empty strings to null
+    const toNullIfEmpty = (val: any) => (val === '' || val === undefined) ? null : val;
+
     const updatedProject = await sql`
       UPDATE projects
-      SET 
-        name = COALESCE(${updates.name}, name),
-        description = COALESCE(${updates.description}, description),
-        client_id = COALESCE(${updates.client_id || updates.clientId}, client_id),
-        project_manager_id = COALESCE(${updates.project_manager_id || updates.projectManagerId}, project_manager_id),
-        status = COALESCE(${updates.status}, status),
-        priority = COALESCE(${updates.priority}, priority),
-        start_date = COALESCE(${updates.start_date || updates.startDate}, start_date),
-        end_date = COALESCE(${updates.end_date || updates.endDate}, end_date),
-        budget_allocated = COALESCE(${updates.budget_allocated || updates.budgetAllocated}, budget_allocated),
-        budget_spent = COALESCE(${updates.budget_spent || updates.budgetSpent}, budget_spent),
-        municipal_district = COALESCE(${updates.municipal_district || updates.municipalDistrict}, municipal_district),
-        gps_latitude = COALESCE(${updates.gps_latitude || updates.gpsLatitude}, gps_latitude),
-        gps_longitude = COALESCE(${updates.gps_longitude || updates.gpsLongitude}, gps_longitude),
-        city = COALESCE(${updates.city}, city),
-        state = COALESCE(${updates.state}, state),
+      SET
+        name = COALESCE(${toNullIfEmpty(updates.name)}, name),
+        description = COALESCE(${toNullIfEmpty(updates.description)}, description),
+        client_id = COALESCE(${toNullIfEmpty(updates.client_id || updates.clientId)}, client_id),
+        project_manager_id = COALESCE(${toNullIfEmpty(updates.project_manager_id || updates.projectManagerId)}, project_manager_id),
+        status = COALESCE(${toNullIfEmpty(updates.status)}, status),
+        priority = COALESCE(${toNullIfEmpty(updates.priority)}, priority),
+        start_date = COALESCE(${toNullIfEmpty(updates.start_date || updates.startDate)}, start_date),
+        end_date = COALESCE(${toNullIfEmpty(updates.end_date || updates.endDate)}, end_date),
+        budget_allocated = COALESCE(${toNullIfEmpty(updates.budget_allocated || updates.budgetAllocated)}, budget_allocated),
+        budget_spent = COALESCE(${toNullIfEmpty(updates.budget_spent || updates.budgetSpent)}, budget_spent),
+        municipal_district = COALESCE(${toNullIfEmpty(updates.municipal_district || updates.municipalDistrict)}, municipal_district),
+        gps_latitude = COALESCE(${toNullIfEmpty(updates.gps_latitude || updates.gpsLatitude)}, gps_latitude),
+        gps_longitude = COALESCE(${toNullIfEmpty(updates.gps_longitude || updates.gpsLongitude)}, gps_longitude),
+        city = COALESCE(${toNullIfEmpty(updates.city)}, city),
+        state = COALESCE(${toNullIfEmpty(updates.state)}, state),
         updated_at = NOW()
       WHERE id = ${id as string}
       RETURNING *
