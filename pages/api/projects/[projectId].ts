@@ -7,9 +7,9 @@ import { logUpdate, logDelete } from '../../../lib/db-logger';
 
 /**
  * Project API Route
- * GET /api/projects/[id] - Get a single project
- * PUT /api/projects/[id] - Update a project
- * DELETE /api/projects/[id] - Delete a project
+ * GET /api/projects/[projectId] - Get a single project
+ * PUT /api/projects/[projectId] - Update a project
+ * DELETE /api/projects/[projectId] - Delete a project
  */
 
 // Create a new connection for each request to avoid connection pooling issues
@@ -19,7 +19,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { id } = req.query;
+  const { projectId: id } = req.query;
 
   try {
     // Get authentication

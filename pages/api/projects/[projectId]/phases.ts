@@ -1,7 +1,7 @@
 /**
  * API endpoint for managing project phases
- * GET /api/projects/[id]/phases - Get all phases for a project
- * POST /api/projects/[id]/phases - Create a new phase
+ * GET /api/projects/[projectId]/phases - Get all phases for a project
+ * POST /api/projects/[projectId]/phases - Create a new phase
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -20,7 +20,7 @@ export default async function handler(
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const projectId = req.query.id as string;
+    const projectId = req.query.projectId as string;
 
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });

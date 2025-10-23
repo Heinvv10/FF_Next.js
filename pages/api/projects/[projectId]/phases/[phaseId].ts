@@ -1,8 +1,8 @@
 /**
  * API endpoint for managing a specific project phase
- * GET /api/projects/[id]/phases/[phaseId] - Get phase details
- * PUT /api/projects/[id]/phases/[phaseId] - Update phase
- * DELETE /api/projects/[id]/phases/[phaseId] - Delete phase
+ * GET /api/projects/[projectId]/phases/[phaseId] - Get phase details
+ * PUT /api/projects/[projectId]/phases/[phaseId] - Update phase
+ * DELETE /api/projects/[projectId]/phases/[phaseId] - Delete phase
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -21,7 +21,7 @@ export default async function handler(
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const projectId = req.query.id as string;
+    const projectId = req.query.projectId as string;
     const phaseId = req.query.phaseId as string;
 
     if (!projectId || !phaseId) {

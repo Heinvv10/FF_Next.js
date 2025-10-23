@@ -1,7 +1,7 @@
 /**
  * API endpoint for project progress tracking
- * GET /api/projects/[id]/progress - Get project progress summary
- * POST /api/projects/[id]/progress - Update project progress
+ * GET /api/projects/[projectId]/progress - Get project progress summary
+ * POST /api/projects/[projectId]/progress - Update project progress
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -20,7 +20,7 @@ export default async function handler(
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const projectId = req.query.id as string;
+    const projectId = req.query.projectId as string;
 
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
