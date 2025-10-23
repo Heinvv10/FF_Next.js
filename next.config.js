@@ -20,7 +20,6 @@ const nextConfig = {
   },
 
   // Disable static optimization for problematic pages
-  trailingSlash: true,
   generateEtags: false,
   poweredByHeader: false,
 
