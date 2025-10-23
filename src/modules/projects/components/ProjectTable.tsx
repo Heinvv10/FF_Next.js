@@ -1,8 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/router';
-import { Eye, Edit, Trash2, MoreVertical } from 'lucide-react';
-import { useState } from 'react';
+import { Eye, Edit, Trash2 } from 'lucide-react';
 
 interface ProjectTableProps {
   projects: any[] | undefined;
@@ -13,7 +12,6 @@ interface ProjectTableProps {
 
 export function ProjectTable({ projects, isLoading, error, onDelete }: ProjectTableProps) {
   const router = useRouter();
-  const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -92,7 +90,7 @@ export function ProjectTable({ projects, isLoading, error, onDelete }: ProjectTa
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Budget
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -123,15 +121,14 @@ export function ProjectTable({ projects, isLoading, error, onDelete }: ProjectTa
             )}
             
             {projects?.map((project) => (
-              <tr 
-                key={project.id} 
-                className="hover:bg-gray-50 cursor-pointer"
-                onClick={() => router.push(`/projects/${project.id}`)}
+              <tr
+                key={project.id}
+                className="hover:bg-gray-50"
               >
                 <td className="px-4 py-4 whitespace-nowrap">
                   <div>
                     <div className="text-sm font-medium text-gray-900">{project.name}</div>
-                    <div className="text-sm text-gray-500">{project.code || `PRJ-${project.id.slice(0, 6)}`}</div>
+                    <div className="text-sm text-gray-500">{project.project_code || project.code || `PRJ-${project.id.slice(0, 6)}`}</div>
                   </div>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap">
@@ -139,7 +136,7 @@ export function ProjectTable({ projects, isLoading, error, onDelete }: ProjectTa
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {project.city}, {project.state}
+                    {project.city ? `${project.city}, ${project.state}` : project.location || 'N/A'}
                   </div>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap">
@@ -155,44 +152,33 @@ export function ProjectTable({ projects, isLoading, error, onDelete }: ProjectTa
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
-                    {formatCurrency(Number(project.budget_allocated))}
+                    {formatCurrency(Number(project.budget_allocated || project.budget))}
                   </div>
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="relative" onClick={(e) => e.stopPropagation()}>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div className="flex items-center justify-end space-x-2">
                     <button
-                      onClick={() => setShowActionMenu(showActionMenu === project.id ? null : project.id)}
-                      className="text-gray-400 hover:text-gray-600 p-1"
+                      onClick={() => router.push(`/projects/${project.id}`)}
+                      className="text-blue-600 hover:text-blue-900"
+                      title="View Details"
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <Eye className="h-4 w-4" />
                     </button>
-                    
-                    {showActionMenu === project.id && (
-                      <div className="absolute right-0 top-8 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                        <button
-                          onClick={() => router.push(`/projects/${project.id}`)}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </button>
-                        <button
-                          onClick={() => router.push(`/projects/${project.id}/edit`)}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </button>
-                        {onDelete && (
-                          <button
-                            onClick={() => onDelete(project.id)}
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </button>
-                        )}
-                      </div>
+                    <button
+                      onClick={() => router.push(`/projects/${project.id}/edit`)}
+                      className="text-yellow-600 hover:text-yellow-900"
+                      title="Edit"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    {onDelete && (
+                      <button
+                        onClick={() => onDelete(project.id)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     )}
                   </div>
                 </td>

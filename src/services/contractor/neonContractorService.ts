@@ -24,7 +24,7 @@ export const neonContractorService = {
    * Get all contractors with optional filters
    */
   async getContractors(filters?: {
-    status?: string;
+    status?: string | string[];
     complianceStatus?: string;
     ragOverall?: string;
     isActive?: boolean;
@@ -53,10 +53,11 @@ export const neonContractorService = {
           ORDER BY created_at DESC
         `;
       } else if (filters.status && !filters.search) {
-        // Status filter only
+        // Status filter only - support both single and multiple statuses
+        const statusArray = Array.isArray(filters.status) ? filters.status : [filters.status];
         result = await sql`
           SELECT * FROM contractors
-          WHERE status = ${filters.status}
+          WHERE status = ANY(${statusArray})
           ${filters.isActive !== undefined ? sql`AND is_active = ${filters.isActive}` : sql``}
           ORDER BY created_at DESC
         `;

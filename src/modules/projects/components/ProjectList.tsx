@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, Filter } from 'lucide-react';
 import { useNeonProjects } from '@/hooks/neon/useNeonProjects';
+import { projectsService } from '@/services/projectsService';
 import { ProjectListHeader } from './ProjectListHeader';
 import { ProjectSummaryCards } from './ProjectSummaryCards';
 import { ProjectTable } from './ProjectTable';
@@ -11,7 +12,7 @@ export function ProjectList() {
   const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
   const [selectedPriority, setSelectedPriority] = useState<string[]>([]);
   
-  const { projects, loading: isLoading, error } = useNeonProjects();
+  const { projects, loading: isLoading, error, refetch } = useNeonProjects();
   
   // Filter projects based on search and filters
   const filteredProjects = projects.filter((project: any) => {
@@ -33,14 +34,15 @@ export function ProjectList() {
     e.preventDefault();
   };
 
-  const handleDelete = async (_id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
       return;
     }
-    
-    try {
-      // TODO: Implement delete functionality
 
+    try {
+      await projectsService.delete(id);
+      // Refresh the projects list
+      refetch();
     } catch (error: any) {
       alert(error.message || 'Failed to delete project');
     }

@@ -45,16 +45,32 @@ function formDataToApiFormat(data: ContractorFormData): any {
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || `HTTP ${response.status}`);
+    console.error('API Error Response:', { status: response.status, error });
+    throw new Error(error.message || error.error || `HTTP ${response.status}`);
   }
 
   const data = await response.json();
+  console.log('API Success Response:', data);
   return data.data || data;
 }
 
 export const contractorApiService = {
-  async getAll(): Promise<Contractor[]> {
-    const response = await fetch(`${API_BASE}/contractors`);
+  async getAll(filter?: any): Promise<Contractor[]> {
+    const params = new URLSearchParams();
+
+    if (filter?.status) {
+      // Support both array and single value
+      const statuses = Array.isArray(filter.status) ? filter.status : [filter.status];
+      statuses.forEach((s: string) => params.append('status', s));
+    }
+    if (filter?.searchTerm) {
+      params.append('search', filter.searchTerm);
+    }
+
+    const queryString = params.toString();
+    const url = queryString ? `${API_BASE}/contractors?${queryString}` : `${API_BASE}/contractors`;
+
+    const response = await fetch(url);
     return handleResponse<Contractor[]>(response);
   },
 
@@ -74,7 +90,7 @@ export const contractorApiService = {
   },
 
   async update(id: string, updates: Partial<Contractor>): Promise<Contractor> {
-    const response = await fetch(`${API_BASE}/contractors?id=${id}`, {
+    const response = await fetch(`${API_BASE}/contractors/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates)
@@ -83,7 +99,7 @@ export const contractorApiService = {
   },
 
   async delete(id: string): Promise<{ success: boolean; message: string }> {
-    const response = await fetch(`${API_BASE}/contractors?id=${id}`, {
+    const response = await fetch(`${API_BASE}/contractors/${id}`, {
       method: 'DELETE'
     });
     return handleResponse<{ success: boolean; message: string }>(response);

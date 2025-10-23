@@ -55,8 +55,8 @@ async function handleGet(
     if (!contractor) {
       return res.status(404).json({ error: 'Contractor not found' });
     }
-    
-    return res.status(200).json(contractor);
+
+    return res.status(200).json({ success: true, data: contractor });
   } catch (error) {
     log.error('Error fetching contractor:', { data: error }, 'api/contractors/[id]');
     throw error;
@@ -89,8 +89,8 @@ async function handlePut(
     }
     
     const contractor = await neonContractorService.updateContractor(id, data);
-    
-    return res.status(200).json(contractor);
+
+    return res.status(200).json({ success: true, data: contractor });
   } catch (error) {
     log.error('Error updating contractor:', { data: error }, 'api/contractors/[id]');
     

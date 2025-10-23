@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Building2, CheckCircle, Clock, UserCheck } from 'lucide-react';
+import { Building2, CheckCircle, Clock, UserCheck, Eye, Edit, Trash2 } from 'lucide-react';
 import { contractorService } from '@/services/contractorService';
 import { Contractor, ContractorFilter, ContractorAnalytics } from '@/types/contractor.types';
 import {
@@ -121,6 +121,20 @@ export function ContractorList() {
     }
   ] : [];
 
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this contractor?')) {
+      return;
+    }
+    try {
+      await contractorService.delete(id);
+      toast.success('Contractor deleted successfully');
+      loadContractors();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete contractor');
+    }
+  };
+
   // Table columns configuration
   const tableColumns = [
     { key: 'companyName', header: 'Company Name' },
@@ -128,8 +142,8 @@ export function ContractorList() {
     { key: 'contactPerson', header: 'Contact Person' },
     { key: 'email', header: 'Email' },
     { key: 'phone', header: 'Phone' },
-    { 
-      key: 'status', 
+    {
+      key: 'status',
       header: 'Status',
       render: (contractor: any) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contractor.status)}`}>
@@ -137,8 +151,8 @@ export function ContractorList() {
         </span>
       )
     },
-    { 
-      key: 'ragOverall', 
+    {
+      key: 'ragOverall',
       header: 'RAG Rating',
       render: (contractor: any) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRagColor(contractor.ragOverall)}`}>
@@ -146,10 +160,45 @@ export function ContractorList() {
         </span>
       )
     },
-    { 
-      key: 'activeProjects', 
+    {
+      key: 'activeProjects',
       header: 'Active Projects',
       render: (contractor: any) => contractor.activeProjects || 0
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (contractor: any) => (
+        <div className="flex items-center justify-end space-x-2" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/contractors/${contractor.id}`);
+            }}
+            className="text-blue-600 hover:text-blue-900"
+            title="View Details"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/contractors/${contractor.id}/edit`);
+            }}
+            className="text-yellow-600 hover:text-yellow-900"
+            title="Edit"
+          >
+            <Edit className="h-4 w-4" />
+          </button>
+          <button
+            onClick={(e) => handleDelete(contractor.id, e)}
+            className="text-red-600 hover:text-red-900"
+            title="Delete"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      )
     }
   ];
 
@@ -256,7 +305,7 @@ export function ContractorList() {
         columns={tableColumns}
         isLoading={isLoading}
         getRowKey={(contractor) => contractor.id}
-        onRowClick={(contractor) => router.push(`/contractors/${contractor.id}`)}
+        onRowClick={undefined}
       />
     </div>
   );

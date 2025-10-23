@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 // import { useTheme } from '@/contexts/ThemeContext'; // Ready for future use
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { ConnectionStatus } from '@/components/realtime/ConnectionStatus';
+// import { ConnectionStatus } from '@/components/realtime/ConnectionStatus'; // Disabled - WebSocket not configured
 import dynamic from 'next/dynamic';
 
 // Dynamically import components that use router to avoid SSR issues
@@ -286,14 +286,14 @@ export function AppLayout({ children }: AppLayoutProps) {
         <Footer />
       </div>
       
-      {/* WebSocket Connection Status */}
-      <ConnectionStatus 
+      {/* WebSocket Connection Status - Disabled */}
+      {/* <ConnectionStatus
         mode="auto"
         position="bottom-right"
         showDetails={false}
         autoHide={true}
         autoHideDelay={5000}
-      />
+      /> */}
     </div>
   );
 }

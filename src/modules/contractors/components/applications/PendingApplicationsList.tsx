@@ -180,14 +180,11 @@ export function PendingApplicationsList({
 
   // 🟢 WORKING: Handle individual application actions
   const handleApplicationAction = async (
-    contractorId: string, 
-    action: ApprovalAction, 
+    contractorId: string,
+    action: ApprovalAction,
     _data?: any
   ): Promise<ApprovalActionResult> => {
     try {
-      // TODO: Implement actual API call for application action
-      // For now, simulating the action
-      
       let newStatus: ApplicationStatus;
       switch (action) {
         case 'approve':
@@ -206,16 +203,21 @@ export function PendingApplicationsList({
           throw new Error(`Unknown action: ${action}`);
       }
 
-      // Update local state optimistically
-      setApplications(prev => 
-        prev.map(app => 
-          app.id === contractorId 
+      // Update in database
+      await contractorService.update(contractorId, { status: newStatus });
+
+      // Update local state
+      setApplications(prev =>
+        prev.map(app =>
+          app.id === contractorId
             ? { ...app, status: newStatus, lastActivity: new Date() }
             : app
         )
       );
 
-      // TODO: Show success toast notification
+      // Reload applications to reflect changes
+      await loadApplications(false);
+
       log.info(`Action ${action} completed for contractor ${contractorId}`, undefined, 'PendingApplicationsList');
 
       return {

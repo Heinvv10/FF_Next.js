@@ -85,16 +85,24 @@ async function handleGet(
   res: NextApiResponse<Contractor[] | { error: string }>
 ) {
   try {
-    const { 
-      status, 
-      complianceStatus, 
-      ragOverall, 
-      isActive, 
-      search 
+    const {
+      status,
+      complianceStatus,
+      ragOverall,
+      isActive,
+      search
     } = req.query;
 
+    // Handle multiple status values
+    let statusFilter: string | string[] | undefined;
+    if (Array.isArray(status)) {
+      statusFilter = status;
+    } else if (status) {
+      statusFilter = status as string;
+    }
+
     const filters = {
-      status: status as string,
+      status: statusFilter,
       complianceStatus: complianceStatus as string,
       ragOverall: ragOverall as string,
       isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
@@ -109,8 +117,8 @@ async function handleGet(
     });
 
     const contractors = await neonContractorService.getContractors(filters);
-    
-    return res.status(200).json(contractors);
+
+    return res.status(200).json({ success: true, data: contractors });
   } catch (error) {
     log.error('Error fetching contractors:', { data: error }, 'api/contractors');
     throw error;
@@ -141,8 +149,8 @@ async function handlePost(
     }
 
     const contractor = await neonContractorService.createContractor(data);
-    
-    return res.status(201).json(contractor);
+
+    return res.status(201).json({ success: true, data: contractor });
   } catch (error) {
     log.error('Error creating contractor:', { data: error }, 'api/contractors');
     
