@@ -12,7 +12,6 @@ import { PendingApplicationsList } from './components/applications';
 import { PerformanceDashboard } from './components/performance';
 import { DocumentApprovalQueue } from './components/documents';
 import { StatsGrid } from '@/components/dashboard/EnhancedStatCard';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { getContractorsDashboardCards } from '@/config/dashboards/dashboardConfigs';
 import { ContractorImport } from '@/components/contractor/ContractorImport';
 import { contractorApiService } from '@/services/contractor/contractorApiService';
@@ -173,11 +172,13 @@ export function ContractorsDashboard({ initialStats, initialTrends }: Contractor
   // Show loading state
   if (isLoading) {
     return (
-      <div className="ff-page-container">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading contractors dashboard...</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading contractors dashboard...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -187,17 +188,19 @@ export function ContractorsDashboard({ initialStats, initialTrends }: Contractor
   // Show error state
   if (error) {
     return (
-      <div className="ff-page-container">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="text-red-500 mb-4">⚠️ Error loading dashboard</div>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={loadDashboardData}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Try Again
-            </button>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="text-red-500 mb-4">⚠️ Error loading dashboard</div>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <button
+                onClick={loadDashboardData}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Try Again
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -205,37 +208,44 @@ export function ContractorsDashboard({ initialStats, initialTrends }: Contractor
   }
 
   return (
-    <div className="ff-page-container">
-      <DashboardHeader
-        title="Contractors Dashboard"
-        subtitle="Manage contractor relationships and performance"
-        actions={[
-          {
-            label: 'Add Contractor',
-            icon: UserPlus,
-            onClick: () => router.push('/contractors/new'),
-            variant: 'primary'
-          },
-          {
-            label: 'Import Contractors',
-            icon: Upload,
-            onClick: () => setShowImportModal(true),
-            variant: 'secondary'
-          },
-          {
-            label: 'Export Report',
-            icon: Download,
-            onClick: () => log.info('Export contractors report', undefined, 'ContractorsDashboard'),
-            variant: 'secondary'
-          },
-          {
-            label: 'Refresh Data',
-            icon: RefreshCw,
-            onClick: loadDashboardData,
-            variant: 'secondary'
-          }
-        ]}
-      />
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Contractors Dashboard</h1>
+          <p className="mt-2 text-gray-600">Manage contractor relationships and performance</p>
+        </div>
+
+        {/* Actions Bar */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-4">
+          <button
+            onClick={() => router.push('/contractors/new')}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Add Contractor
+          </button>
+
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Import Contractors
+          </button>
+
+          <button
+            onClick={() => log.info('Export contractors report', undefined, 'ContractorsDashboard')}
+            className="px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Export Report
+          </button>
+
+          <button
+            onClick={loadDashboardData}
+            className="px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Refresh Data
+          </button>
+        </div>
 
       {/* Tabs Navigation */}
       <div className="border-b border-gray-200 mb-6">
@@ -372,6 +382,7 @@ export function ContractorsDashboard({ initialStats, initialTrends }: Contractor
           loadDashboardData(); // Refresh dashboard data
         }}
       />
+      </div>
     </div>
   );
 }
