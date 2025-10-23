@@ -33,7 +33,17 @@
 ### Development & Testing
 - `tests/` - Test suites and e2e tests
 - `docs/` - Documentation
+  - `docs/CHANGELOG.md` - **Daily work log and deployment tracking**
+  - `docs/TRACKING_SYSTEM.md` - **Complete guide to tracking system**
   - `docs/page-logs/` - **Page development logs tracking all changes with timestamps**
+  - `docs/PROGRESS.md` - Project phase completion tracking
+
+### Deployment & Production
+- `vercel/` - **Vercel deployment management** (See `vercel/CLAUDE.md` for deployment protocol)
+  - `vercel/docs/` - Deployment guides and checklists
+  - `vercel/scripts/` - Automated deployment scripts
+  - Complete environment variables reference
+  - Troubleshooting guides
 
 ### AI Assistant Helpers
 - `.agent-os/` - AI agent configuration and project specs

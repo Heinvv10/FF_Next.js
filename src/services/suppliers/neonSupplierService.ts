@@ -94,9 +94,10 @@ export class NeonSupplierService {
 
       query += ` ORDER BY name ASC`;
 
-      const result = params.length > 0 
-        ? await sql(query, params)
-        : await sql(query);
+      // Use sql.query() for parameterized queries (Neon v0.9+ requirement)
+      const result = params.length > 0
+        ? await sql.query(query, params)
+        : await sql.query(query, []);
 
       return this.mapSuppliers(result);
     } catch (error) {

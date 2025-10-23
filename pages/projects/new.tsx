@@ -1,6 +1,19 @@
 import { GetServerSideProps } from 'next';
+import dynamic from 'next/dynamic';
 import { getAuth } from '../../lib/auth-mock';
-import { ProjectCreationWizard } from '@/modules/projects/components/ProjectWizard/ProjectCreationWizard';
+
+// Lazy load ProjectCreationWizard to reduce initial bundle size
+const ProjectCreationWizard = dynamic(
+  () => import('@/modules/projects/components/ProjectWizard/ProjectCreationWizard').then(mod => ({ default: mod.ProjectCreationWizard })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    ),
+    ssr: false
+  }
+);
 
 export default function NewProjectPage() {
   return <ProjectCreationWizard />;

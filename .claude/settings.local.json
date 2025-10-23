@@ -25,7 +25,15 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(PORT=3005 npm start)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git push:*)",
+      "Bash(awk:*)",
+      "Bash(do curl -s -o /dev/null -w \"%{time_total}\\n\" \"http://localhost:3005$endpoint\")",
+      "Bash(ANALYZE=true npm run build)",
+      "Bash(cat:*)",
+      "Bash(source:*)",
+      "Bash(fuser:*)"
     ],
     "deny": [],
     "ask": [],

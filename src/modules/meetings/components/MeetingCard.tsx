@@ -1,6 +1,6 @@
-import { 
-  Calendar, Clock, MapPin, Video, Users, 
-  CheckCircle, Edit, Trash2
+import {
+  Calendar, Clock, MapPin, Video, Users,
+  CheckCircle, Edit, Trash2, ExternalLink, FileText
 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import type { Meeting } from '../types/meeting.types';
@@ -102,20 +102,29 @@ export function MeetingCard({ meeting, onEdit, onDelete, onJoin }: MeetingCardPr
 
       {meeting.agenda.length > 0 && (
         <div className="mb-3">
-          <h4 className="text-sm font-medium text-gray-900 mb-1">Agenda:</h4>
-          <ul className="text-sm text-gray-600 space-y-1">
-            {meeting.agenda.slice(0, 2).map((item, index) => (
-              <li key={index} className="flex items-start">
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 mr-2 flex-shrink-0" />
+          <h4 className="text-sm font-medium text-gray-900 mb-1">Keywords:</h4>
+          <div className="flex flex-wrap gap-1">
+            {meeting.agenda.slice(0, 4).map((item, index) => (
+              <span key={index} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
                 {item}
-              </li>
+              </span>
             ))}
-            {meeting.agenda.length > 2 && (
-              <li className="text-xs text-gray-500">
-                +{meeting.agenda.length - 2} more items
-              </li>
+            {meeting.agenda.length > 4 && (
+              <span className="text-xs text-gray-500 px-2 py-1">
+                +{meeting.agenda.length - 4} more
+              </span>
             )}
-          </ul>
+          </div>
+        </div>
+      )}
+
+      {meeting.notes && (
+        <div className="mb-3">
+          <h4 className="text-sm font-medium text-gray-900 mb-1 flex items-center">
+            <FileText className="w-3 h-3 mr-1" />
+            Action Items:
+          </h4>
+          <p className="text-xs text-gray-600 line-clamp-2">{meeting.notes.split('\n')[0]}</p>
         </div>
       )}
 
@@ -123,21 +132,35 @@ export function MeetingCard({ meeting, onEdit, onDelete, onJoin }: MeetingCardPr
         <div className="text-xs text-gray-500">
           Organized by {meeting.organizer}
         </div>
-        
-        {(canJoin || isInProgress) && meeting.isVirtual && (
-          <button
-            onClick={() => onJoin(meeting)}
-            className={cn(
-              "flex items-center px-3 py-1 rounded-md text-sm font-medium",
-              isInProgress 
-                ? "bg-green-600 text-white hover:bg-green-700" 
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            )}
-          >
-            <Video className="w-4 h-4 mr-1" />
-            {isInProgress ? 'Rejoin' : 'Join'}
-          </button>
-        )}
+
+        <div className="flex items-center gap-2">
+          {meeting.meetingLink && (
+            <a
+              href={meeting.meetingLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center px-3 py-1 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+            >
+              <ExternalLink className="w-3 h-3 mr-1" />
+              View Transcript
+            </a>
+          )}
+
+          {(canJoin || isInProgress) && meeting.isVirtual && (
+            <button
+              onClick={() => onJoin(meeting)}
+              className={cn(
+                "flex items-center px-3 py-1 rounded-md text-sm font-medium",
+                isInProgress
+                  ? "bg-green-600 text-white hover:bg-green-700"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              )}
+            >
+              <Video className="w-4 h-4 mr-1" />
+              {isInProgress ? 'Rejoin' : 'Join'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

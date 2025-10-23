@@ -97,3 +97,7 @@ storybook-static
 # Next.js build output
 .next/
 .next/cache/
+
+# Vercel deployment hooks (contains sensitive URLs)
+vercel/.deploy-hooks
+.vercel

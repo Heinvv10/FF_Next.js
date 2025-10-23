@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import type { Meeting, UpcomingMeeting } from './types/meeting.types';
-import { mockMeetings, mockUpcoming } from './data/mockData';
 import { MeetingStatsCards } from './components/MeetingStatsCards';
 import { MeetingsList } from './components/MeetingsList';
 import { MeetingsSidebar } from './components/MeetingsSidebar';
@@ -20,9 +19,43 @@ export function MeetingsDashboard() {
     loadMeetings();
   }, []);
 
-  const loadMeetings = () => {
-    setMeetings(mockMeetings);
-    setUpcomingMeetings(mockUpcoming);
+  const loadMeetings = async () => {
+    try {
+      const response = await fetch('/api/meetings');
+      const data = await response.json();
+
+      if (data.meetings) {
+        // Transform Neon data to Meeting format
+        const transformedMeetings = data.meetings.map((m: any) => ({
+          id: m.id,
+          title: m.title,
+          type: 'team' as const,
+          date: new Date(m.date),
+          time: new Date(m.date).toLocaleTimeString(),
+          duration: `${m.duration} min`,
+          location: 'Virtual',
+          isVirtual: true,
+          meetingLink: m.transcript_url,
+          organizer: 'Fireflies',
+          participants: m.participants ? m.participants.map((p: any) => p.name || p.email) : [],
+          agenda: m.summary?.outline || m.summary?.keywords || [],
+          status: 'completed' as const,
+          notes: m.summary?.action_items || '',
+          actionItems: [],
+          // Store full summary for detail view
+          summary: m.summary,
+          firefliesId: m.fireflies_id
+        }));
+
+        setMeetings(transformedMeetings);
+        setUpcomingMeetings([]);
+      }
+    } catch (error) {
+      console.error('Failed to load meetings:', error);
+      // Fallback to empty arrays
+      setMeetings([]);
+      setUpcomingMeetings([]);
+    }
   };
 
   const filteredMeetings = meetings.filter(meeting => {
@@ -47,18 +80,11 @@ export function MeetingsDashboard() {
 
   return (
     <div className="ff-page-container">
-      <DashboardHeader 
-        title="Meetings Management"
-        subtitle="Schedule, manage and track all meetings"
-        actions={[
-          {
-            label: 'Schedule Meeting',
-            icon: Plus as React.ComponentType<{ className?: string; }>,
-            onClick: () => setShowNewMeetingModal(true),
-            variant: 'primary'
-          }
-        ]}
-      />
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Meetings Management</h1>
+        <p className="text-gray-600">Schedule, manage and track all meetings</p>
+      </div>
 
       <MeetingStatsCards meetings={meetings} />
 

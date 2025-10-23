@@ -1,5 +1,18 @@
 import type { NextPage } from 'next';
-import { StaffDetail } from '../../src/modules/staff/components/StaffDetail';
+import dynamic from 'next/dynamic';
+
+// Lazy load StaffDetail component to reduce initial bundle size
+const StaffDetail = dynamic(
+  () => import('../../src/modules/staff/components/StaffDetail').then(mod => ({ default: mod.StaffDetail })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    ),
+    ssr: false
+  }
+);
 
 const StaffDetailPage: NextPage = () => {
   return <StaffDetail />;
