@@ -143,6 +143,7 @@ export const neonContractorService = {
           email = COALESCE(${data.email}, email),
           phone = COALESCE(${data.phone}, phone),
           status = COALESCE(${data.status}, status),
+          is_active = COALESCE(${(data as any).isActive}, is_active),
           registration_number = COALESCE(${data.registrationNumber}, registration_number),
           business_type = COALESCE(${data.businessType}, business_type),
           industry_category = COALESCE(${data.industryCategory}, industry_category),

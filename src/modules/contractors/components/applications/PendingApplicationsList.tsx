@@ -186,25 +186,31 @@ export function PendingApplicationsList({
   ): Promise<ApprovalActionResult> => {
     try {
       let newStatus: ApplicationStatus;
+      let updates: any = {};
+
       switch (action) {
         case 'approve':
           newStatus = 'approved';
+          updates = { status: newStatus, isActive: true };  // Also activate contractor
           break;
         case 'reject':
           newStatus = 'rejected';
+          updates = { status: newStatus };
           break;
         case 'request_more_info':
           newStatus = 'documentation_incomplete';
+          updates = { status: newStatus };
           break;
         case 'escalate':
           newStatus = 'under_review';
+          updates = { status: newStatus };
           break;
         default:
           throw new Error(`Unknown action: ${action}`);
       }
 
       // Update in database
-      await contractorService.update(contractorId, { status: newStatus });
+      await contractorService.update(contractorId, updates);
 
       // Update local state
       setApplications(prev =>
