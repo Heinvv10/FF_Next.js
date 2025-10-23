@@ -1,8 +1,8 @@
 /**
  * Contractor API - Individual contractor operations
- * GET /api/contractors/[id] - Get contractor by ID
- * PUT /api/contractors/[id] - Update contractor
- * DELETE /api/contractors/[id] - Delete contractor (soft delete by default)
+ * GET /api/contractors/[contractorId] - Get contractor by ID
+ * PUT /api/contractors/[contractorId] - Update contractor
+ * DELETE /api/contractors/[contractorId] - Delete contractor (soft delete by default)
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -15,27 +15,27 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const { method } = req;
-  const { id } = req.query;
+  const { contractorId } = req.query;
 
-  if (!id || typeof id !== 'string') {
+  if (!contractorId || typeof contractorId !== 'string') {
     return res.status(400).json({ error: 'Invalid contractor ID' });
   }
 
   try {
     switch (method) {
       case 'GET':
-        return await handleGet(id, res);
+        return await handleGet(contractorId, res);
       case 'PUT':
-        return await handlePut(id, req, res);
+        return await handlePut(contractorId, req, res);
       case 'DELETE':
-        return await handleDelete(id, req, res);
+        return await handleDelete(contractorId, req, res);
       default:
         res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
         return res.status(405).json({ error: `Method ${method} Not Allowed` });
     }
   } catch (error) {
-    log.error('Contractor API error:', { data: error }, 'api/contractors/[id]');
-    return res.status(500).json({ 
+    log.error('Contractor API error:', { data: error }, 'api/contractors/[contractorId]');
+    return res.status(500).json({
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
@@ -58,7 +58,7 @@ async function handleGet(
 
     return res.status(200).json({ success: true, data: contractor });
   } catch (error) {
-    log.error('Error fetching contractor:', { data: error }, 'api/contractors/[id]');
+    log.error('Error fetching contractor:', { data: error }, 'api/contractors/[contractorId]');
     throw error;
   }
 }
@@ -92,15 +92,15 @@ async function handlePut(
 
     return res.status(200).json({ success: true, data: contractor });
   } catch (error) {
-    log.error('Error updating contractor:', { data: error }, 'api/contractors/[id]');
-    
+    log.error('Error updating contractor:', { data: error }, 'api/contractors/[contractorId]');
+
     // Check for unique constraint violations
     if (error instanceof Error && error.message.includes('duplicate key')) {
-      return res.status(409).json({ 
-        error: 'A contractor with this registration number already exists' 
+      return res.status(409).json({
+        error: 'A contractor with this registration number already exists'
       });
     }
-    
+
     throw error;
   }
 }
@@ -128,7 +128,7 @@ async function handleDelete(
     
     return res.status(200).json({ success: true });
   } catch (error) {
-    log.error('Error deleting contractor:', { data: error }, 'api/contractors/[id]');
+    log.error('Error deleting contractor:', { data: error }, 'api/contractors/[contractorId]');
     throw error;
   }
 }
