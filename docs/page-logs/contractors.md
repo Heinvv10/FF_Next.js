@@ -241,3 +241,119 @@ body: JSON.stringify({
 3. Approval/rejection actions - FIXED (2:10 PM)
 
 ---
+
+
+## October 23, 2025 - 3:00 PM
+**Developer**: Claude Assistant
+**Issue**: Contractor approval fails on Vercel deployment with 405 Method Not Allowed errors
+
+### Problem Identified:
+- ✅ Approval workflow works perfectly on localhost (port 3005)
+- ❌ Approval fails on Vercel deployment with 405 errors
+- Fresh incognito windows still show the error (not browser cache)
+- Multiple redeployments with cache clearing didn't resolve the issue
+- Network inspection showed: \`x-matched-path: /404\` indicating route not found
+
+### Root Cause Analysis:
+
+#### Initial Investigation (Incorrect Assumptions):
+1. **Suspected caching** - User confirmed using fresh incognito window ❌
+2. **Suspected API response format inconsistencies** - Fixed but error persisted ❌
+3. **Suspected Next.js route naming conflicts** - Fixed \`[id].ts\` → \`[contractorId].ts\` but error persisted ❌
+4. **Suspected Vercel build cache** - Cleared cache and redeployed but error persisted ❌
+
+#### Actual Root Cause:
+**Next.js configuration setting \`trailingSlash: true\` in \`next.config.js\`** was causing ALL routes (including API routes) to require a trailing slash. The frontend was calling \`/api/contractors/${id}\` without a trailing slash, causing Next.js to return 404 (shown as 405 Method Not Allowed).
+
+**Evidence**:
+- Response headers showed: \`x-matched-path: /404\`
+- Response headers showed: \`content-disposition: inline; filename="404"\`
+- Request URL: \`https://fibreflow-nextjs-oqqwcs9mq-velofibre.vercel.app/api/contractors/ebb08cc4-d23e-4605-9f57-1eb3784d57ee\`
+- Expected URL (with trailingSlash): \`.../api/contractors/ebb08cc4.../\` ← note the trailing slash
+
+### Changes Made:
+
+#### 1. Route Parameter Standardization (Preventive Fix)
+**Files**: Multiple API routes in \`pages/api/\`
+- Renamed \`[id].ts\` → \`[contractorId].ts\` across all contractor API routes
+- Renamed \`[id].ts\` → \`[projectId].ts\` for project routes
+- Renamed \`[id].ts\` → \`[supplierId].ts\` for supplier routes
+- **Commits**: f6082bb, cb8bfd3, 8cbe050
+
+**Why this was needed**: Next.js requires consistent dynamic parameter names when a file and directory exist at the same level. This prevented:
+\`\`\`
+Error: You cannot use different slug names for the same dynamic path ('contractorId' !== 'id')
+\`\`\`
+
+#### 2. Fixed API Route References
+**File**: \`pages/api/contractors/[contractorId].ts:18\`
+**File**: \`pages/api/contractors/[contractorId]/ratings.ts:17\`
+**File**: \`pages/api/contractors/[contractorId]/compliance.ts:18\`
+**File**: \`pages/api/projects/[projectId].ts:22\`
+**File**: \`pages/api/projects/[projectId]/phases.ts:23\`
+**File**: \`pages/api/projects/[projectId]/progress.ts:23\`
+**File**: \`pages/api/projects/[projectId]/phases/[phaseId].ts:24\`
+**File**: \`pages/api/suppliers/[supplierId].ts:14\`
+**File**: \`pages/api/suppliers/[supplierId]/ratings.ts:17\`
+**File**: \`pages/api/suppliers/[supplierId]/compliance.ts:18\`
+
+Changed from:
+\`\`\`typescript
+const { id } = req.query;
+\`\`\`
+
+To:
+\`\`\`typescript
+const { contractorId: id } = req.query;
+// or projectId, supplierId depending on the route
+\`\`\`
+
+#### 3. Root Cause Fix - Removed trailingSlash
+**File**: \`next.config.js:23\`
+**Commit**: 3af7c2a
+
+**Before**:
+\`\`\`javascript
+// Disable static optimization for problematic pages
+trailingSlash: true,
+generateEtags: false,
+poweredByHeader: false,
+\`\`\`
+
+**After**:
+\`\`\`javascript
+// Disable static optimization for problematic pages
+generateEtags: false,
+poweredByHeader: false,
+\`\`\`
+
+**Impact**: Removed \`trailingSlash: true\` which was forcing all routes (including API routes) to require trailing slashes.
+
+### Result:
+✅ **Issue Fixed** (pending deployment verification):
+- Removed \`trailingSlash: true\` from Next.js configuration
+- API routes now work without requiring trailing slashes
+- Matches frontend API calls which don't include trailing slashes
+- Deployment: commit 3af7c2a
+
+### Key Learnings:
+1. **trailingSlash affects ALL routes** including API routes
+2. **Network inspection is crucial** - \`x-matched-path\` header revealed the true issue
+3. **Fresh deployments needed** - Configuration changes require complete rebuilds
+4. **Documentation matters** - Added standards to CLAUDE.md to prevent future similar issues
+
+### Commits:
+- \`fc0f678\` - Set isActive=true when approving contractors
+- \`c427245\` - Standardize API responses and fix contractors CRUD operations  
+- \`8cbe050\` - Resolve API route conflict between [id].ts and [id]/ directory
+- \`cb8bfd3\` - Rename [id].ts to [contractorId].ts to match directory naming
+- \`f6082bb\` - Resolve all Next.js route parameter conflicts
+- \`27e8abd\` - Add API response standards and route naming conventions
+- \`ab3ba2d\` - Force Vercel rebuild without cache
+- \`3af7c2a\` - Remove trailingSlash config causing API 404 errors
+
+### Resolution Status:
+⏳ **PENDING VERIFICATION** - Awaiting deployment completion of commit 3af7c2a
+
+---
+
