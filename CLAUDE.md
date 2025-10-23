@@ -155,6 +155,79 @@ npm run antihall    # Run anti-hallucination validator
 7. **Authentication**: Use Clerk patterns exclusively (Firebase Auth removed)
 8. **API Routes**: Use Next.js App Router API routes (Express server retired)
 
+### API Response Standards
+
+**CRITICAL**: All API endpoints MUST use standardized response formats for consistency.
+
+#### Standard Response Format
+Use the `apiResponse` helper from `lib/apiResponse.ts`:
+
+```typescript
+import { apiResponse } from '@/lib/apiResponse';
+
+// Success response (200)
+return apiResponse.success(res, data, 'Optional message');
+
+// Created response (201)
+return apiResponse.created(res, data, 'Resource created successfully');
+
+// Error responses
+return apiResponse.notFound(res, 'Resource', id);
+return apiResponse.validationError(res, { field: 'Error message' });
+return apiResponse.unauthorized(res);
+return apiResponse.internalError(res, error);
+```
+
+#### Response Structure
+All responses follow this format:
+```typescript
+// Success
+{
+  success: true,
+  data: {...},           // The actual data
+  message?: string,      // Optional success message
+  meta: {
+    timestamp: string    // ISO timestamp
+  }
+}
+
+// Error
+{
+  success: false,
+  error: {
+    code: string,        // Error code enum
+    message: string,     // Human-readable message
+    details?: any        // Optional error details
+  },
+  meta: {
+    timestamp: string
+  }
+}
+```
+
+#### Frontend API Service Pattern
+Frontend services must handle the standard response format:
+
+```typescript
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Request failed' }));
+    throw new Error(error.message || error.error || `HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.data || data;  // Unwrap { success: true, data: {...} }
+}
+```
+
+**Why This Matters**:
+- Inconsistent response formats cause frontend parsing errors
+- The `data.data || data` pattern handles both wrapped and unwrapped responses
+- Standardization prevents 405 errors and mysterious failures
+- See `src/services/contractor/contractorApiService.ts` for reference implementation
+
+**Best Practice**: Always use `apiResponse` helper in new APIs. When modifying existing APIs that use manual `{ success: true, data: ... }`, consider migrating to the helper for maintainability.
+
 ### SOW Import Process (Step 1 after Project Creation)
 **Important**: After creating a new project, import SOW data using the proven scripts in `/scripts/sow-import/`:
 
@@ -194,6 +267,53 @@ node /home/louisdup/VF/Apps/FF_React/scripts/sow-import/verify-fibre-louissep15.
 3. **Type Organization**: Group types by module (e.g., `types/procurement/base.types.ts`)
 4. **Service Pattern**: Domain-focused services, split large services into operations
 5. **Custom Hooks**: Use for data fetching, business logic, and reusable UI state
+
+### API Route Naming Conventions
+
+**CRITICAL**: Next.js requires consistent dynamic parameter names throughout a route hierarchy.
+
+#### The Rule
+If you have both a file and directory with dynamic parameters at the same level, they MUST use the same parameter name:
+
+```bash
+# ❌ WRONG - Will cause build error
+pages/api/contractors/[id].ts
+pages/api/contractors/[id]/documents.ts     # OK - uses 'id'
+pages/api/contractors/[contractorId]/       # ERROR - conflicts with [id].ts
+
+# ✅ CORRECT - Consistent parameter names
+pages/api/contractors/[contractorId].ts
+pages/api/contractors/[contractorId]/documents.ts
+pages/api/contractors/[contractorId]/teams.ts
+```
+
+#### Build Error Message
+```
+Error: You cannot use different slug names for the same dynamic path ('contractorId' !== 'id')
+```
+
+#### Current Standard Parameter Names
+Maintain consistency across the codebase:
+- **Contractors**: `[contractorId]` - `pages/api/contractors/[contractorId].ts`
+- **Projects**: `[projectId]` - `pages/api/projects/[projectId].ts`
+- **Suppliers**: `[supplierId]` - `pages/api/suppliers/[supplierId].ts`
+- **Clients**: `[id]` - `pages/api/clients/[id].ts` (no subdirectories)
+- **Staff**: No dynamic routes at this level
+
+#### Accessing Parameters in Handlers
+Use destructuring with rename to maintain backward compatibility:
+
+```typescript
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Destructure with rename - keeps internal code using 'id'
+  const { contractorId: id } = req.query;
+
+  // Rest of code can continue using 'id' variable
+  const contractor = await service.getById(id);
+}
+```
+
+**When creating new API routes**: Use descriptive parameter names (e.g., `[projectId]`, `[contractorId]`) instead of generic `[id]` to avoid future conflicts.
 
 ### 📝 Page Development Logging
 **IMPORTANT**: After making changes to any page, create or update the corresponding log in `docs/page-logs/`
