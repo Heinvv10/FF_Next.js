@@ -255,8 +255,20 @@ export const neonContractorService = {
         UPDATE contractor_teams
         SET
           team_name = COALESCE(${data.teamName}, team_name),
+          team_type = COALESCE(${data.teamType}, team_type),
           team_size = COALESCE(${data.teamSize}, team_size),
+          lead_name = COALESCE(${data.leadName}, lead_name),
+          lead_phone = COALESCE(${data.leadPhone}, lead_phone),
+          lead_email = COALESCE(${data.leadEmail}, lead_email),
+          lead_certification = COALESCE(${data.leadCertification}, lead_certification),
+          members = COALESCE(${data.members ? JSON.stringify(data.members) : null}, members),
+          specializations = COALESCE(${data.specializations ? JSON.stringify(data.specializations) : null}, specializations),
+          equipment_available = COALESCE(${data.equipmentAvailable ? JSON.stringify(data.equipmentAvailable) : null}, equipment_available),
+          service_areas = COALESCE(${data.serviceAreas ? JSON.stringify(data.serviceAreas) : null}, service_areas),
           availability = COALESCE(${data.availability}, availability),
+          max_capacity = COALESCE(${data.maxCapacity}, max_capacity),
+          notes = COALESCE(${data.notes}, notes),
+          updated_by = COALESCE(${data.updatedBy}, updated_by),
           updated_at = NOW()
         WHERE id = ${teamId}
         RETURNING *
@@ -341,19 +353,92 @@ export const neonContractorService = {
   },
 
   /**
+   * Update document (general update for metadata)
+   */
+  async updateDocument(documentId: string, data: {
+    documentName?: string;
+    documentNumber?: string;
+    documentType?: string;
+    issueDate?: Date;
+    expiryDate?: Date;
+    notes?: string;
+  }): Promise<ContractorDocument> {
+    try {
+      const result = await sql`
+        UPDATE contractor_documents
+        SET
+          document_name = COALESCE(${data.documentName}, document_name),
+          document_number = COALESCE(${data.documentNumber}, document_number),
+          document_type = COALESCE(${data.documentType}, document_type),
+          issue_date = COALESCE(${data.issueDate}, issue_date),
+          expiry_date = COALESCE(${data.expiryDate}, expiry_date),
+          notes = COALESCE(${data.notes}, notes),
+          updated_at = NOW()
+        WHERE id = ${documentId}
+        RETURNING *
+      `;
+
+      if (result.length === 0) {
+        throw new Error('Document not found');
+      }
+
+      return this.mapDocument(result[0]);
+    } catch (error) {
+      log.error('Error updating document:', { data: error }, 'neonContractorService');
+      throw error;
+    }
+  },
+
+  /**
    * Update document status
    */
-  async updateDocumentStatus(documentId: string, status: string, notes?: string): Promise<void> {
+  async updateDocumentStatus(documentId: string, status: string, rejectionReason?: string): Promise<ContractorDocument> {
     try {
-      await sql`
+      const result = await sql`
         UPDATE contractor_documents
-        SET status = ${status}, 
-            verification_notes = ${notes},
+        SET status = ${status},
+            rejection_reason = ${rejectionReason},
             updated_at = NOW()
         WHERE id = ${documentId}
+        RETURNING *
       `;
+
+      if (result.length === 0) {
+        throw new Error('Document not found');
+      }
+
+      return this.mapDocument(result[0]);
     } catch (error) {
       log.error('Error updating document status:', { data: error }, 'neonContractorService');
+      throw error;
+    }
+  },
+
+  /**
+   * Verify document
+   */
+  async verifyDocument(documentId: string, verifiedBy: string, notes?: string): Promise<ContractorDocument> {
+    try {
+      const result = await sql`
+        UPDATE contractor_documents
+        SET
+          is_verified = true,
+          verified_by = ${verifiedBy},
+          verified_at = NOW(),
+          verification_notes = ${notes},
+          status = 'approved',
+          updated_at = NOW()
+        WHERE id = ${documentId}
+        RETURNING *
+      `;
+
+      if (result.length === 0) {
+        throw new Error('Document not found');
+      }
+
+      return this.mapDocument(result[0]);
+    } catch (error) {
+      log.error('Error verifying document:', { data: error }, 'neonContractorService');
       throw error;
     }
   },
