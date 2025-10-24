@@ -577,6 +577,108 @@ export const neonContractorService = {
     }
   },
 
+  // ==================== ONBOARDING ====================
+
+  /**
+   * Get all onboarding stages for a contractor
+   */
+  async getOnboardingStages(contractorId: string): Promise<any[]> {
+    try {
+      const result = await sql`
+        SELECT * FROM contractor_onboarding_stages
+        WHERE contractor_id = ${contractorId}
+        ORDER BY stage_order ASC
+      `;
+
+      return result.map(row => this.mapOnboardingStage(row));
+    } catch (error) {
+      log.error('Error fetching onboarding stages:', { data: error }, 'neonContractorService');
+      throw error;
+    }
+  },
+
+  /**
+   * Update an onboarding stage
+   */
+  async updateOnboardingStage(stageId: string, data: {
+    status?: string;
+    completionPercentage?: number;
+    completedDocuments?: string[];
+    startedAt?: Date | null;
+    completedAt?: Date | null;
+    notes?: string;
+  }): Promise<any> {
+    try {
+      const result = await sql`
+        UPDATE contractor_onboarding_stages
+        SET
+          status = COALESCE(${data.status}, status),
+          completion_percentage = COALESCE(${data.completionPercentage}, completion_percentage),
+          completed_documents = COALESCE(${data.completedDocuments ? JSON.stringify(data.completedDocuments) : null}, completed_documents),
+          started_at = COALESCE(${data.startedAt}, started_at),
+          completed_at = COALESCE(${data.completedAt}, completed_at),
+          notes = COALESCE(${data.notes}, notes),
+          updated_at = NOW()
+        WHERE id = ${stageId}
+        RETURNING *
+      `;
+
+      if (result.length === 0) {
+        throw new Error('Onboarding stage not found');
+      }
+
+      return this.mapOnboardingStage(result[0]);
+    } catch (error) {
+      log.error('Error updating onboarding stage:', { data: error }, 'neonContractorService');
+      throw error;
+    }
+  },
+
+  /**
+   * Complete contractor onboarding
+   */
+  async completeOnboarding(contractorId: string): Promise<Contractor> {
+    try {
+      // Check if all required stages are completed
+      const stages = await sql`
+        SELECT * FROM contractor_onboarding_stages
+        WHERE contractor_id = ${contractorId}
+        ORDER BY stage_order ASC
+      `;
+
+      const requiredStages = stages.filter((stage: any) => stage.status !== 'skipped');
+      const completedStages = requiredStages.filter((stage: any) => stage.status === 'completed');
+
+      if (completedStages.length < requiredStages.length) {
+        const missingStages = requiredStages
+          .filter((stage: any) => stage.status !== 'completed')
+          .map((stage: any) => stage.stage_name);
+
+        throw new Error(`Cannot complete onboarding. Missing stages: ${missingStages.join(', ')}`);
+      }
+
+      // Update contractor onboarding status
+      const result = await sql`
+        UPDATE contractors
+        SET
+          onboarding_progress = 100,
+          onboarding_completed_at = NOW(),
+          updated_at = NOW()
+        WHERE id = ${contractorId}
+        RETURNING *
+      `;
+
+      if (result.length === 0) {
+        throw new Error('Contractor not found');
+      }
+
+      return this.mapContractor(result[0]);
+    } catch (error) {
+      log.error('Error completing onboarding:', { data: error }, 'neonContractorService');
+      throw error;
+    }
+  },
+
   // ==================== DATA MAPPING ====================
   
   /**
@@ -712,5 +814,28 @@ export const neonContractorService = {
 
   mapDocuments(rows: any[]): ContractorDocument[] {
     return rows.map(row => this.mapDocument(row));
+  },
+
+  mapOnboardingStage(row: any): any {
+    return {
+      id: row.id.toString(),
+      contractorId: row.contractor_id.toString(),
+      stageName: row.stage_name,
+      stageOrder: row.stage_order,
+      status: row.status,
+      completionPercentage: row.completion_percentage,
+      requiredDocuments: row.required_documents || [],
+      completedDocuments: row.completed_documents || [],
+      startedAt: row.started_at,
+      completedAt: row.completed_at,
+      dueDate: row.due_date,
+      notes: row.notes,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  },
+
+  mapOnboardingStages(rows: any[]): any[] {
+    return rows.map(row => this.mapOnboardingStage(row));
   }
 };
