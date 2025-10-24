@@ -9,6 +9,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { neonContractorService } from '@/services/contractor/neonContractorService';
 import { log } from '@/lib/logger';
+import { apiResponse } from '@/lib/apiResponse';
 import type { ContractorDocument } from '@/types/contractor.types';
 
 export default async function handler(
@@ -19,7 +20,7 @@ export default async function handler(
   const { id } = req.query;
 
   if (!id || typeof id !== 'string') {
-    return res.status(400).json({ error: 'Invalid contractor ID' });
+    return apiResponse.validationError(res, { contractorId: 'Invalid contractor ID' });
   }
 
   try {
@@ -34,10 +35,7 @@ export default async function handler(
     }
   } catch (error) {
     log.error('Contractor Documents API error:', { data: error }, 'api/contractors/[id]/documents');
-    return res.status(500).json({ 
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
+    return apiResponse.internalError(res, error);
   }
 }
 
@@ -52,12 +50,12 @@ async function handleGet(
     // Check if contractor exists
     const contractor = await neonContractorService.getContractorById(contractorId);
     if (!contractor) {
-      return res.status(404).json({ error: 'Contractor not found' });
+      return apiResponse.notFound(res, 'Contractor', contractorId);
     }
 
     const documents = await neonContractorService.getContractorDocuments(contractorId);
-    
-    return res.status(200).json(documents);
+
+    return apiResponse.success(res, documents);
   } catch (error) {
     log.error('Error fetching contractor documents:', { data: error }, 'api/contractors/[id]/documents');
     throw error;
@@ -78,13 +76,13 @@ async function handlePost(
     // Check if contractor exists
     const contractor = await neonContractorService.getContractorById(contractorId);
     if (!contractor) {
-      return res.status(404).json({ error: 'Contractor not found' });
+      return apiResponse.notFound(res, 'Contractor', contractorId);
     }
-    
+
     // Basic validation
     if (!data.documentType || !data.documentName || !data.fileName || !data.filePath) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: documentType, documentName, fileName, filePath' 
+      return apiResponse.validationError(res, {
+        required: 'Missing required fields: documentType, documentName, fileName, filePath'
       });
     }
 
@@ -104,8 +102,8 @@ async function handlePost(
     ];
 
     if (!validDocumentTypes.includes(data.documentType)) {
-      return res.status(400).json({ 
-        error: `Invalid document type. Must be one of: ${validDocumentTypes.join(', ')}` 
+      return apiResponse.validationError(res, {
+        documentType: `Invalid document type. Must be one of: ${validDocumentTypes.join(', ')}`
       });
     }
 
@@ -113,7 +111,7 @@ async function handlePost(
     if (data.expiryDate) {
       const expiryDate = new Date(data.expiryDate);
       if (isNaN(expiryDate.getTime())) {
-        return res.status(400).json({ error: 'Invalid expiry date format' });
+        return apiResponse.validationError(res, { expiryDate: 'Invalid expiry date format' });
       }
       data.expiryDate = expiryDate;
     }
@@ -127,8 +125,8 @@ async function handlePost(
       expiryDate: data.expiryDate,
       notes: data.notes
     });
-    
-    return res.status(201).json(document);
+
+    return apiResponse.created(res, document, 'Document added successfully');
   } catch (error) {
     log.error('Error adding document:', { data: error }, 'api/contractors/[id]/documents');
     throw error;

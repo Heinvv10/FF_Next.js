@@ -8,6 +8,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { neonContractorService } from '@/services/contractor/neonContractorService';
 import { neon } from '@neondatabase/serverless';
 import { log } from '@/lib/logger';
+import { apiResponse } from '@/lib/apiResponse';
 import type { Contractor, ContractorFormData } from '@/types/contractor.types';
 
 // Migration function to ensure columns exist
@@ -70,10 +71,7 @@ export default async function handler(
     }
   } catch (error) {
     log.error('Contractors API error:', { data: error }, 'api/contractors');
-    return res.status(500).json({
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
+    return apiResponse.internalError(res, error);
   }
 }
 
@@ -118,7 +116,7 @@ async function handleGet(
 
     const contractors = await neonContractorService.getContractors(filters);
 
-    return res.status(200).json({ success: true, data: contractors });
+    return apiResponse.success(res, contractors);
   } catch (error) {
     log.error('Error fetching contractors:', { data: error }, 'api/contractors');
     throw error;
@@ -137,30 +135,30 @@ async function handlePost(
     
     // Basic validation
     if (!data.companyName || !data.registrationNumber || !data.contactPerson || !data.email) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: companyName, registrationNumber, contactPerson, email' 
+      return apiResponse.validationError(res, {
+        required: 'Missing required fields: companyName, registrationNumber, contactPerson, email'
       });
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(data.email)) {
-      return res.status(400).json({ error: 'Invalid email format' });
+      return apiResponse.validationError(res, { email: 'Invalid email format' });
     }
 
     const contractor = await neonContractorService.createContractor(data);
 
-    return res.status(201).json({ success: true, data: contractor });
+    return apiResponse.created(res, contractor, 'Contractor created successfully');
   } catch (error) {
     log.error('Error creating contractor:', { data: error }, 'api/contractors');
-    
+
     // Check for unique constraint violations
     if (error instanceof Error && error.message.includes('duplicate key')) {
-      return res.status(409).json({ 
-        error: 'A contractor with this registration number already exists' 
+      return apiResponse.validationError(res, {
+        registrationNumber: 'A contractor with this registration number already exists'
       });
     }
-    
+
     throw error;
   }
 }

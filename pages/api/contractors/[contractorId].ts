@@ -8,6 +8,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { neonContractorService } from '@/services/contractor/neonContractorService';
 import { log } from '@/lib/logger';
+import { apiResponse } from '@/lib/apiResponse';
 import type { Contractor, ContractorFormData } from '@/types/contractor.types';
 
 export default async function handler(
@@ -18,7 +19,7 @@ export default async function handler(
   const { contractorId } = req.query;
 
   if (!contractorId || typeof contractorId !== 'string') {
-    return res.status(400).json({ error: 'Invalid contractor ID' });
+    return apiResponse.validationError(res, { contractorId: 'Invalid contractor ID' });
   }
 
   try {
@@ -35,10 +36,7 @@ export default async function handler(
     }
   } catch (error) {
     log.error('Contractor API error:', { data: error }, 'api/contractors/[contractorId]');
-    return res.status(500).json({
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
+    return apiResponse.internalError(res, error);
   }
 }
 
@@ -51,12 +49,12 @@ async function handleGet(
 ) {
   try {
     const contractor = await neonContractorService.getContractorById(id);
-    
+
     if (!contractor) {
-      return res.status(404).json({ error: 'Contractor not found' });
+      return apiResponse.notFound(res, 'Contractor', id);
     }
 
-    return res.status(200).json({ success: true, data: contractor });
+    return apiResponse.success(res, contractor);
   } catch (error) {
     log.error('Error fetching contractor:', { data: error }, 'api/contractors/[contractorId]');
     throw error;
@@ -77,27 +75,27 @@ async function handlePut(
     // Check if contractor exists
     const existing = await neonContractorService.getContractorById(id);
     if (!existing) {
-      return res.status(404).json({ error: 'Contractor not found' });
+      return apiResponse.notFound(res, 'Contractor', id);
     }
-    
+
     // Email validation if email is being updated
     if (data.email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(data.email)) {
-        return res.status(400).json({ error: 'Invalid email format' });
+        return apiResponse.validationError(res, { email: 'Invalid email format' });
       }
     }
-    
+
     const contractor = await neonContractorService.updateContractor(id, data);
 
-    return res.status(200).json({ success: true, data: contractor });
+    return apiResponse.success(res, contractor, 'Contractor updated successfully');
   } catch (error) {
     log.error('Error updating contractor:', { data: error }, 'api/contractors/[contractorId]');
 
     // Check for unique constraint violations
     if (error instanceof Error && error.message.includes('duplicate key')) {
-      return res.status(409).json({
-        error: 'A contractor with this registration number already exists'
+      return apiResponse.validationError(res, {
+        registrationNumber: 'A contractor with this registration number already exists'
       });
     }
 
@@ -119,14 +117,14 @@ async function handleDelete(
     // Check if contractor exists
     const existing = await neonContractorService.getContractorById(id);
     if (!existing) {
-      return res.status(404).json({ error: 'Contractor not found' });
+      return apiResponse.notFound(res, 'Contractor', id);
     }
-    
+
     // For now, always do soft delete (set is_active = false)
     // Hard delete would require cascade deletion of related records
     await neonContractorService.deleteContractor(id);
-    
-    return res.status(200).json({ success: true });
+
+    return apiResponse.success(res, { id }, 'Contractor deleted successfully');
   } catch (error) {
     log.error('Error deleting contractor:', { data: error }, 'api/contractors/[contractorId]');
     throw error;

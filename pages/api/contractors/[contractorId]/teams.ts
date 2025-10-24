@@ -9,6 +9,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { neonContractorService } from '@/services/contractor/neonContractorService';
 import { log } from '@/lib/logger';
+import { apiResponse } from '@/lib/apiResponse';
 import type { ContractorTeam, TeamFormData } from '@/types/contractor.types';
 
 export default async function handler(
@@ -19,7 +20,7 @@ export default async function handler(
   const { id } = req.query;
 
   if (!id || typeof id !== 'string') {
-    return res.status(400).json({ error: 'Invalid contractor ID' });
+    return apiResponse.validationError(res, { contractorId: 'Invalid contractor ID' });
   }
 
   try {
@@ -34,10 +35,7 @@ export default async function handler(
     }
   } catch (error) {
     log.error('Contractor Teams API error:', { data: error }, 'api/contractors/[id]/teams');
-    return res.status(500).json({ 
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
+    return apiResponse.internalError(res, error);
   }
 }
 
@@ -52,12 +50,12 @@ async function handleGet(
     // Check if contractor exists
     const contractor = await neonContractorService.getContractorById(contractorId);
     if (!contractor) {
-      return res.status(404).json({ error: 'Contractor not found' });
+      return apiResponse.notFound(res, 'Contractor', contractorId);
     }
 
     const teams = await neonContractorService.getContractorTeams(contractorId);
-    
-    return res.status(200).json(teams);
+
+    return apiResponse.success(res, teams);
   } catch (error) {
     log.error('Error fetching contractor teams:', { data: error }, 'api/contractors/[id]/teams');
     throw error;
@@ -78,20 +76,20 @@ async function handlePost(
     // Check if contractor exists
     const contractor = await neonContractorService.getContractorById(contractorId);
     if (!contractor) {
-      return res.status(404).json({ error: 'Contractor not found' });
+      return apiResponse.notFound(res, 'Contractor', contractorId);
     }
-    
+
     // Basic validation
     if (!data.teamName || !data.teamType || !data.teamSize) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: teamName, teamType, teamSize' 
+      return apiResponse.validationError(res, {
+        required: 'Missing required fields: teamName, teamType, teamSize'
       });
     }
 
     // Validate team size
     if (data.teamSize < 1 || data.teamSize > 100) {
-      return res.status(400).json({ 
-        error: 'Team size must be between 1 and 100' 
+      return apiResponse.validationError(res, {
+        teamSize: 'Team size must be between 1 and 100'
       });
     }
 
@@ -99,23 +97,23 @@ async function handlePost(
     if (data.leadEmail) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(data.leadEmail)) {
-        return res.status(400).json({ error: 'Invalid lead email format' });
+        return apiResponse.validationError(res, { leadEmail: 'Invalid lead email format' });
       }
     }
 
     const team = await neonContractorService.createTeam(contractorId, data);
-    
-    return res.status(201).json(team);
+
+    return apiResponse.created(res, team, 'Team created successfully');
   } catch (error) {
     log.error('Error creating team:', { data: error }, 'api/contractors/[id]/teams');
-    
+
     // Check for unique constraint violations
     if (error instanceof Error && error.message.includes('duplicate key')) {
-      return res.status(409).json({ 
-        error: 'A team with this name already exists for this contractor' 
+      return apiResponse.validationError(res, {
+        teamName: 'A team with this name already exists for this contractor'
       });
     }
-    
+
     throw error;
   }
 }
