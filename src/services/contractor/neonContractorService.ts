@@ -469,9 +469,24 @@ export const neonContractorService = {
     compliance?: RAGScore;
     performance?: RAGScore;
     safety?: RAGScore;
-  }): Promise<void> {
+  }, reason: string, changedBy: string): Promise<Contractor> {
     try {
-      await sql`
+      // Get current scores first
+      const currentContractor = await this.getContractorById(contractorId);
+      if (!currentContractor) {
+        throw new Error('Contractor not found');
+      }
+
+      const oldScores = {
+        overall: currentContractor.ragOverall,
+        financial: currentContractor.ragFinancial,
+        compliance: currentContractor.ragCompliance,
+        performance: currentContractor.ragPerformance,
+        safety: currentContractor.ragSafety
+      };
+
+      // Update contractor scores
+      const result = await sql`
         UPDATE contractors
         SET
           rag_overall = COALESCE(${scores.overall}, rag_overall),
@@ -481,14 +496,18 @@ export const neonContractorService = {
           rag_safety = COALESCE(${scores.safety}, rag_safety),
           updated_at = NOW()
         WHERE id = ${contractorId}
+        RETURNING *
       `;
 
-      // Record RAG history
+      // Record RAG history for each changed score
       for (const [scoreType, newScore] of Object.entries(scores)) {
         if (newScore) {
-          await this.recordRAGHistory(contractorId, scoreType, newScore);
+          const oldScore = oldScores[scoreType as keyof typeof oldScores];
+          await this.recordRAGHistory(contractorId, scoreType, oldScore, newScore, reason, changedBy);
         }
       }
+
+      return this.mapContractor(result[0]);
     } catch (error) {
       log.error('Error updating RAG scores:', { data: error }, 'neonContractorService');
       throw error;
@@ -498,17 +517,62 @@ export const neonContractorService = {
   /**
    * Record RAG score history
    */
-  async recordRAGHistory(contractorId: string, scoreType: string, newScore: RAGScore): Promise<void> {
+  async recordRAGHistory(
+    contractorId: string,
+    scoreType: string,
+    oldScore: RAGScore | undefined,
+    newScore: RAGScore,
+    reason: string,
+    changedBy: string
+  ): Promise<void> {
     try {
       await sql`
         INSERT INTO contractor_rag_history (
-          contractor_id, score_type, new_score
+          contractor_id, score_type, old_score, new_score, change_reason, changed_by
         ) VALUES (
-          ${contractorId}, ${scoreType}, ${newScore}
+          ${contractorId}, ${scoreType}, ${oldScore}, ${newScore}, ${reason}, ${changedBy}
         )
       `;
     } catch (error) {
       log.error('Error recording RAG history:', { data: error }, 'neonContractorService');
+      throw error;
+    }
+  },
+
+  /**
+   * Get RAG score history for a contractor
+   */
+  async getRAGHistory(contractorId: string, scoreType?: string): Promise<any[]> {
+    try {
+      let result;
+
+      if (scoreType) {
+        result = await sql`
+          SELECT * FROM contractor_rag_history
+          WHERE contractor_id = ${contractorId}
+            AND score_type = ${scoreType}
+          ORDER BY changed_at DESC
+        `;
+      } else {
+        result = await sql`
+          SELECT * FROM contractor_rag_history
+          WHERE contractor_id = ${contractorId}
+          ORDER BY changed_at DESC
+        `;
+      }
+
+      return result.map(row => ({
+        id: row.id.toString(),
+        contractorId: row.contractor_id.toString(),
+        scoreType: row.score_type,
+        oldScore: row.old_score,
+        newScore: row.new_score,
+        changeReason: row.change_reason,
+        changedBy: row.changed_by,
+        changedAt: row.changed_at
+      }));
+    } catch (error) {
+      log.error('Error fetching RAG history:', { data: error }, 'neonContractorService');
       throw error;
     }
   },
