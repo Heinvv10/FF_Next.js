@@ -3,6 +3,7 @@
  * Following FibreFlow patterns with full CRUD operations for teams and members
  */
 
+import React from 'react';
 import { Plus } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { TeamForm } from './TeamForm';

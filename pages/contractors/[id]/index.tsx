@@ -5,11 +5,11 @@
 
 import type { NextPage } from 'next';
 import dynamic from 'next/dynamic';
-import { AppLayout } from '../../src/components/layout/AppLayout';
+import { AppLayout } from '../../../src/components/layout/AppLayout';
 
 // Lazy load ContractorDetail component to reduce initial bundle size
 const ContractorDetail = dynamic(
-  () => import('../../src/modules/contractors/components/ContractorDetail').then(mod => ({ default: mod.ContractorDetail })),
+  () => import('../../../src/modules/contractors/components/ContractorDetail').then(mod => ({ default: mod.ContractorDetail })),
   {
     loading: () => (
       <div className="flex items-center justify-center min-h-screen">

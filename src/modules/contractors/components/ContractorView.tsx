@@ -3,6 +3,7 @@
  * Comprehensive contractor information with tabs for teams, assignments, and documents
  */
 
+import React from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   useContractorView,

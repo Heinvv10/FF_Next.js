@@ -3,6 +3,7 @@
  * Modular document upload with status tracking for contractor onboarding
  */
 
+import React from 'react';
 import { FileText } from 'lucide-react';
 import { DocumentUploadCardProps, DOCUMENT_TYPE_LABELS } from './types/documentUpload.types';
 import { getStatusColor } from './utils/documentUtils';

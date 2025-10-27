@@ -3,6 +3,7 @@
  * Integrated with Neon database and Firebase for full functionality
  */
 
+import React from 'react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   useContractorEdit,

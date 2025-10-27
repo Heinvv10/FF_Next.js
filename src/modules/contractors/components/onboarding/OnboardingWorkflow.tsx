@@ -3,7 +3,7 @@
  * Following FibreFlow patterns and keeping under 250 lines
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle, Clock, AlertCircle, FileText, Upload, User, Shield, Award } from 'lucide-react';
 import { contractorOnboardingService, OnboardingProgress } from '@/services/contractor/contractorOnboardingService';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';

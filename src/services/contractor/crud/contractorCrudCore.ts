@@ -13,10 +13,7 @@ import {
 // Import API service for browser
 import { contractorApiService } from '../contractorApiService';
 import { log } from '@/lib/logger';
-import {
-  subscribeToContractors,
-  subscribeToContractor
-} from './subscriptionHandlers';
+// Note: subscriptionHandlers removed - no longer using Firebase real-time subscriptions
 // Client-side filter utilities removed - using server-side filtering
 // sortContractors import removed - using server-side sorting
 
@@ -126,22 +123,30 @@ export class ContractorCrudCore {
 
   /**
    * Subscribe to contractors list changes
+   * Note: Real-time subscriptions removed - Neon doesn't support this.
+   * This is a stub for backward compatibility.
    */
   subscribeToContractors(
     callback: (contractors: Contractor[]) => void,
     filter?: ContractorFilter
   ): () => void {
-    return subscribeToContractors(callback, filter);
+    log.warn('subscribeToContractors called but real-time subscriptions are no longer supported', {}, 'contractorCrudCore');
+    // Return empty unsubscribe function
+    return () => {};
   }
 
   /**
    * Subscribe to single contractor changes
+   * Note: Real-time subscriptions removed - Neon doesn't support this.
+   * This is a stub for backward compatibility.
    */
   subscribeToContractor(
     contractorId: string,
     callback: (contractor: Contractor | null) => void
   ): () => void {
-    return subscribeToContractor(contractorId, callback);
+    log.warn('subscribeToContractor called but real-time subscriptions are no longer supported', { data: { contractorId } }, 'contractorCrudCore');
+    // Return empty unsubscribe function
+    return () => {};
   }
 
   /**
