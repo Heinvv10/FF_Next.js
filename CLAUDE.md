@@ -128,14 +128,17 @@ npm run antihall    # Run anti-hallucination validator
 - **Frontend**: React 18, TypeScript, TailwindCSS
 - **Authentication**: Clerk (complete integration)
 - **Database**: Neon PostgreSQL (serverless client, direct SQL)
+- **File Storage**: Firebase Storage (for PDFs, images - see `docs/ARCHITECTURE_STORAGE.md`)
 - **API**: Next.js API Routes (App Router)
 - **Testing**: Vitest, Playwright
 - **Deployment**: Vercel (optimized SSR/ISR)
 
-### Legacy Stack (Archived)
+### Legacy Stack (Archived/Migrated)
 - **Framework**: React 18 + Vite (archived for reference)
 - **Backend**: Express server (replaced by Next.js API routes)
 - **Authentication**: Firebase Auth (replaced by Clerk)
+- **Database**: Firebase Firestore (migrated to Neon PostgreSQL)
+- **Note**: Firebase Storage still used for file uploads (intentional hybrid architecture)
 
 ## Important Notes for AI Assistants
 
