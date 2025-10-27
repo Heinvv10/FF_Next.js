@@ -101,3 +101,6 @@ storybook-static
 # Vercel deployment hooks (contains sensitive URLs)
 vercel/.deploy-hooks
 .vercel
+
+# Playwright auth state
+tests/e2e/.auth/
