@@ -108,15 +108,17 @@ test_execution:
   how_to_run:
     command: "npm run test:e2e"
     prerequisites:
+      - "Install Playwright browsers: npx playwright install (first time only)"
       - "Server will auto-start on port 3005 (via playwright webServer config)"
       - "Build must exist (npm run build if needed)"
       - "Database should be accessible"
 
   manual_run:
     steps:
+      - "Install browsers (first time): npx playwright install"
       - "Ensure build exists: npm run build"
       - "Run tests: npm run test:e2e"
-      - "View report: npx playwright show-report tests/e2e-results/html"
+      - "View report: npx playwright show-report playwright-report"
 
   debugging:
     headed_mode: "Set headless: false in playwright.config.ts"

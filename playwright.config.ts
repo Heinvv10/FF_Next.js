@@ -23,7 +23,7 @@ export default defineConfig({
   // Reporter to use
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'tests/e2e-results/html' }],
+    ['html', { outputFolder: 'playwright-report' }],
   ],
 
   // Shared settings for all the projects below
