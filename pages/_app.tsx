@@ -1,11 +1,12 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { reportWebVitals } from '@/lib/performance';
+import { initErrorTracking } from '@/lib/errorTracking';
 
 // Export for Next.js Web Vitals
 export { reportWebVitals };
@@ -23,6 +24,14 @@ function MyApp({ Component, pageProps }: AppProps) {
         },
       })
   );
+
+  // Initialize error tracking on mount
+  useEffect(() => {
+    initErrorTracking({
+      enabled: process.env.NODE_ENV === 'production',
+      sampleRate: 1.0, // Track 100% of errors
+    });
+  }, []);
 
   return (
     <ErrorBoundary>
