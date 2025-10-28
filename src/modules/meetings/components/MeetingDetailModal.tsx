@@ -123,7 +123,7 @@ export function MeetingDetailModal({ meeting, isOpen, onClose }: MeetingDetailMo
               )}
 
               {/* Keywords */}
-              {(meeting as any).summary.keywords && (meeting as any).summary.keywords.length > 0 && (
+              {(meeting as any).summary.keywords && Array.isArray((meeting as any).summary.keywords) && (meeting as any).summary.keywords.length > 0 && (
                 <div>
                   <h3 className="font-medium mb-3">Keywords</h3>
                   <div className="flex flex-wrap gap-2">
@@ -137,7 +137,7 @@ export function MeetingDetailModal({ meeting, isOpen, onClose }: MeetingDetailMo
               )}
 
               {/* Outline */}
-              {(meeting as any).summary.outline && (meeting as any).summary.outline.length > 0 && (
+              {(meeting as any).summary.outline && Array.isArray((meeting as any).summary.outline) && (meeting as any).summary.outline.length > 0 && (
                 <div>
                   <h3 className="font-medium mb-3">Detailed Outline</h3>
                   <ol className="space-y-2">
@@ -152,16 +152,23 @@ export function MeetingDetailModal({ meeting, isOpen, onClose }: MeetingDetailMo
               )}
 
               {/* Action Items from Fireflies */}
-              {(meeting as any).summary.action_items && (meeting as any).summary.action_items.length > 0 && (
+              {(meeting as any).summary.action_items && (
                 <div>
                   <h3 className="font-medium mb-3">AI-Detected Action Items</h3>
                   <div className="space-y-2">
-                    {(meeting as any).summary.action_items.map((item: string, index: number) => (
-                      <div key={index} className="flex items-start gap-3 p-3 bg-amber-50 rounded border-l-4 border-amber-400">
+                    {Array.isArray((meeting as any).summary.action_items) ? (
+                      (meeting as any).summary.action_items.map((item: string, index: number) => (
+                        <div key={index} className="flex items-start gap-3 p-3 bg-amber-50 rounded border-l-4 border-amber-400">
+                          <span className="text-amber-600 font-bold mt-0.5">→</span>
+                          <p className="text-sm text-gray-800">{item}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="flex items-start gap-3 p-3 bg-amber-50 rounded border-l-4 border-amber-400">
                         <span className="text-amber-600 font-bold mt-0.5">→</span>
-                        <p className="text-sm text-gray-800">{item}</p>
+                        <p className="text-sm text-gray-800">{String((meeting as any).summary.action_items)}</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               )}
