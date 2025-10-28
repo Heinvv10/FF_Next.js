@@ -14,14 +14,36 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  // Performance optimizations
+  compiler: {
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+
+  // Image optimization
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+
   // Disable static generation to prevent SSR issues
   experimental: {
     disableOptimizedLoading: true,
+    // Enable optimized package imports
+    optimizePackageImports: ['@tanstack/react-query', 'react-icons'],
   },
 
-  // Disable static optimization for problematic pages
+  // Security and performance headers
   generateEtags: false,
   poweredByHeader: false,
+  compress: true, // Enable gzip compression
 
   // Fix file watching issues
   webpack: (config, { dev, isServer }) => {
@@ -31,6 +53,51 @@ const nextConfig = {
         ignored: ['**/node_modules/**'],
         aggregateTimeout: 300,
         poll: 1000,
+      };
+    }
+
+    // Production optimizations
+    if (!dev && !isServer) {
+      // Optimize chunk splitting
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            // Framework chunk (React, Next.js)
+            framework: {
+              name: 'framework',
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
+              priority: 40,
+              enforce: true,
+            },
+            // Common libraries chunk
+            lib: {
+              test: /[\\/]node_modules[\\/]/,
+              name(module) {
+                const packageName = module.context.match(
+                  /[\\/]node_modules[\\/](.*?)([\\/]|$)/
+                )?.[1];
+                return `npm.${packageName?.replace('@', '')}`;
+              },
+              priority: 30,
+              minChunks: 1,
+              reuseExistingChunk: true,
+            },
+            // Shared application code
+            commons: {
+              name: 'commons',
+              minChunks: 2,
+              priority: 20,
+            },
+          },
+        },
+        // Minimize runtime chunk
+        runtimeChunk: {
+          name: 'runtime',
+        },
       };
     }
 
@@ -49,8 +116,6 @@ const nextConfig = {
 
   // Disable static optimization to prevent router mounting issues
   trailingSlash: false,
-  generateEtags: false,
-  poweredByHeader: false,
 };
 
 module.exports = withBundleAnalyzer(nextConfig);
