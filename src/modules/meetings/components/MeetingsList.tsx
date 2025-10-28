@@ -23,7 +23,11 @@ export function MeetingsList({ meetings, onEditMeeting, onDeleteMeeting }: Meeti
   return (
     <div className="space-y-4">
       {meetings.map((meeting) => (
-        <div key={meeting.id} className="ff-card hover:shadow-md transition-shadow">
+        <div
+          key={meeting.id}
+          className="ff-card hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => onEditMeeting(meeting)}
+        >
           <div className="p-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -92,19 +96,31 @@ export function MeetingsList({ meetings, onEditMeeting, onDeleteMeeting }: Meeti
 
               <div className="flex gap-2">
                 {meeting.isVirtual && meeting.meetingLink && (
-                  <button className="p-2 hover:bg-gray-100 rounded">
+                  <button
+                    className="p-2 hover:bg-gray-100 rounded"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(meeting.meetingLink, '_blank');
+                    }}
+                  >
                     <Link className="w-4 h-4 text-blue-500" />
                   </button>
                 )}
-                <button 
+                <button
                   className="p-2 hover:bg-gray-100 rounded"
-                  onClick={() => onEditMeeting(meeting)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditMeeting(meeting);
+                  }}
                 >
                   <Edit className="w-4 h-4 text-gray-500" />
                 </button>
-                <button 
+                <button
                   className="p-2 hover:bg-gray-100 rounded"
-                  onClick={() => onDeleteMeeting(meeting.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteMeeting(meeting.id);
+                  }}
                 >
                   <Trash2 className="w-4 h-4 text-red-500" />
                 </button>
