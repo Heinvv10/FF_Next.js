@@ -155,20 +155,50 @@ export function MeetingDetailModal({ meeting, isOpen, onClose }: MeetingDetailMo
               {(meeting as any).summary.action_items && (
                 <div>
                   <h3 className="font-medium mb-3">AI-Detected Action Items</h3>
-                  <div className="space-y-2">
-                    {Array.isArray((meeting as any).summary.action_items) ? (
-                      (meeting as any).summary.action_items.map((item: string, index: number) => (
-                        <div key={index} className="flex items-start gap-3 p-3 bg-amber-50 rounded border-l-4 border-amber-400">
-                          <span className="text-amber-600 font-bold mt-0.5">→</span>
-                          <p className="text-sm text-gray-800">{item}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="flex items-start gap-3 p-3 bg-amber-50 rounded border-l-4 border-amber-400">
-                        <span className="text-amber-600 font-bold mt-0.5">→</span>
-                        <p className="text-sm text-gray-800">{String((meeting as any).summary.action_items)}</p>
-                      </div>
-                    )}
+                  <div className="space-y-3">
+                    {(() => {
+                      const actionItems = Array.isArray((meeting as any).summary.action_items)
+                        ? (meeting as any).summary.action_items
+                        : [String((meeting as any).summary.action_items)];
+
+                      return actionItems.map((item: string, index: number) => {
+                        // Parse action items with **Name** format
+                        const personMatch = item.match(/\*\*([^*]+)\*\*/);
+                        const person = personMatch ? personMatch[1].trim() : null;
+
+                        // Remove the **Name** part to get just the action
+                        const actionText = person
+                          ? item.replace(/\*\*[^*]+\*\*/, '').trim()
+                          : item;
+
+                        // Extract timestamp if present (text in parentheses at end)
+                        const timeMatch = actionText.match(/\((\d+:\d+)\)$/);
+                        const timestamp = timeMatch ? timeMatch[1] : null;
+                        const cleanAction = timestamp
+                          ? actionText.replace(/\s*\([^)]+\)$/, '')
+                          : actionText;
+
+                        return (
+                          <div key={index} className="p-4 bg-amber-50 rounded-lg border-l-4 border-amber-400">
+                            {person && (
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="px-2 py-1 bg-amber-600 text-white text-xs font-semibold rounded">
+                                  {person}
+                                </span>
+                                {timestamp && (
+                                  <span className="text-xs text-gray-500">
+                                    {timestamp}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            <p className="text-sm text-gray-800 leading-relaxed">
+                              {cleanAction}
+                            </p>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
               )}
