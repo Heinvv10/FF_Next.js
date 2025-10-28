@@ -111,8 +111,80 @@ export function MeetingDetailModal({ meeting, isOpen, onClose }: MeetingDetailMo
             </div>
           )}
 
-          {/* Notes */}
-          {meeting.notes && (
+          {/* Fireflies Summary */}
+          {(meeting as any).summary && (
+            <div className="mt-6 space-y-6">
+              {/* Overview */}
+              {(meeting as any).summary.overview && (
+                <div>
+                  <h3 className="font-medium mb-3">Meeting Summary</h3>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{(meeting as any).summary.overview}</p>
+                </div>
+              )}
+
+              {/* Keywords */}
+              {(meeting as any).summary.keywords && (meeting as any).summary.keywords.length > 0 && (
+                <div>
+                  <h3 className="font-medium mb-3">Keywords</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {(meeting as any).summary.keywords.map((keyword: string, index: number) => (
+                      <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Outline */}
+              {(meeting as any).summary.outline && (meeting as any).summary.outline.length > 0 && (
+                <div>
+                  <h3 className="font-medium mb-3">Detailed Outline</h3>
+                  <ol className="space-y-2">
+                    {(meeting as any).summary.outline.map((item: string, index: number) => (
+                      <li key={index} className="flex gap-2 text-sm text-gray-700">
+                        <span className="font-medium text-gray-500">{index + 1}.</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {/* Action Items from Fireflies */}
+              {(meeting as any).summary.action_items && (meeting as any).summary.action_items.length > 0 && (
+                <div>
+                  <h3 className="font-medium mb-3">AI-Detected Action Items</h3>
+                  <div className="space-y-2">
+                    {(meeting as any).summary.action_items.map((item: string, index: number) => (
+                      <div key={index} className="flex items-start gap-3 p-3 bg-amber-50 rounded border-l-4 border-amber-400">
+                        <span className="text-amber-600 font-bold mt-0.5">→</span>
+                        <p className="text-sm text-gray-800">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Transcript Link */}
+              {meeting.meetingLink && (
+                <div className="p-4 bg-gray-50 rounded border border-gray-200">
+                  <a
+                    href={meeting.meetingLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2"
+                  >
+                    <Video className="w-4 h-4" />
+                    View Full Transcript on Fireflies →
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Fallback Notes */}
+          {!((meeting as any).summary) && meeting.notes && (
             <div className="mt-6">
               <h3 className="font-medium mb-3">Meeting Notes</h3>
               <p className="text-sm text-gray-600">{meeting.notes}</p>
