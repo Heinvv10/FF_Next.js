@@ -156,7 +156,7 @@ function getNavigationType(): string {
 /**
  * Custom performance measurement utilities
  */
-export const performance Metrics = {
+export const performanceMetrics = {
   /**
    * Mark the start of a custom metric
    */
