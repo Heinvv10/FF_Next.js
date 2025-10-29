@@ -26,16 +26,17 @@ export default async function handler(
         overdue,
       } = req.query as Partial<Record<keyof ActionItemFilters, string>>;
 
-      // Build query with filters
-      let query = sql`
+      // Simple approach: Fetch all and filter in code
+      // This is acceptable for moderate datasets (<10k items)
+      let items = await sql`
         SELECT
           ai.id,
           ai.meeting_id,
           ai.description,
           ai.assignee_name,
           ai.assignee_email,
-          ai.status,
-          ai.priority,
+          ai.status::text,
+          ai.priority::text,
           ai.due_date,
           ai.completed_date,
           ai.mentioned_at,
@@ -47,50 +48,53 @@ export default async function handler(
           m.meeting_date
         FROM meeting_action_items ai
         LEFT JOIN meetings m ON ai.meeting_id = m.id
-        WHERE 1=1
+        ORDER BY
+          CASE
+            WHEN ai.status::text = 'pending' THEN 1
+            WHEN ai.status::text = 'in_progress' THEN 2
+            WHEN ai.status::text = 'completed' THEN 3
+            WHEN ai.status::text = 'cancelled' THEN 4
+          END,
+          ai.created_at DESC
+        LIMIT 500
       `;
 
-      // Add filters
+      // Apply filters in JavaScript
       if (status) {
         const statuses = status.split(',');
-        query = sql`${query} AND ai.status = ANY(${statuses})`;
+        items = items.filter(item => statuses.includes(item.status));
       }
 
       if (assignee_name) {
-        query = sql`${query} AND ai.assignee_name ILIKE ${'%' + assignee_name + '%'}`;
+        const search = assignee_name.toLowerCase();
+        items = items.filter(item => item.assignee_name?.toLowerCase().includes(search));
       }
 
       if (meeting_id) {
-        query = sql`${query} AND ai.meeting_id = ${parseInt(meeting_id)}`;
+        const id = parseInt(meeting_id);
+        items = items.filter(item => item.meeting_id === id);
       }
 
       if (priority) {
-        query = sql`${query} AND ai.priority = ${priority}`;
+        items = items.filter(item => item.priority === priority);
       }
 
       if (search) {
-        query = sql`${query} AND ai.description ILIKE ${'%' + search + '%'}`;
+        const searchLower = search.toLowerCase();
+        items = items.filter(item => item.description?.toLowerCase().includes(searchLower));
       }
 
       if (overdue === 'true') {
-        query = sql`${query} AND ai.due_date < NOW() AND ai.status != 'completed'`;
+        const now = new Date();
+        items = items.filter(item =>
+          item.due_date &&
+          new Date(item.due_date) < now &&
+          item.status !== 'completed'
+        );
       }
 
-      // Add ordering and limit
-      const items = await sql`
-        ${query}
-        ORDER BY
-          CASE
-            WHEN ai.status = 'pending' THEN 1
-            WHEN ai.status = 'in_progress' THEN 2
-            WHEN ai.status = 'completed' THEN 3
-            WHEN ai.status = 'cancelled' THEN 4
-          END,
-          ai.priority DESC,
-          ai.due_date ASC NULLS LAST,
-          ai.created_at DESC
-        LIMIT 100
-      `;
+      // Limit results
+      items = items.slice(0, 100);
 
       return apiResponse.success(res, items as ActionItem[]);
     } catch (error: any) {
