@@ -8,8 +8,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
  * Vercel Cron documentation:
  * https://vercel.com/docs/cron-jobs
  *
- * Schedule: "0 */6 * * *" (every 6 hours at minute 0)
- * - 00:00, 06:00, 12:00, 18:00 UTC
+ * Runs at: 00:00, 06:00, 12:00, 18:00 UTC
+ * See vercel.json for cron schedule configuration
  */
 export default async function handler(
   req: NextApiRequest,
