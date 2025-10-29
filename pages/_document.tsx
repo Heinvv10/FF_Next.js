@@ -7,7 +7,8 @@ export default function Document() {
         {/* Meta tags for SEO and responsiveness */}
         <meta name="description" content="FibreFlow - Fiber Network Project Management" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/icon.png" />
+        <link rel="apple-touch-icon" href="/icon.png" />
         
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
