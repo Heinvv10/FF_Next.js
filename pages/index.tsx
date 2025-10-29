@@ -5,8 +5,8 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to projects page on load
-    router.push('/projects');
+    // Redirect to dashboard page on load
+    router.push('/dashboard');
   }, [router]);
 
   return (
@@ -19,7 +19,7 @@ export default function HomePage() {
           Enterprise fiber network project management
         </p>
         <p className="text-sm text-gray-500">
-          Redirecting to projects...
+          Redirecting to dashboard...
         </p>
       </div>
     </div>
