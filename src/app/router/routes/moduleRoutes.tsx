@@ -20,6 +20,12 @@ import {
   FieldAppPortal,
   MeetingsDashboard,
   ActionItemsDashboard,
+  PendingActionItems,
+  CompletedActionItems,
+  OverdueActionItems,
+  ActionItemsByMeeting,
+  ActionItemsByAssignee,
+  ActionItemsSearch,
   TasksDashboard,
   SOWDashboard,
   SOWListPage,
@@ -181,6 +187,54 @@ export const moduleRoutes = [
     element: (
       <Suspense fallback={<Loading />}>
         <ActionItemsDashboard />
+      </Suspense>
+    ),
+  },
+  {
+    path: 'action-items/pending',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <PendingActionItems />
+      </Suspense>
+    ),
+  },
+  {
+    path: 'action-items/completed',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <CompletedActionItems />
+      </Suspense>
+    ),
+  },
+  {
+    path: 'action-items/overdue',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <OverdueActionItems />
+      </Suspense>
+    ),
+  },
+  {
+    path: 'action-items/by-meeting',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ActionItemsByMeeting />
+      </Suspense>
+    ),
+  },
+  {
+    path: 'action-items/by-assignee',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ActionItemsByAssignee />
+      </Suspense>
+    ),
+  },
+  {
+    path: 'action-items/search',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ActionItemsSearch />
       </Suspense>
     ),
   },

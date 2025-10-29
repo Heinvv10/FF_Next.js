@@ -82,6 +82,12 @@ export const ComplianceReports = lazy(() => import('@/modules/procurement/report
 // Communications Module
 export const MeetingsDashboard = lazy(() => import('@/modules/meetings/MeetingsDashboard').then(m => ({ default: m.MeetingsDashboard })));
 export const ActionItemsDashboard = lazy(() => import('@/modules/action-items/ActionItemsDashboard').then(m => ({ default: m.ActionItemsDashboard })));
+export const PendingActionItems = lazy(() => import('@/modules/action-items/pages/PendingActionItems').then(m => ({ default: m.PendingActionItems })));
+export const CompletedActionItems = lazy(() => import('@/modules/action-items/pages/CompletedActionItems').then(m => ({ default: m.CompletedActionItems })));
+export const OverdueActionItems = lazy(() => import('@/modules/action-items/pages/OverdueActionItems').then(m => ({ default: m.OverdueActionItems })));
+export const ActionItemsByMeeting = lazy(() => import('@/modules/action-items/pages/ActionItemsByMeeting').then(m => ({ default: m.ActionItemsByMeeting })));
+export const ActionItemsByAssignee = lazy(() => import('@/modules/action-items/pages/ActionItemsByAssignee').then(m => ({ default: m.ActionItemsByAssignee })));
+export const ActionItemsSearch = lazy(() => import('@/modules/action-items/pages/ActionItemsSearch').then(m => ({ default: m.ActionItemsSearch })));
 export const TasksDashboard = lazy(() => import('@/modules/tasks/TasksDashboard').then(m => ({ default: m.TasksDashboard })));
 
 // SOW Module

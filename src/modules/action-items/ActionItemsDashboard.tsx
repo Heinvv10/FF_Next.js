@@ -1,10 +1,30 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { CheckCircle, Clock, AlertCircle, Calendar, Users, Filter } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { ActionItemStats } from '@/types/action-items.types';
+import { actionItemsService } from '@/services/action-items/actionItemsService';
 
 export function ActionItemsDashboard() {
   const router = useRouter();
+  const [stats, setStats] = useState<ActionItemStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await actionItemsService.getStats();
+        setStats(data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const cards = [
     {
@@ -12,7 +32,7 @@ export function ActionItemsDashboard() {
       description: 'View all pending action items',
       icon: Clock,
       color: 'bg-yellow-500',
-      count: 12,
+      count: stats?.pending,
       onClick: () => router.push('/action-items/pending'),
     },
     {
@@ -20,7 +40,7 @@ export function ActionItemsDashboard() {
       description: 'Review completed action items',
       icon: CheckCircle,
       color: 'bg-green-500',
-      count: 45,
+      count: stats?.completed,
       onClick: () => router.push('/action-items/completed'),
     },
     {
@@ -28,7 +48,7 @@ export function ActionItemsDashboard() {
       description: 'Urgent overdue action items',
       icon: AlertCircle,
       color: 'bg-red-500',
-      count: 3,
+      count: stats?.overdue,
       onClick: () => router.push('/action-items/overdue'),
     },
     {
@@ -62,44 +82,50 @@ export function ActionItemsDashboard() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Actions</p>
-              <p className="text-2xl font-bold text-gray-900">60</p>
+      {loading ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500">Loading stats...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Actions</p>
+                <p className="text-2xl font-bold text-gray-900">{stats?.total || 0}</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-blue-500" />
             </div>
-            <CheckCircle className="w-8 h-8 text-blue-500" />
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Pending</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats?.pending || 0}</p>
+              </div>
+              <Clock className="w-8 h-8 text-yellow-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Overdue</p>
+                <p className="text-2xl font-bold text-red-600">{stats?.overdue || 0}</p>
+              </div>
+              <AlertCircle className="w-8 h-8 text-red-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Completed</p>
+                <p className="text-2xl font-bold text-green-600">{stats?.completed || 0}</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-500" />
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-yellow-600">12</p>
-            </div>
-            <Clock className="w-8 h-8 text-yellow-500" />
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Overdue</p>
-              <p className="text-2xl font-bold text-red-600">3</p>
-            </div>
-            <AlertCircle className="w-8 h-8 text-red-500" />
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-green-600">45</p>
-            </div>
-            <CheckCircle className="w-8 h-8 text-green-500" />
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Navigation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
