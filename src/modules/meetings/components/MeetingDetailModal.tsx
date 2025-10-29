@@ -155,65 +155,38 @@ export function MeetingDetailModal({ meeting, isOpen, onClose }: MeetingDetailMo
               {(meeting as any).summary.action_items && (
                 <div>
                   <h3 className="font-medium mb-3">AI-Detected Action Items</h3>
-                  <div className="space-y-3">
-                    {(() => {
-                      let rawText = Array.isArray((meeting as any).summary.action_items)
-                        ? (meeting as any).summary.action_items.join(' ')
-                        : String((meeting as any).summary.action_items);
+                  <div className="p-4 bg-amber-50 rounded-lg border-l-4 border-amber-400">
+                    <div className="text-sm text-gray-800 leading-relaxed space-y-2">
+                      {(() => {
+                        let rawText = Array.isArray((meeting as any).summary.action_items)
+                          ? (meeting as any).summary.action_items.join(' ')
+                          : String((meeting as any).summary.action_items);
 
-                      // Split by **Name** markers to separate action items by person
-                      const personSections = rawText.split(/\*\*([^*]+)\*\*/);
-                      const actionCards: JSX.Element[] = [];
+                        // Format the text to be more readable:
+                        // 1. Add line breaks before person names (**Name**)
+                        // 2. Add bullet points for each action item
+                        const formatted = rawText
+                          .replace(/\*\*([^*]+)\*\*/g, '\n\n**$1**\n')  // Line breaks around names
+                          .replace(/(\([0-9:]+\))\s+([A-Z])/g, '$1\n• $2')  // Bullet before new actions
+                          .trim();
 
-                      for (let i = 1; i < personSections.length; i += 2) {
-                        const person = personSections[i].trim();
-                        const actionsText = personSections[i + 1];
+                        return formatted.split('\n').map((line, idx) => {
+                          const trimmed = line.trim();
+                          if (!trimmed) return null;
 
-                        if (!actionsText) continue;
-
-                        // Split individual actions by timestamp pattern (time in parentheses)
-                        // Match pattern: text (HH:MM) - this marks end of each action
-                        const individualActions = actionsText.split(/(?=\w+.*?\(\d+:\d+\))/).filter(a => a.trim());
-
-                        individualActions.forEach((actionText, actionIdx) => {
-                          const trimmed = actionText.trim();
-                          if (!trimmed) return;
-
-                          // Extract timestamp from end of action
-                          const timeMatch = trimmed.match(/\((\d+:\d+)\)\s*$/);
-                          const timestamp = timeMatch ? timeMatch[1] : null;
-                          const cleanAction = timestamp
-                            ? trimmed.replace(/\s*\(\d+:\d+\)\s*$/, '').trim()
-                            : trimmed;
-
-                          actionCards.push(
-                            <div key={`${i}-${actionIdx}`} className="p-4 bg-amber-50 rounded-lg border-l-4 border-amber-400">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="px-2 py-1 bg-amber-600 text-white text-xs font-semibold rounded">
-                                  {person}
-                                </span>
-                                {timestamp && (
-                                  <span className="text-xs text-gray-500">
-                                    {timestamp}
-                                  </span>
-                                )}
+                          // Bold person names
+                          if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+                            return (
+                              <div key={idx} className="font-semibold text-amber-900 mt-3 first:mt-0">
+                                {trimmed.replace(/\*\*/g, '')}
                               </div>
-                              <p className="text-sm text-gray-800 leading-relaxed">
-                                {cleanAction}
-                              </p>
-                            </div>
-                          );
-                        });
-                      }
+                            );
+                          }
 
-                      return actionCards.length > 0 ? actionCards : (
-                        <div className="p-4 bg-amber-50 rounded-lg">
-                          <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-                            {rawText}
-                          </p>
-                        </div>
-                      );
-                    })()}
+                          return <div key={idx}>{trimmed}</div>;
+                        });
+                      })()}
+                    </div>
                   </div>
                 </div>
               )}
