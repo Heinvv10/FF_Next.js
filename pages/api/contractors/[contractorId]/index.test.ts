@@ -6,7 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import handler from './[contractorId]';
+import handler from './index';
 import { neonContractorService } from '@/services/contractor/neonContractorService';
 import { apiResponse } from '@/lib/apiResponse';
 
