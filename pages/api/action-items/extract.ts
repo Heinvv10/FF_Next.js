@@ -53,7 +53,7 @@ export default async function handler(
     // Check for existing action items from this meeting
     const existing = await sql`
       SELECT COUNT(*)::int as count
-      FROM action_items
+      FROM meeting_action_items
       WHERE meeting_id = ${meeting_id}
     `;
 
@@ -69,7 +69,7 @@ export default async function handler(
       const assignee_email = findAssigneeEmail(item.assignee, meeting.participants);
 
       const [created] = await sql`
-        INSERT INTO action_items (
+        INSERT INTO meeting_action_items (
           meeting_id,
           description,
           assignee_name,

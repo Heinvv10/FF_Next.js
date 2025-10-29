@@ -21,7 +21,7 @@ export default async function handler(
         COUNT(*) FILTER (WHERE status = 'in_progress')::int as in_progress,
         COUNT(*) FILTER (WHERE status = 'completed')::int as completed,
         COUNT(*) FILTER (WHERE due_date < NOW() AND status != 'completed')::int as overdue
-      FROM action_items
+      FROM meeting_action_items
     `;
 
     return apiResponse.success(res, stats as ActionItemStats);

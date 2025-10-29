@@ -81,7 +81,7 @@ export default async function handler(
           ai.notes,
           m.title as meeting_title,
           m.meeting_date
-        FROM action_items ai
+        FROM meeting_action_items ai
         LEFT JOIN meetings m ON ai.meeting_id = m.id
         WHERE ${sql.unsafe(whereClause)}
         ORDER BY
@@ -117,7 +117,7 @@ export default async function handler(
       }
 
       const [item] = await sql`
-        INSERT INTO action_items (
+        INSERT INTO meeting_action_items (
           meeting_id,
           description,
           assignee_name,

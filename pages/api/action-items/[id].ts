@@ -24,7 +24,7 @@ export default async function handler(
           m.title as meeting_title,
           m.meeting_date,
           m.transcript_url
-        FROM action_items ai
+        FROM meeting_action_items ai
         LEFT JOIN meetings m ON ai.meeting_id = m.id
         WHERE ai.id = ${id}
       `;
@@ -87,7 +87,7 @@ export default async function handler(
 
       // Perform update
       const [updated] = await sql`
-        UPDATE action_items
+        UPDATE meeting_action_items
         SET ${sql(fields)}
         WHERE id = ${id}
         RETURNING *
@@ -108,7 +108,7 @@ export default async function handler(
   if (req.method === 'DELETE') {
     try {
       const [deleted] = await sql`
-        DELETE FROM action_items
+        DELETE FROM meeting_action_items
         WHERE id = ${id}
         RETURNING id
       `;
