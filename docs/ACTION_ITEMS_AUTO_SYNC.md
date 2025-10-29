@@ -7,10 +7,13 @@ Action items are automatically synced from Fireflies meetings every 6 hours usin
 ## How It Works
 
 1. **Vercel Cron** triggers `/api/cron/sync-action-items` every 6 hours
-2. **Cron handler** calls `/api/action-items/extract-all`
-3. **Extract-all** finds meetings with action items
-4. **Parser** extracts action items from Fireflies text format
-5. **Database** stores new items (skips already extracted)
+2. **Step 1**: Cron calls `/api/meetings?action=sync` to sync meetings from Fireflies API
+3. **Step 2**: Cron calls `/api/action-items/extract-all` to extract action items
+4. **Extract-all** finds meetings with action items in the database
+5. **Parser** extracts action items from Fireflies text format
+6. **Database** stores new items (skips already extracted)
+
+**Critical**: The cron job does BOTH steps - first syncs meetings, then extracts action items.
 
 ## Schedule
 

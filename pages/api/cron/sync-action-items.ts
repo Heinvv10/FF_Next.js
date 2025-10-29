@@ -27,38 +27,64 @@ export default async function handler(
     }
   }
 
-  console.log('[Cron] Starting scheduled action items sync...');
+  console.log('[Cron] Starting scheduled sync...');
 
   try {
-    // Call the extract-all endpoint
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3005';
 
-    const response = await fetch(`${baseUrl}/api/action-items/extract-all`, {
+    // STEP 1: Sync meetings from Fireflies API
+    console.log('[Cron] Step 1: Syncing meetings from Fireflies...');
+    const meetingsResponse = await fetch(`${baseUrl}/api/meetings?action=sync`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-    const result = await response.json();
+    const meetingsResult = await meetingsResponse.json();
 
-    if (!response.ok) {
-      console.error('[Cron] Extraction failed:', result);
+    if (!meetingsResponse.ok) {
+      console.error('[Cron] Meetings sync failed:', meetingsResult);
       return res.status(500).json({
         success: false,
-        error: 'Extraction failed',
-        details: result,
+        error: 'Meetings sync failed',
+        details: meetingsResult,
       });
     }
 
-    console.log('[Cron] Sync complete:', result);
+    console.log(`[Cron] Synced ${meetingsResult.synced} meetings from Fireflies`);
+
+    // STEP 2: Extract action items from meetings
+    console.log('[Cron] Step 2: Extracting action items...');
+    const actionItemsResponse = await fetch(`${baseUrl}/api/action-items/extract-all`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const actionItemsResult = await actionItemsResponse.json();
+
+    if (!actionItemsResponse.ok) {
+      console.error('[Cron] Action items extraction failed:', actionItemsResult);
+      return res.status(500).json({
+        success: false,
+        error: 'Action items extraction failed',
+        details: actionItemsResult,
+      });
+    }
+
+    console.log('[Cron] Sync complete');
 
     return res.status(200).json({
       success: true,
-      message: 'Action items synced successfully',
-      data: result.data,
+      message: 'Full sync completed successfully',
+      data: {
+        meetings: meetingsResult,
+        action_items: actionItemsResult.data,
+      },
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
