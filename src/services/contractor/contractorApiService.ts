@@ -99,10 +99,11 @@ export const contractorApiService = {
   },
 
   async delete(id: string): Promise<{ success: boolean; message: string }> {
-    // Use POST to dedicated delete endpoint instead of DELETE method
-    // This works around Vercel routing issues with dynamic DELETE routes
-    const response = await fetch(`${API_BASE}/contractors/delete/${id}`, {
-      method: 'POST'
+    // Use flat endpoint with ID in body - Vercel won't route dynamic segments under /contractors/
+    const response = await fetch(`${API_BASE}/contractors-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
     });
     return handleResponse<{ success: boolean; message: string }>(response);
   },
