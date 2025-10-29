@@ -357,3 +357,127 @@ poweredByHeader: false,
 
 ---
 
+## October 29, 2025 - 2:00 PM
+**Developer**: Claude Assistant
+**Issue**: Contractor deletion returns 405 Method Not Allowed error - route not found in production
+
+### Problem Identified:
+- User reported deletion still failing with 405 error on production after previous fix
+- Testing revealed: `GET /api/contractors/[contractorId]` also returns 404
+- Route exists locally and builds successfully, but doesn't exist in Vercel deployment
+- Header showed: `x-matched-path: /404` indicating route not found
+
+### Root Cause Analysis:
+
+#### Investigation Timeline:
+1. **Initial assumption**: Deployment not complete (INCORRECT)
+   - Checked Vercel - deployment was complete and in production
+
+2. **Second hypothesis**: File/directory conflict from previous fix (CORRECT)
+   - Found BOTH exist simultaneously:
+     - `pages/api/contractors/[contractorId].ts` (file)
+     - `pages/api/contractors/[contractorId]/` (directory with sub-routes)
+   - This caused Next.js routing conflict
+
+3. **Discovery of real issue**: Test files being treated as routes
+   - Build output showed: `api/contractors/[contractorId]/index.test` as a route!
+   - Next.js was treating ALL `.ts` files in `pages/` as routes, including test files
+   - 11 test files in `pages/api/contractors/` were creating phantom routes
+
+4. **Final root cause**: Commit `e644b1d` from separate chat session
+   - Moved `index.ts` OUT of directory to fix another issue
+   - Created file/directory conflict again
+   - Need ONLY ONE: either file OR directory with index.ts
+
+### Changes Made:
+
+#### 1. Moved Test Files Out of Pages Directory
+**Files**: 11 test files moved from `pages/api/contractors/` → `tests/api/contractors/`
+**Commit**: 64ae502
+
+Moved test files:
+- `pages/api/contractors/index.test.ts`
+- `pages/api/contractors/[contractorId]/index.test.ts`
+- `pages/api/contractors/[contractorId]/documents.test.ts`
+- `pages/api/contractors/[contractorId]/teams.test.ts`
+- `pages/api/contractors/[contractorId]/rag.test.ts`
+- `pages/api/contractors/[contractorId]/documents/[docId].test.ts`
+- `pages/api/contractors/[contractorId]/teams/[teamId].test.ts`
+- `pages/api/contractors/[contractorId]/rag/history.test.ts`
+- `pages/api/contractors/[contractorId]/onboarding/complete.test.ts`
+- `pages/api/contractors/[contractorId]/onboarding/stages.test.ts`
+- `pages/api/contractors/[contractorId]/onboarding/stages/[stageId].test.ts`
+
+**Why this was needed**: Next.js treats ALL files in `pages/` as routes. Test files were creating phantom API routes that interfered with real routes.
+
+#### 2. Resolved File/Directory Conflict (Final Fix)
+**File**: `pages/api/contractors/[contractorId].ts` → `pages/api/contractors/[contractorId]/index.ts`
+**Commit**: 0f6200a
+
+**Before (CONFLICT)**:
+```
+pages/api/contractors/
+├── [contractorId].ts          ← File at parent level
+└── [contractorId]/            ← Directory with same name
+    ├── documents.ts
+    ├── teams.ts
+    └── rag.ts
+```
+
+**After (RESOLVED)**:
+```
+pages/api/contractors/
+└── [contractorId]/
+    ├── index.ts              ← Main handler moved inside
+    ├── documents.ts
+    ├── teams.ts
+    └── rag.ts
+```
+
+**Why this was needed**: Next.js cannot have both a file and directory with the same name. The directory takes precedence, causing the file's routes to return 404.
+
+### Result:
+✅ **Issue Fixed** (pending deployment verification):
+- Test files no longer treated as API routes
+- No file/directory naming conflicts
+- Clean route structure: `/api/contractors/[contractorId]` resolves to `[contractorId]/index.ts`
+- All sub-routes (`documents`, `teams`, `rag`) remain accessible
+
+### Testing Notes:
+- ✅ Local build succeeds without `.test` routes
+- ✅ Route exists in build output: `api/contractors/[contractorId]`
+- ⏳ Awaiting Vercel deployment of commit 0f6200a
+- Test command: `curl -X DELETE "https://fibreflow.app/api/contractors/test-123"`
+- Expected: 401 (route exists but unauthorized) instead of 405 (route doesn't exist)
+
+### Related Files:
+- `pages/api/contractors/[contractorId]/index.ts:31-32` - DELETE handler
+- `tests/api/contractors/` - Test files moved here
+- Previous fix commit: `1fb700d` (October 29, 11:16 AM)
+- Test file fix commit: `64ae502` (October 29, 11:35 AM)
+- Final fix commit: `0f6200a` (October 29, 2:06 PM)
+
+### Additional Context:
+- This is a **regression** of the issue documented on October 23rd
+- The October 23rd fix moved files around to resolve conflicts
+- Commit `e644b1d` from separate work session reversed part of that fix
+- Test files in `pages/` directory is a project-wide anti-pattern that should be avoided
+
+### Key Learnings:
+1. **Never put test files in pages/ directory** - Next.js treats them as routes
+2. **File and directory cannot coexist** with same name in Next.js routing
+3. **Use `index.ts` inside directories** for main route handlers when sub-routes exist
+4. **Always check Vercel deployment** - local builds don't guarantee production success
+5. **Coordinate between parallel chat sessions** - changes can conflict
+
+### Impact:
+- **User Experience**: Contractor deletion will work once deployed
+- **Code Quality**: Cleaner project structure with tests in proper location
+- **Maintainability**: Clear routing patterns prevent future conflicts
+- **Prevention**: Documented in `docs/page-logs/contractors.md` for reference
+
+### Resolution Status:
+⏳ **PENDING DEPLOYMENT** - Awaiting Vercel deployment of commit 0f6200a (estimated 1-2 minutes)
+
+---
+
