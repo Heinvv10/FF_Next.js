@@ -10,5 +10,11 @@
     "pages/api/**/*.js": {
       "maxDuration": 30
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/sync-action-items",
+      "schedule": "0 */6 * * *"
+    }
+  ]
 }
