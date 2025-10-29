@@ -157,30 +157,37 @@ export function MeetingDetailModal({ meeting, isOpen, onClose }: MeetingDetailMo
                   <h3 className="font-medium mb-3">AI-Detected Action Items</h3>
                   <div className="space-y-3">
                     {(() => {
-                      const actionItems = Array.isArray((meeting as any).summary.action_items)
-                        ? (meeting as any).summary.action_items
-                        : [String((meeting as any).summary.action_items)];
+                      let rawText = Array.isArray((meeting as any).summary.action_items)
+                        ? (meeting as any).summary.action_items.join(' ')
+                        : String((meeting as any).summary.action_items);
 
-                      return actionItems.map((item: string, index: number) => {
-                        // Parse action items with **Name** format
-                        const personMatch = item.match(/\*\*([^*]+)\*\*/);
-                        const person = personMatch ? personMatch[1].trim() : null;
+                      // Split by **Name** markers to separate action items by person
+                      const personSections = rawText.split(/\*\*([^*]+)\*\*/);
+                      const actionCards: JSX.Element[] = [];
 
-                        // Remove the **Name** part to get just the action
-                        const actionText = person
-                          ? item.replace(/\*\*[^*]+\*\*/, '').trim()
-                          : item;
+                      for (let i = 1; i < personSections.length; i += 2) {
+                        const person = personSections[i].trim();
+                        const actionsText = personSections[i + 1];
 
-                        // Extract timestamp if present (text in parentheses at end)
-                        const timeMatch = actionText.match(/\((\d+:\d+)\)$/);
-                        const timestamp = timeMatch ? timeMatch[1] : null;
-                        const cleanAction = timestamp
-                          ? actionText.replace(/\s*\([^)]+\)$/, '')
-                          : actionText;
+                        if (!actionsText) continue;
 
-                        return (
-                          <div key={index} className="p-4 bg-amber-50 rounded-lg border-l-4 border-amber-400">
-                            {person && (
+                        // Split individual actions by timestamp pattern (time in parentheses)
+                        // Match pattern: text (HH:MM) - this marks end of each action
+                        const individualActions = actionsText.split(/(?=\w+.*?\(\d+:\d+\))/).filter(a => a.trim());
+
+                        individualActions.forEach((actionText, actionIdx) => {
+                          const trimmed = actionText.trim();
+                          if (!trimmed) return;
+
+                          // Extract timestamp from end of action
+                          const timeMatch = trimmed.match(/\((\d+:\d+)\)\s*$/);
+                          const timestamp = timeMatch ? timeMatch[1] : null;
+                          const cleanAction = timestamp
+                            ? trimmed.replace(/\s*\(\d+:\d+\)\s*$/, '').trim()
+                            : trimmed;
+
+                          actionCards.push(
+                            <div key={`${i}-${actionIdx}`} className="p-4 bg-amber-50 rounded-lg border-l-4 border-amber-400">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="px-2 py-1 bg-amber-600 text-white text-xs font-semibold rounded">
                                   {person}
@@ -191,13 +198,21 @@ export function MeetingDetailModal({ meeting, isOpen, onClose }: MeetingDetailMo
                                   </span>
                                 )}
                               </div>
-                            )}
-                            <p className="text-sm text-gray-800 leading-relaxed">
-                              {cleanAction}
-                            </p>
-                          </div>
-                        );
-                      });
+                              <p className="text-sm text-gray-800 leading-relaxed">
+                                {cleanAction}
+                              </p>
+                            </div>
+                          );
+                        });
+                      }
+
+                      return actionCards.length > 0 ? actionCards : (
+                        <div className="p-4 bg-amber-50 rounded-lg">
+                          <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                            {rawText}
+                          </p>
+                        </div>
+                      );
                     })()}
                   </div>
                 </div>
