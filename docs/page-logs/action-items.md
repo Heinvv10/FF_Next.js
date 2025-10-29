@@ -1,5 +1,34 @@
 # Action Items Page Log
 
+## October 29, 2025 - Critical Routing Fix
+
+### Status: ✅ Fixed 404 Errors on Sub-Routes
+
+**Problem**: All sub-routes (/action-items/pending, /completed, etc.) returned 404 errors in production.
+
+**Root Cause**:
+- Built React components in `src/modules/action-items/pages/` ✅
+- Configured React Router in `moduleRoutes.tsx` ✅
+- **FORGOT to create Next.js page files in `pages/action-items/` ❌**
+
+**Why This Happened**:
+This app uses **Next.js with file-based routing**, NOT pure React Router. Every route needs a corresponding file in the `pages/` directory.
+
+**Solution**:
+Created dynamic catch-all route at `pages/action-items/[slug].tsx`:
+- Maps URL slugs to React components
+- One file handles all 6 sub-routes
+- `/action-items/pending` → `PendingActionItems` component
+- `/action-items/completed` → `CompletedActionItems` component
+- etc.
+
+**Key Lesson**: In Next.js apps, React components alone don't create routes. You MUST have files in `pages/` directory that render those components.
+
+**Files Created**:
+- `pages/action-items/[slug].tsx` - Dynamic route handler
+
+---
+
 ## October 29, 2025 - BMAD Setup Complete
 
 ### Status: ✅ Full Implementation Complete
