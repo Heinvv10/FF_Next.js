@@ -13,7 +13,7 @@ import {
   FileText
 } from 'lucide-react';
 import { Card, CardContent } from '@/shared/components/ui/Card';
-import { Button } from '@/src/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/Button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/Select';
 // Badge import removed - not used in current implementation
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/Tabs';

@@ -26,44 +26,8 @@ export default async function handler(
         overdue,
       } = req.query as Partial<Record<keyof ActionItemFilters, string>>;
 
-      // Build dynamic WHERE clause
-      const conditions: string[] = ['1=1'];
-      const params: any[] = [];
-
-      if (status) {
-        const statuses = status.split(',');
-        conditions.push(`status = ANY($${params.length + 1})`);
-        params.push(statuses);
-      }
-
-      if (assignee_name) {
-        conditions.push(`assignee_name ILIKE $${params.length + 1}`);
-        params.push(`%${assignee_name}%`);
-      }
-
-      if (meeting_id) {
-        conditions.push(`meeting_id = $${params.length + 1}`);
-        params.push(parseInt(meeting_id));
-      }
-
-      if (priority) {
-        conditions.push(`priority = $${params.length + 1}`);
-        params.push(priority);
-      }
-
-      if (search) {
-        conditions.push(`description ILIKE $${params.length + 1}`);
-        params.push(`%${search}%`);
-      }
-
-      if (overdue === 'true') {
-        conditions.push(`due_date < NOW() AND status != 'completed'`);
-      }
-
-      const whereClause = conditions.join(' AND ');
-
-      // Fetch action items with meeting info
-      const items = await sql`
+      // Build query with filters
+      let query = sql`
         SELECT
           ai.id,
           ai.meeting_id,
@@ -83,7 +47,38 @@ export default async function handler(
           m.meeting_date
         FROM meeting_action_items ai
         LEFT JOIN meetings m ON ai.meeting_id = m.id
-        WHERE ${sql.unsafe(whereClause)}
+        WHERE 1=1
+      `;
+
+      // Add filters
+      if (status) {
+        const statuses = status.split(',');
+        query = sql`${query} AND ai.status = ANY(${statuses})`;
+      }
+
+      if (assignee_name) {
+        query = sql`${query} AND ai.assignee_name ILIKE ${'%' + assignee_name + '%'}`;
+      }
+
+      if (meeting_id) {
+        query = sql`${query} AND ai.meeting_id = ${parseInt(meeting_id)}`;
+      }
+
+      if (priority) {
+        query = sql`${query} AND ai.priority = ${priority}`;
+      }
+
+      if (search) {
+        query = sql`${query} AND ai.description ILIKE ${'%' + search + '%'}`;
+      }
+
+      if (overdue === 'true') {
+        query = sql`${query} AND ai.due_date < NOW() AND ai.status != 'completed'`;
+      }
+
+      // Add ordering and limit
+      const items = await sql`
+        ${query}
         ORDER BY
           CASE
             WHEN ai.status = 'pending' THEN 1
