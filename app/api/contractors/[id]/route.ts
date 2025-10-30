@@ -9,6 +9,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import type { Contractor, ContractorFormData } from '@/types/contractor.core.types';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 const sql = neon(process.env.DATABASE_URL || '');
 
 // ==================== GET /api/contractors/[id] ====================
