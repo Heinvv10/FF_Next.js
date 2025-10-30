@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
         ${body.accountNumber || null},
         ${body.branchCode || null},
         ${body.status || 'pending'},
-        ${body.isActive !== undefined ? body.isActive : false},
+        ${body.isActive !== undefined ? body.isActive : true},
         ${body.complianceStatus || 'pending'},
         ${body.specializations || []},
         ${body.certifications || []},
