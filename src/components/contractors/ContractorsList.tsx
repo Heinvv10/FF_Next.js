@@ -1,0 +1,225 @@
+'use client';
+
+/**
+ * Contractors List - Client Component
+ * Handles search, filtering, and delete operations
+ */
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Search, Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import type { Contractor } from '@/types/contractor.core.types';
+import { CONTRACTOR_STATUSES, COMPLIANCE_STATUSES } from '@/types/contractor.core.types';
+
+interface ContractorsListProps {
+  initialContractors: Contractor[];
+}
+
+export function ContractorsList({ initialContractors }: ContractorsListProps) {
+  const router = useRouter();
+  const [contractors, setContractors] = useState(initialContractors);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  // Filter contractors based on search
+  const filteredContractors = contractors.filter((c) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      c.companyName.toLowerCase().includes(term) ||
+      c.contactPerson.toLowerCase().includes(term) ||
+      c.email.toLowerCase().includes(term) ||
+      c.registrationNumber.toLowerCase().includes(term)
+    );
+  });
+
+  const handleDelete = async (id: string, companyName: string) => {
+    if (!confirm(`Delete contractor "${companyName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(id);
+
+    try {
+      const response = await fetch(`/api/contractors/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete contractor');
+      }
+
+      // Remove from local state
+      setContractors(contractors.filter((c) => c.id !== id));
+      alert('Contractor deleted successfully');
+      router.refresh();
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      alert(error.message || 'Failed to delete contractor');
+    } finally {
+      setIsDeleting(null);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    const statusObj = CONTRACTOR_STATUSES.find((s) => s.value === status);
+    return statusObj?.color || 'gray';
+  };
+
+  const getComplianceColor = (status: string) => {
+    const statusObj = COMPLIANCE_STATUSES.find((s) => s.value === status);
+    return statusObj?.color || 'gray';
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header with search and add button */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search contractors..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        <Link
+          href="/contractors/new"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          <Plus className="h-4 w-4" />
+          Add Contractor
+        </Link>
+      </div>
+
+      {/* Contractors count */}
+      <div className="text-sm text-gray-600">
+        Showing {filteredContractors.length} of {contractors.length} contractors
+      </div>
+
+      {/* Contractors table */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                Company
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                Contact
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                Compliance
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {filteredContractors.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                  No contractors found
+                </td>
+              </tr>
+            ) : (
+              filteredContractors.map((contractor) => (
+                <tr key={contractor.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {contractor.companyName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {contractor.registrationNumber}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div>
+                      <div className="text-sm text-gray-900">
+                        {contractor.contactPerson}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {contractor.email}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {contractor.phone}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        getStatusColor(contractor.status) === 'green'
+                          ? 'bg-green-100 text-green-800'
+                          : getStatusColor(contractor.status) === 'yellow'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : getStatusColor(contractor.status) === 'red'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
+                      {contractor.status.replace('_', ' ').toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        getComplianceColor(contractor.complianceStatus) === 'green'
+                          ? 'bg-green-100 text-green-800'
+                          : getComplianceColor(contractor.complianceStatus) === 'yellow'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : getComplianceColor(contractor.complianceStatus) === 'red'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
+                      {contractor.complianceStatus.replace('_', ' ').toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-2">
+                      <Link
+                        href={`/contractors/${contractor.id}`}
+                        className="p-1 text-blue-600 hover:text-blue-900"
+                        title="View"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                      <Link
+                        href={`/contractors/${contractor.id}/edit`}
+                        className="p-1 text-yellow-600 hover:text-yellow-900"
+                        title="Edit"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(contractor.id, contractor.companyName)}
+                        disabled={isDeleting === contractor.id}
+                        className="p-1 text-red-600 hover:text-red-900 disabled:opacity-50"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

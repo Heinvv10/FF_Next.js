@@ -37,7 +37,9 @@
       "Bash(CONTRACTOR_ID=\"ebb08cc4-d23e-4605-9f57-1eb3784d57ee\")",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(vercel:*)",
+      "Bash(npx vercel:*)"
     ],
     "deny": [],
     "ask": [],
