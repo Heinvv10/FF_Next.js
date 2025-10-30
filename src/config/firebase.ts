@@ -14,13 +14,14 @@ import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 // Firebase configuration
 // Note: These are public keys protected by Firebase Security Rules
+// Updated Oct 30, 2025: Changed to fibreflow-app (correct project with Storage enabled)
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'AIzaSyDvW-ImXptnYIX7IDR78pdruw9BAp5A8Q8',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'fibreflow-292c7.firebaseapp.com',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'fibreflow-292c7',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'fibreflow-292c7.firebasestorage.app',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '178707510767',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:178707510767:web:a9455c8f053de03fbff21a',
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'fibreflow-app.firebaseapp.com',
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'fibreflow-app',
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'fibreflow-app.firebasestorage.app',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '9040732203',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:9040732203:web:PLACEHOLDER',
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || 'G-3S74XHZ49B'
 };
 

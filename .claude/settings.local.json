@@ -39,7 +39,9 @@
       "Bash(git commit:*)",
       "Bash(npm test:*)",
       "Bash(vercel:*)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Read(//home/louisdup/VF/Apps/FF_React_Archive/**)",
+      "Read(//tmp/**)"
     ],
     "deny": [],
     "ask": [],

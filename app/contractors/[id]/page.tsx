@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Edit, ArrowLeft } from 'lucide-react';
 import type { Contractor } from '@/types/contractor.core.types';
+import { ContractorDocuments } from '@/components/contractors/ContractorDocuments';
 
 const sql = neon(process.env.DATABASE_URL || '');
 
@@ -232,6 +233,11 @@ export default async function ContractorDetailPage({
             <p className="text-sm text-gray-700 whitespace-pre-wrap">{contractor.notes}</p>
           </div>
         )}
+      </div>
+
+      {/* Documents Section */}
+      <div className="mt-8">
+        <ContractorDocuments contractorId={contractor.id} />
       </div>
     </div>
   );
