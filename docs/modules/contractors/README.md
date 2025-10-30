@@ -1,8 +1,23 @@
 # Contractors Module Documentation
 
 **Module**: Contractors Management
-**Status**: Active Development (BMad Methodology)
-**Last Updated**: October 24, 2025
+**Status**: Active Development (Rewrite Complete Oct 30, 2025)
+**Last Updated**: October 30, 2025
+
+---
+
+## 🚨 CRITICAL: Vercel Routing Issue
+
+**If you get 405 errors on contractor endpoints, read this first:**
+
+👉 **[VERCEL_ROUTING_FIX.md](./VERCEL_ROUTING_FIX.md)** - Complete documentation of the Vercel dynamic route bug and solution
+
+**TL;DR:** Dynamic routes like `/api/contractors/[id]` return 405 on Vercel. Use flat endpoints instead:
+- ✅ `/api/contractors-update` (PUT with id in body)
+- ✅ `/api/contractors-delete` (POST with id in body)
+- ❌ `/api/contractors/[id]` (broken on Vercel)
+
+**Last Verified:** October 30, 2025 - Working in production
 
 ---
 
@@ -10,11 +25,13 @@
 
 | Document | Purpose | Status |
 |----------|---------|--------|
-| [Foundation Assessment](./foundation-assessment.md) | Current state analysis | ✅ Complete |
+| **[⚠️ VERCEL_ROUTING_FIX.md](./VERCEL_ROUTING_FIX.md)** | **Vercel 405 bug & solution** | **✅ Critical** |
+| [REWRITE_PLAN.md](./REWRITE_PLAN.md) | Complete module rewrite plan | ✅ Complete |
+| [CLEANUP_SUMMARY.md](./CLEANUP_SUMMARY.md) | Old code removal summary | ✅ Complete |
+| [MODULE_SEPARATION_ANALYSIS.md](./MODULE_SEPARATION_ANALYSIS.md) | Future module extraction | ✅ Complete |
+| [Foundation Assessment](./foundation-assessment.md) | Original state analysis | ✅ Complete |
 | [Product Requirements (PRD)](./prd.md) | What we're building | ✅ Complete |
-| [Improvement Backlog](./improvement-backlog.md) | Prioritized work items | ✅ Ready |
-| [Architecture](./architecture.md) | System design | ⏳ Pending |
-| [Developer Guide](./developer-guide.md) | Onboarding & how-tos | ⏳ Pending |
+| [Improvement Backlog](./improvement-backlog.md) | Prioritized work items | ⏳ Updated |
 
 ---
 
@@ -166,18 +183,22 @@ graph LR
 
 ```
 docs/modules/contractors/
-├── README.md                    # This file
-├── foundation-assessment.md     # Oct 24, 2025 assessment
-├── prd.md                       # Product requirements
-├── improvement-backlog.md       # Prioritized stories
-├── architecture.md              # System architecture (TBD)
-├── developer-guide.md           # Developer onboarding (TBD)
-├── api-spec.yaml               # OpenAPI specification (TBD)
-├── epics/                      # Sharded epic documents
-├── stories/                    # Sharded story documents
+├── README.md                           # This file
+├── VERCEL_ROUTING_FIX.md              # ⚠️ CRITICAL - Vercel 405 bug solution (Oct 30, 2025)
+├── REWRITE_PLAN.md                    # Complete rewrite plan (Oct 30, 2025)
+├── CLEANUP_SUMMARY.md                 # Old code removal summary (Oct 30, 2025)
+├── MODULE_SEPARATION_ANALYSIS.md      # Future module extraction plan
+├── foundation-assessment.md           # Original state analysis (Oct 24, 2025)
+├── prd.md                             # Product requirements
+├── improvement-backlog.md             # Prioritized stories
+├── architecture.md                    # System architecture (TBD)
+├── developer-guide.md                 # Developer onboarding (TBD)
+├── api-spec.yaml                      # OpenAPI specification (TBD)
+├── epics/                            # Sharded epic documents
+├── stories/                          # Sharded story documents
 └── qa/
-    ├── assessments/            # QA risk/design/trace/NFR docs
-    └── gates/                  # Quality gate decisions
+    ├── assessments/                  # QA risk/design/trace/NFR docs
+    └── gates/                        # Quality gate decisions
 ```
 
 ---
@@ -202,12 +223,31 @@ docs/modules/contractors/
 - [Database Schema](../../../scripts/migrations/create-contractors-tables.sql)
 - [API Response Standards](../../../CLAUDE.md#api-response-standards)
 
-### Code Locations
-- **API Routes**: `pages/api/contractors/`
-- **Components**: `src/modules/contractors/components/`
-- **Services**: `src/services/contractor/`
-- **Types**: `src/types/contractor/`
-- **Tests**: `tests/` and adjacent to source files
+### Code Locations (After Oct 30, 2025 Rewrite)
+
+**App Router (Pages):**
+- `app/contractors/page.tsx` - List page
+- `app/contractors/new/page.tsx` - Create page
+- `app/contractors/[id]/page.tsx` - View page
+- `app/contractors/[id]/edit/page.tsx` - Edit page
+- `app/layout.tsx` - Root layout
+
+**API Routes (Flat Endpoints - Vercel Compatible):**
+- `pages/api/contractors-update.ts` - Update endpoint (flat) ✅
+- `pages/api/contractors-delete.ts` - Delete endpoint (flat) ✅
+- `app/api/contractors/route.ts` - List/Create (App Router) ✅
+- ~~`pages/api/contractors/[id].ts`~~ - ❌ Broken on Vercel (dynamic route)
+
+**Components:**
+- `src/components/contractors/ContractorsList.tsx` - Client component for list
+- `src/components/contractors/ContractorForm.tsx` - Shared form component
+
+**Types:**
+- `src/types/contractor.core.types.ts` - Core types (18 fields)
+
+**Documentation:**
+- `docs/modules/contractors/` - All module documentation
+- `docs/page-logs/contractors.md` - Historical change log
 
 ---
 
@@ -293,5 +333,6 @@ docs/modules/contractors/
 
 ---
 
-**Last Updated**: October 24, 2025
-**Next Review**: November 7, 2025 (2 weeks)
+**Last Updated**: October 30, 2025 (Rewrite Complete + Vercel Fix)
+**Next Review**: November 13, 2025 (2 weeks)
+**Critical Fix**: Vercel routing workaround implemented and verified in production
