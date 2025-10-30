@@ -42,12 +42,12 @@ export function ContractorsList({ initialContractors }: ContractorsListProps) {
     setIsDeleting(id);
 
     try {
-      // Use PUT to set isActive = false (soft delete)
-      // This works around the 405 DELETE method routing issue on Vercel
-      const response = await fetch(`/api/contractors/${id}`, {
+      // Use flat endpoint workaround for Vercel's dynamic route issues
+      const response = await fetch('/api/contractors-update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id,
           isActive: false,
           status: 'suspended'
         }),
