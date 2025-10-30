@@ -35,28 +35,35 @@ export function ContractorsList({ initialContractors }: ContractorsListProps) {
   });
 
   const handleDelete = async (id: string, companyName: string) => {
-    if (!confirm(`Delete contractor "${companyName}"? This action cannot be undone.`)) {
+    if (!confirm(`Suspend contractor "${companyName}"? They will be hidden from the active list.`)) {
       return;
     }
 
     setIsDeleting(id);
 
     try {
+      // Use PUT to set isActive = false (soft delete)
+      // This works around the 405 DELETE method routing issue on Vercel
       const response = await fetch(`/api/contractors/${id}`, {
-        method: 'DELETE',
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isActive: false,
+          status: 'suspended'
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete contractor');
+        throw new Error('Failed to suspend contractor');
       }
 
       // Remove from local state
       setContractors(contractors.filter((c) => c.id !== id));
-      alert('Contractor deleted successfully');
+      alert('Contractor suspended successfully');
       router.refresh();
     } catch (error: any) {
-      console.error('Delete error:', error);
-      alert(error.message || 'Failed to delete contractor');
+      console.error('Suspend error:', error);
+      alert(error.message || 'Failed to suspend contractor');
     } finally {
       setIsDeleting(null);
     }
