@@ -481,3 +481,155 @@ pages/api/contractors/
 
 ---
 
+
+## October 31, 2025 - 8:37 PM
+**Developer**: Claude Assistant
+**Issue**: Document approve/reject buttons not working on contractor detail page
+
+### Problem Identified:
+- User uploaded a document to contractor detail page (`/contractors/{id}`)
+- Approve and Reject buttons appeared in the UI but had no effect when clicked
+- API verify endpoint worked when tested directly with curl
+- Frontend showed documents stuck in "pending" status even after successful API calls
+
+### Root Cause:
+**Database column name mismatch in GET Documents API**
+
+The `GET /api/contractors-documents` endpoint was reading from wrong database columns:
+- **Code was looking for**: `row.verification_status` (column doesn't exist)
+- **Actual database column**: `row.status` (per migration schema)
+- **Result**: API returned `status: null` → frontend couldn't determine document state
+
+Additional issues:
+- Upload API was inserting into non-existent columns (`verification_status`, `storage_type`)
+- Missing required fields in response mapping: `isVerified`, `verificationNotes`, `tags`, `uploadedBy`
+
+### Schema Context:
+The `contractor_documents` table (created in migration `scripts/run-onboarding-migration.js`) has:
+```sql
+status VARCHAR(50) DEFAULT 'pending' 
+  CHECK (status IN ('pending', 'approved', 'rejected', 'expired', 'replaced'))
+is_verified BOOLEAN DEFAULT FALSE
+verification_notes TEXT
+```
+
+**NOT**: `verification_status`, `storage_type`, or `storage_id`
+
+### Changes Made:
+
+#### 1. Fixed GET Documents API Column Mapping
+**File**: `pages/api/contractors-documents.ts:79-107`
+
+**Before**:
+```typescript
+function mapDbToDocument(row: any) {
+  return {
+    // ... other fields
+    status: row.verification_status,  // ❌ Wrong column
+    verifiedBy: row.verified_by,
+    verifiedAt: row.verified_at,
+    storageType: row.storage_type,    // ❌ Doesn't exist
+    storageId: row.storage_id,        // ❌ Doesn't exist
+    // Missing: isVerified, verificationNotes, tags, uploadedBy
+  };
+}
+```
+
+**After**:
+```typescript
+function mapDbToDocument(row: any) {
+  return {
+    // ... other fields
+    isVerified: row.is_verified,           // ✅ Added
+    verifiedBy: row.verified_by,
+    verifiedAt: row.verified_at,
+    verificationNotes: row.verification_notes, // ✅ Added
+    status: row.status,                    // ✅ Fixed
+    rejectionReason: row.rejection_reason,
+    notes: row.notes,
+    tags: row.tags || [],                  // ✅ Added
+    uploadedBy: row.uploaded_by,           // ✅ Added
+  };
+}
+```
+
+#### 2. Fixed Upload Documents API
+**File**: `pages/api/contractors-documents-upload.ts:103-139`
+
+**Before**:
+```sql
+INSERT INTO contractor_documents (
+  -- ... other columns
+  verification_status,  -- ❌ Wrong column
+  storage_type         -- ❌ Doesn't exist
+) VALUES (
+  -- ...
+  'pending',
+  'firebase'
+)
+```
+
+**After**:
+```sql
+INSERT INTO contractor_documents (
+  -- ... other columns
+  file_path,           -- ✅ Added (required)
+  status,              -- ✅ Fixed
+  uploaded_by          -- ✅ Added (required)
+) VALUES (
+  -- ...
+  ${storagePath},
+  'pending',
+  'system'
+)
+```
+
+Also updated `mapDbToDocument` function to match actual schema (same changes as GET API).
+
+### Testing:
+1. **API Direct Test** (confirmed working):
+```bash
+curl -X POST "https://fibreflow.app/api/contractors-documents-verify" \
+  -H "Content-Type: application/json" \
+  -d '{"id":"...","action":"approve","verifiedBy":"test@example.com"}'
+# Returns: status 200, document updated ✓
+```
+
+2. **GET API Test** (after fix):
+```bash
+curl "https://fibreflow.app/api/contractors-documents?contractorId=..."
+# Returns: { "status": "approved", "isVerified": true } ✓
+```
+
+3. **User Confirmation**: ✅ User tested in browser - approve/reject buttons now work correctly
+
+### Result:
+✅ **Issue Fixed**:
+- Approve button changes document status to "approved" and sets `isVerified: true`
+- Reject button changes status to "rejected" with rejection reason
+- UI properly displays document state (green badge for approved, red for rejected)
+- Documents no longer stuck in "pending" status
+
+### Related APIs:
+- `GET /api/contractors-documents?contractorId={id}` - Lists documents (FIXED)
+- `POST /api/contractors-documents-verify` - Approve/reject (already working)
+- `POST /api/contractors-documents-upload` - Upload new document (FIXED)
+
+### Files Modified:
+- `pages/api/contractors-documents.ts` - Fixed GET mapping
+- `pages/api/contractors-documents-upload.ts` - Fixed INSERT and response mapping
+
+### Commits:
+- `7490420` - "fix: correct database column mapping for contractor documents"
+
+### Key Learnings:
+1. **Always verify column names match schema** - especially after migrations
+2. **Test API responses directly** - helps isolate frontend vs backend issues
+3. **Check migration scripts** for actual table structure (not old code)
+4. **Database column naming conventions**: Use snake_case in DB, map to camelCase in API
+
+### Prevention:
+- Added documentation to `CLAUDE.md` about Vercel nested route issues (related work)
+- This page log serves as reference for similar column mapping issues
+
+---
