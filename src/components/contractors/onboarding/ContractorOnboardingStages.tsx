@@ -30,7 +30,7 @@ export function ContractorOnboardingStages({ contractorId }: ContractorOnboardin
     setError(null);
 
     try {
-      const response = await fetch(`/api/contractors/${contractorId}/onboarding/stages`);
+      const response = await fetch(`/api/contractors-onboarding-stages?contractorId=${contractorId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch onboarding stages: ${response.status}`);
       }
@@ -76,7 +76,7 @@ export function ContractorOnboardingStages({ contractorId }: ContractorOnboardin
   ) => {
     try {
       const response = await fetch(
-        `/api/contractors/${contractorId}/onboarding/stages/${stageId}`,
+        `/api/contractors-onboarding-stages-update?contractorId=${contractorId}&stageId=${stageId}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -110,7 +110,7 @@ export function ContractorOnboardingStages({ contractorId }: ContractorOnboardin
 
     try {
       const response = await fetch(
-        `/api/contractors/${contractorId}/onboarding/complete`,
+        `/api/contractors-onboarding-complete?contractorId=${contractorId}`,
         { method: 'POST' }
       );
 
