@@ -13,15 +13,16 @@ interface DocumentUploadFormProps {
   contractorId: string;
   onSuccess: () => void;
   onCancel: () => void;
+  defaultDocumentType?: DocumentType;
 }
 
-export function DocumentUploadForm({ contractorId, onSuccess, onCancel }: DocumentUploadFormProps) {
+export function DocumentUploadForm({ contractorId, onSuccess, onCancel, defaultDocumentType }: DocumentUploadFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
-    documentType: 'insurance_liability' as DocumentType,
+    documentType: defaultDocumentType || ('insurance_liability' as DocumentType),
     documentName: '',
     documentNumber: '',
     issueDate: '',

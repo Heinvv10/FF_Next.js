@@ -1,0 +1,190 @@
+/**
+ * Contractor Onboarding Stages Component
+ * Displays and manages all onboarding stages for a contractor
+ */
+
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { ContractorOnboardingProgress, OnboardingProgress } from './ContractorOnboardingProgress';
+import { OnboardingStageCardEnhanced, OnboardingStage } from './OnboardingStageCardEnhanced';
+
+interface ContractorOnboardingStagesProps {
+  contractorId: string;
+}
+
+export function ContractorOnboardingStages({ contractorId }: ContractorOnboardingStagesProps) {
+  const [stages, setStages] = useState<OnboardingStage[]>([]);
+  const [progress, setProgress] = useState<OnboardingProgress | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCompleting, setIsCompleting] = useState(false);
+
+  // Fetch onboarding stages
+  useEffect(() => {
+    fetchStages();
+  }, [contractorId]);
+
+  const fetchStages = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/contractors/${contractorId}/onboarding/stages`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch onboarding stages: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const stagesData = data.data || data;
+      setStages(stagesData);
+      calculateProgress(stagesData);
+    } catch (err: any) {
+      setError(err.message);
+      console.error('Error fetching onboarding stages:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const calculateProgress = (stagesData: OnboardingStage[]) => {
+    const totalStages = stagesData.length;
+    const completedStages = stagesData.filter(s => s.status === 'completed').length;
+    const inProgressStages = stagesData.filter(s => s.status === 'in_progress').length;
+    const pendingStages = stagesData.filter(s => s.status === 'pending').length;
+    const overallProgress = totalStages > 0
+      ? Math.round((completedStages / totalStages) * 100)
+      : 0;
+
+    setProgress({
+      totalStages,
+      completedStages,
+      inProgressStages,
+      pendingStages,
+      overallProgress,
+      isComplete: completedStages === totalStages && totalStages > 0,
+    });
+  };
+
+  const handleUpdateStage = async (
+    stageId: number,
+    updates: {
+      status?: 'pending' | 'in_progress' | 'completed' | 'skipped';
+      completionPercentage?: number;
+      notes?: string;
+    }
+  ) => {
+    try {
+      const response = await fetch(
+        `/api/contractors/${contractorId}/onboarding/stages/${stageId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to update stage: ${response.status}`);
+      }
+
+      // Refresh stages
+      await fetchStages();
+    } catch (err: any) {
+      console.error('Error updating stage:', err);
+      alert(`Failed to update stage: ${err.message}`);
+    }
+  };
+
+  const handleCompleteOnboarding = async () => {
+    if (!progress?.isComplete) {
+      alert('Cannot complete onboarding. Not all stages are completed.');
+      return;
+    }
+
+    if (!confirm('Mark contractor onboarding as complete?')) {
+      return;
+    }
+
+    setIsCompleting(true);
+
+    try {
+      const response = await fetch(
+        `/api/contractors/${contractorId}/onboarding/complete`,
+        { method: 'POST' }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to complete onboarding: ${response.status}`);
+      }
+
+      alert('Onboarding completed successfully!');
+      await fetchStages();
+    } catch (err: any) {
+      console.error('Error completing onboarding:', err);
+      alert(`Failed to complete onboarding: ${err.message}`);
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p className="mt-2 text-gray-600">Loading onboarding stages...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
+        <p className="text-red-800 font-medium">Error loading onboarding stages</p>
+        <p className="text-red-600 text-sm mt-1">{error}</p>
+        <button
+          onClick={fetchStages}
+          className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Progress Summary */}
+      {progress && <ContractorOnboardingProgress progress={progress} />}
+
+      {/* Complete Onboarding Button */}
+      {progress?.isComplete && (
+        <div className="flex justify-end">
+          <button
+            onClick={handleCompleteOnboarding}
+            disabled={isCompleting}
+            className="px-6 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isCompleting ? 'Completing...' : 'Complete Onboarding'}
+          </button>
+        </div>
+      )}
+
+      {/* Stages List */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900">Onboarding Stages</h3>
+        {stages.length === 0 ? (
+          <p className="text-gray-600">No onboarding stages found.</p>
+        ) : (
+          stages.map((stage) => (
+            <OnboardingStageCardEnhanced
+              key={stage.id}
+              stage={stage}
+              onUpdateStage={handleUpdateStage}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

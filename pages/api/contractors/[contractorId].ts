@@ -9,10 +9,11 @@ import { neon } from '@neondatabase/serverless';
 const sql = neon(process.env.DATABASE_URL || '');
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { id } = req.query;
+  // Destructure with rename - keeps internal code using 'id'
+  const { contractorId: id } = req.query;
 
   if (!id || typeof id !== 'string') {
-    return res.status(400).json({ error: 'Invalid ID' });
+    return res.status(400).json({ error: 'Invalid contractor ID' });
   }
 
   // GET - Get single contractor

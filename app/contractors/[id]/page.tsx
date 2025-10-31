@@ -239,6 +239,26 @@ export default async function ContractorDetailPage({
       <div className="mt-8">
         <ContractorDocuments contractorId={contractor.id} />
       </div>
+
+      {/* Onboarding Section - Link to dedicated page */}
+      <div className="mt-8">
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Onboarding Progress</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Manage contractor onboarding workflow and required documents
+              </p>
+            </div>
+            <Link
+              href={`/contractors/${contractor.id}/onboarding`}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              View Onboarding Workflow
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
