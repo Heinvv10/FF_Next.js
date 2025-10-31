@@ -9,7 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config({ path: ['.env.local', '.env.production', '.env'] });
+require('dotenv').config({ path: ['.env.production.local', '.env.local', '.env.production', '.env'] });
 
 // Use neon serverless client
 const { neon } = require('@neondatabase/serverless');
