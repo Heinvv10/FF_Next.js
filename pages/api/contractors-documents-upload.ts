@@ -8,8 +8,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { neon } from '@neondatabase/serverless';
 import formidable from 'formidable';
 import fs from 'fs';
-import { storage } from '@/config/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getAdminStorage } from '@/config/firebase-admin';
 
 const sql = neon(process.env.DATABASE_URL || '');
 
@@ -70,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Upload to Firebase Storage
+    // Upload to Firebase Storage using Admin SDK
     const timestamp = Date.now();
     const sanitizedFileName = sanitizeFileName(file.originalFilename || 'document');
     const fileName = `${timestamp}_${sanitizedFileName}`;
@@ -79,14 +78,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Read file buffer
     const fileBuffer = await fs.promises.readFile(file.filepath);
 
-    // Upload to Firebase
-    const storageRef = ref(storage, storagePath);
-    await uploadBytes(storageRef, fileBuffer, {
+    // Get Admin Storage bucket
+    const bucket = getAdminStorage();
+    const fileRef = bucket.file(storagePath);
+
+    // Upload to Firebase using Admin SDK
+    await fileRef.save(fileBuffer, {
       contentType: file.mimetype || 'application/octet-stream',
+      metadata: {
+        metadata: {
+          uploadedBy: uploadedBy,
+          contractorId: contractorId,
+          originalName: file.originalFilename || 'document',
+        },
+      },
     });
 
+    // Make file publicly readable
+    await fileRef.makePublic();
+
     // Get download URL
-    const fileUrl = await getDownloadURL(storageRef);
+    const fileUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
 
     // Save metadata to Neon
     const [document] = await sql`
@@ -96,34 +108,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         document_name,
         document_number,
         file_name,
-        file_path,
         file_url,
         file_size,
         mime_type,
         issue_date,
         expiry_date,
         is_expired,
-        is_verified,
-        status,
+        verification_status,
         notes,
-        uploaded_by
+        storage_type
       ) VALUES (
         ${contractorId},
         ${documentType},
         ${documentName},
         ${documentNumber || null},
         ${sanitizedFileName},
-        ${storagePath},
         ${fileUrl},
         ${file.size},
         ${file.mimetype},
         ${issueDate ? new Date(issueDate) : null},
         ${expiryDate ? new Date(expiryDate) : null},
         ${false},
-        ${false},
         ${'pending'},
         ${notes || null},
-        ${uploadedBy}
+        ${'firebase'}
       )
       RETURNING *
     `;
@@ -183,7 +191,6 @@ function mapDbToDocument(row: any) {
     documentName: row.document_name,
     documentNumber: row.document_number,
     fileName: row.file_name,
-    filePath: row.file_path,
     fileUrl: row.file_url,
     fileSize: row.file_size,
     mimeType: row.mime_type,
@@ -191,15 +198,13 @@ function mapDbToDocument(row: any) {
     expiryDate: row.expiry_date ? new Date(row.expiry_date) : undefined,
     isExpired: row.is_expired,
     daysUntilExpiry: row.days_until_expiry,
-    isVerified: row.is_verified,
+    verificationStatus: row.verification_status,
     verifiedBy: row.verified_by,
     verifiedAt: row.verified_at ? new Date(row.verified_at) : undefined,
-    verificationNotes: row.verification_notes,
-    status: row.status,
     rejectionReason: row.rejection_reason,
     notes: row.notes,
-    tags: row.tags || [],
-    uploadedBy: row.uploaded_by,
+    storageType: row.storage_type,
+    storageId: row.storage_id,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
