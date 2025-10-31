@@ -92,13 +92,15 @@ function mapDbToDocument(row: any) {
     expiryDate: row.expiry_date ? new Date(row.expiry_date) : undefined,
     isExpired: row.is_expired,
     daysUntilExpiry: row.days_until_expiry,
+    isVerified: row.is_verified,
     verifiedBy: row.verified_by,
     verifiedAt: row.verified_at ? new Date(row.verified_at) : undefined,
-    status: row.verification_status, // Map verification_status to status for frontend
+    verificationNotes: row.verification_notes,
+    status: row.status,
     rejectionReason: row.rejection_reason,
     notes: row.notes,
-    storageType: row.storage_type,
-    storageId: row.storage_id,
+    tags: row.tags || [],
+    uploadedBy: row.uploaded_by,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };

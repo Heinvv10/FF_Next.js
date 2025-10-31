@@ -108,21 +108,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         document_name,
         document_number,
         file_name,
+        file_path,
         file_url,
         file_size,
         mime_type,
         issue_date,
         expiry_date,
         is_expired,
-        verification_status,
+        status,
         notes,
-        storage_type
+        uploaded_by
       ) VALUES (
         ${contractorId},
         ${documentType},
         ${documentName},
         ${documentNumber || null},
         ${sanitizedFileName},
+        ${storagePath},
         ${fileUrl},
         ${file.size},
         ${file.mimetype},
@@ -131,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ${false},
         ${'pending'},
         ${notes || null},
-        ${'firebase'}
+        ${'system'}
       )
       RETURNING *
     `;
@@ -191,6 +193,7 @@ function mapDbToDocument(row: any) {
     documentName: row.document_name,
     documentNumber: row.document_number,
     fileName: row.file_name,
+    filePath: row.file_path,
     fileUrl: row.file_url,
     fileSize: row.file_size,
     mimeType: row.mime_type,
@@ -198,13 +201,15 @@ function mapDbToDocument(row: any) {
     expiryDate: row.expiry_date ? new Date(row.expiry_date) : undefined,
     isExpired: row.is_expired,
     daysUntilExpiry: row.days_until_expiry,
-    verificationStatus: row.verification_status,
+    isVerified: row.is_verified,
     verifiedBy: row.verified_by,
     verifiedAt: row.verified_at ? new Date(row.verified_at) : undefined,
+    verificationNotes: row.verification_notes,
+    status: row.status,
     rejectionReason: row.rejection_reason,
     notes: row.notes,
-    storageType: row.storage_type,
-    storageId: row.storage_id,
+    tags: row.tags || [],
+    uploadedBy: row.uploaded_by,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
