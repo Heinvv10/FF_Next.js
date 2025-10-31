@@ -318,6 +318,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 **When creating new API routes**: Use descriptive parameter names (e.g., `[projectId]`, `[contractorId]`) instead of generic `[id]` to avoid future conflicts.
 
+### ⚠️ CRITICAL: Vercel Deployment Issue with Nested Dynamic Routes
+
+**PROBLEM**: Vercel's Pages Router does NOT properly deploy nested dynamic routes when both a file and directory exist at the same level.
+
+#### The Issue
+```bash
+# This structure causes 404 errors in production (works locally):
+pages/api/contractors/[contractorId].ts          # ✓ Deployed
+pages/api/contractors/[contractorId]/            # ✗ NOT deployed
+pages/api/contractors/[contractorId]/onboarding/stages.ts  # ✗ Returns 404
+
+# Result: Routes build locally but return 404 in production
+```
+
+#### The Solution: Use Flattened Routes
+```bash
+# Instead of nested routes, use query parameters:
+pages/api/contractors-onboarding-stages.ts
+# Access: /api/contractors-onboarding-stages?contractorId={id}
+
+pages/api/contractors-onboarding-stages-update.ts
+# Access: /api/contractors-onboarding-stages-update?contractorId={id}&stageId={id}
+```
+
+#### Verified Pattern (Works in Production)
+Follow the existing **documents pattern**:
+- ✅ `/api/contractors-documents?contractorId={id}`
+- ✅ `/api/contractors-documents-upload?contractorId={id}`
+- ✅ `/api/contractors-documents-update?contractorId={id}&docId={id}`
+- ✅ `/api/contractors-documents-verify?contractorId={id}&docId={id}`
+
+#### When to Use Flattened Routes
+**ALWAYS** use flattened routes when:
+1. Creating new API endpoints under an entity that already has a top-level file (e.g., `[contractorId].ts`)
+2. The route needs to work in Vercel production
+3. You want to avoid mysterious 404 errors that only appear in production
+
+#### Historical Context
+- **Oct 29, 2025** (commit c110676): Fixed documents routes by flattening
+- **Oct 31, 2025** (commit 4dafd63): Fixed onboarding routes by flattening
+- Pattern confirmed working in production for both cases
+
+**REMEMBER**: If it works locally but returns 404 in production, check for nested dynamic routes!
+
 ### 📝 Page Development Logging
 **IMPORTANT**: After making changes to any page, create or update the corresponding log in `docs/page-logs/`
 
