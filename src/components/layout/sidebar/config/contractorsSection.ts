@@ -2,7 +2,7 @@
  * Contractors section configuration
  */
 
-import { Briefcase } from 'lucide-react';
+import { Briefcase, Activity } from 'lucide-react';
 import type { NavSection } from './types';
 
 export const contractorsSection: NavSection = {
@@ -13,6 +13,13 @@ export const contractorsSection: NavSection = {
       icon: Briefcase,
       label: 'Contractors Portal',
       shortLabel: 'Contract',
+      permissions: [],
+    },
+    {
+      to: '/contractors/rag-dashboard',
+      icon: Activity,
+      label: 'RAG Dashboard',
+      shortLabel: 'RAG',
       permissions: [],
     },
   ]
