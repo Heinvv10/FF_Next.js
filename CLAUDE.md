@@ -13,10 +13,15 @@
 
 ### Core Application
 - `src/` - Main React application code
+  - `modules/` - **Modular features ("Lego blocks" - self-contained, plug-and-play)**
+    - `rag/` - RAG (Red/Amber/Green) contractor health monitoring
+    - Each module has: types/, services/, utils/, components/
+  - `components/` - **Shared UI components (AppLayout is the standard layout)**
+    - `layout/` - Layout components (AppLayout, Header, Sidebar, Footer)
+    - `layout/index.ts` - Single source of truth for layout imports
+  - `services/` - Shared API services
+  - `lib/` - Shared utilities and helpers
 - `api/` - Backend API endpoints and server logic
-- `components/` - **Shared UI components (AppLayout is the standard layout)**
-  - `layout/` - Layout components (AppLayout, Header, Sidebar, Footer)
-  - `layout/index.ts` - Single source of truth for layout imports
 - `public/` - Static assets and public files
 - `scripts/` - Build scripts, database utilities, and tools
 - `SOW/` - Statement of Work import functionality (active feature)
@@ -44,6 +49,10 @@
   - `vercel/scripts/` - Automated deployment scripts
   - Complete environment variables reference
   - Troubleshooting guides
+- `docs/VPS/` - **VPS deployment documentation** (Hostinger Lithuania server)
+  - `DEPLOYMENT.md` - Complete deployment guide
+  - `QUICK_REFERENCE.md` - One-liner commands
+  - `DEPLOYMENT_HISTORY.md` - Deployment logs
 
 ### AI Assistant Helpers
 - `.agent-os/` - AI agent configuration and project specs
@@ -376,3 +385,155 @@ Follow the existing **documents pattern**:
 5. **Index**: Update `docs/page-logs/README.md` when creating new page logs
 
 This practice ensures knowledge retention and helps debug similar issues quickly.
+
+## Modular Architecture ("Lego Block" Pattern)
+
+### Design Philosophy
+FibreFlow uses a modular architecture where features are self-contained, plug-and-play modules. Each module is like a Lego block - independent, reusable, and easy to debug or remove.
+
+### Module Structure
+Modules live in `src/modules/` and follow this structure:
+
+```
+src/modules/{module-name}/
+├── types/                    # TypeScript interfaces and types
+│   └── {module}.types.ts
+├── services/                 # Business logic and API services
+│   ├── {module}Service.ts    # Core business logic
+│   └── {module}ApiService.ts # Frontend API client
+├── utils/                    # Helper functions and utilities
+│   └── {module}Rules.ts      # Business rules/calculations
+├── components/               # UI components (React)
+│   ├── {Module}Dashboard.tsx
+│   ├── {Module}Card.tsx
+│   └── index.ts              # Component exports
+└── hooks/                    # Custom React hooks (optional)
+    └── use{Module}.ts
+```
+
+### Example: RAG Module
+The RAG (Red/Amber/Green) contractor health monitoring system demonstrates this pattern:
+
+```
+src/modules/rag/
+├── types/rag.types.ts        # Complete type system
+├── services/
+│   ├── ragCalculationService.ts  # Core calculation logic
+│   └── ragApiService.ts          # Frontend API client
+├── utils/ragRules.ts         # Business rules engine
+└── components/
+    ├── RagDashboard.tsx      # Main dashboard
+    ├── RagStatusBadge.tsx    # Traffic light badges
+    ├── RagSummaryCards.tsx   # Summary cards
+    └── index.ts
+```
+
+**API Endpoint:** `pages/api/contractors-rag.ts` (flattened route)
+**Page Route:** `app/contractors/rag-dashboard/page.tsx`
+
+### Benefits of Modular Architecture
+1. **Easy Debugging**: Issues are isolated to specific modules
+2. **Maintainability**: Each module has clear boundaries and responsibilities
+3. **Reusability**: Modules can be used across different parts of the app
+4. **Team Collaboration**: Multiple developers can work on different modules
+5. **Testing**: Modules can be tested independently
+6. **Documentation**: Each module is self-documenting with clear structure
+
+### When to Create a Module
+Create a new module when building:
+- Complex features with multiple components
+- Features with business logic that might be reused
+- Features that might be removed/disabled in the future
+- Features that need independent testing
+- Features with their own data model and API endpoints
+
+### Module Integration
+Modules integrate with the main app through:
+1. **API Routes**: Flattened routes in `pages/api/`
+2. **Page Routes**: Routes in `app/` that import module components
+3. **Navigation**: Links added to sidebar config
+4. **Shared Services**: Can use shared utilities from `src/lib/` and `src/utils/`
+
+## Deployment Architecture
+
+### Two Deployment Environments
+
+FibreFlow is deployed to two separate environments:
+
+| Environment | URL | Provider | Deployment |
+|-------------|-----|----------|------------|
+| **Production** | https://www.fibreflow.app | Vercel | ✅ Automatic on git push |
+| **Staging/VPS** | https://app.fibreflow.app | Hostinger VPS (Lithuania) | ❌ Manual SSH deployment |
+
+### Vercel Deployment (Production)
+
+**Automatic Deployment Process:**
+1. Push code to `master` branch on GitHub
+2. Vercel automatically detects the push
+3. Vercel builds the Next.js app
+4. Vercel deploys to production (1-3 minutes)
+5. Live at https://www.fibreflow.app
+
+**No manual steps required** - Vercel handles everything.
+
+### VPS Deployment (Staging)
+
+**Manual Deployment Process:**
+
+```bash
+# Quick deploy command:
+sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \
+  "cd /var/www/fibreflow && git pull && npm ci && npm run build && pm2 restart fibreflow"
+```
+
+**Step-by-step:**
+1. SSH into VPS server (72.60.17.245)
+2. Navigate to `/var/www/fibreflow/`
+3. Pull latest code from git (`git pull`)
+4. Install dependencies (`npm ci`)
+5. Build the app (`npm run build`)
+6. Restart PM2 process (`pm2 restart fibreflow`)
+
+**VPS Stack:**
+- **OS**: Ubuntu 24.04 LTS
+- **Node.js**: v20.19.5
+- **Process Manager**: PM2 v6.0.13
+- **Web Server**: Nginx v1.24.0 (reverse proxy)
+- **SSL**: Let's Encrypt (Certbot)
+- **Port**: Next.js runs on 3005, Nginx proxies 80/443 → 3005
+
+**VPS Documentation:**
+- Complete guide: `docs/VPS/DEPLOYMENT.md`
+- Quick reference: `docs/VPS/QUICK_REFERENCE.md`
+- Deployment history: `docs/VPS/DEPLOYMENT_HISTORY.md`
+
+### Deployment Workflow
+
+**Typical Development Flow:**
+1. Develop locally (http://localhost:3005)
+2. Test changes locally
+3. Commit changes to git
+4. Push to GitHub `master` branch
+5. ✅ **Vercel auto-deploys** to www.fibreflow.app
+6. ❌ **Manually deploy to VPS** using SSH command above
+7. Verify both environments
+
+### Environment Variables
+
+Both environments share the same:
+- **Database**: Neon PostgreSQL (cloud)
+- **Authentication**: Clerk
+- **File Storage**: Firebase Storage
+
+Environment variables are configured in:
+- **Vercel**: Dashboard → Project → Settings → Environment Variables
+- **VPS**: `/var/www/fibreflow/.env.production`
+
+### Future Enhancement: Auto-Deploy to VPS
+
+To make VPS auto-deploy like Vercel, consider:
+- GitHub Actions CI/CD pipeline
+- Webhook from GitHub to VPS
+- Deployment platforms (Coolify, Portainer, Dokku)
+
+For now, manual SSH deployment is used for staging/testing.
