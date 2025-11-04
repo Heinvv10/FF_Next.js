@@ -1,0 +1,74 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                  FIBREFLOW.APP - RESEND DNS RECORDS                        ║
+║                    Copy these to your DNS provider                         ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. DOMAIN VERIFICATION (Required)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type:    TXT
+Name:    resend._domainkey
+Content: p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDDswQxDo3bNH+ByhjlaOxZpQ5Vx8+r5tl47fgjqtDFnxBTObPpfHJDVtkfXcskfsVnWt23slahvx5QMS9QE4FscuZh9PSO1YXYYZT1JBhvp5eMQ+hXHi6KZ0mSJrr3Z81bmJ7aouYWOU/niZWj9TENPwd1syuKzJXdtsQrEDkxNQIDAQAB
+TTL:     Auto
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. SPF RECORD (Required for sending)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type:    TXT
+Name:    send
+Content: v=spf1 include:amazonses.com ~all
+TTL:     Auto
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. SENDING MX RECORD (Required for sending)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type:     MX
+Name:     send
+Content:  feedback-smtp.eu-west-1.amazonses.com
+TTL:      Auto
+Priority: 10
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. DMARC RECORD (Optional but recommended)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type:    TXT
+Name:    _dmarc
+Content: v=DMARC1; p=none;
+TTL:     Auto
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. RECEIVING MX RECORD (Optional - only if you want to receive emails)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Type:     MX
+Name:     @
+Content:  inbound-smtp.eu-west-1.amazonaws.com
+TTL:      Auto
+Priority: 10
+
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                           IMPORTANT NOTES                                  ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+✓ Add records 1, 2, and 3 (minimum required for sending emails)
+✓ Wait 5-30 minutes for DNS propagation
+✓ Verify at: https://resend.com/domains
+✓ Test with: npx tsx scripts/cron/test-email.ts
+
+Where to add these:
+→ Cloudflare: DNS → Records → Add record
+→ Hostinger: Domains → DNS / Name Servers → Add Record
+→ GoDaddy: My Products → Domains → DNS → Add
+→ Namecheap: Domain List → Manage → Advanced DNS → Add New Record
+
+Full guide: docs/RESEND_DOMAIN_SETUP.md
+Check DNS: bash scripts/cron/check-domain-verification.sh

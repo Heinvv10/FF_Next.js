@@ -109,6 +109,8 @@ async function main() {
         const emailHtml = generateDailyReminderEmail(reminders);
 
         // Send email via Resend
+        // Note: Requires fibreflow.app domain to be verified in Resend
+        // See docs/RESEND_DOMAIN_SETUP.md for DNS setup instructions
         const result = await resend.emails.send({
           from: 'FibreFlow Reminders <reminders@fibreflow.app>',
           to: user.email,
