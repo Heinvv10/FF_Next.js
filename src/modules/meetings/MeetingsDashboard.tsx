@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import type { Meeting, UpcomingMeeting } from './types/meeting.types';
 import { MeetingStatsCards } from './components/MeetingStatsCards';
@@ -14,6 +14,8 @@ export function MeetingsDashboard() {
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [, setShowNewMeetingModal] = useState(false);
   const [activeTab, setActiveTab] = useState('upcoming');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   useEffect(() => {
     loadMeetings();
@@ -58,6 +60,32 @@ export function MeetingsDashboard() {
     }
   };
 
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setSyncMessage(null);
+
+    try {
+      const response = await fetch('/api/meetings?action=sync', {
+        method: 'POST'
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setSyncMessage(`✓ Synced ${data.synced} meetings from Fireflies`);
+        // Reload meetings after sync
+        await loadMeetings();
+      } else {
+        setSyncMessage(`✗ Sync failed: ${data.error}`);
+      }
+    } catch (error: any) {
+      setSyncMessage(`✗ Sync failed: ${error.message}`);
+    } finally {
+      setIsSyncing(false);
+      // Clear message after 5 seconds
+      setTimeout(() => setSyncMessage(null), 5000);
+    }
+  };
+
   const filteredMeetings = meetings.filter(meeting => {
     if (activeTab === 'upcoming') return meeting.status === 'scheduled';
     if (activeTab === 'past') return meeting.status === 'completed';
@@ -81,9 +109,30 @@ export function MeetingsDashboard() {
   return (
     <div className="ff-page-container">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Meetings Management</h1>
-        <p className="text-gray-600">Schedule, manage and track all meetings</p>
+      <div className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Meetings Management</h1>
+          <p className="text-gray-600">Schedule, manage and track all meetings</p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <button
+            onClick={handleSync}
+            disabled={isSyncing}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              isSyncing
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
+          >
+            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync from Fireflies'}
+          </button>
+          {syncMessage && (
+            <p className={`text-sm ${syncMessage.startsWith('✓') ? 'text-green-600' : 'text-red-600'}`}>
+              {syncMessage}
+            </p>
+          )}
+        </div>
       </div>
 
       <MeetingStatsCards meetings={meetings} />
