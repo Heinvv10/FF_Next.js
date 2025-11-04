@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/contexts/ThemeContext';
 import { VFLogoUpload } from '@/components/settings/VFLogoUpload';
 import { ServiceTemplatesTab } from '@/components/settings/ServiceTemplatesTab';
-import { Palette, Moon, Sun, Settings2, GitBranch, FileText } from 'lucide-react';
+import { RemindersTab } from '@/components/settings/RemindersTab';
+import { Palette, Moon, Sun, Settings2, GitBranch, FileText, Bell } from 'lucide-react';
 
-type SettingsTab = 'general' | 'workflow' | 'templates';
+type SettingsTab = 'general' | 'workflow' | 'templates' | 'reminders';
 
 export function Settings() {
   const { themeConfig, setTheme, availableThemes } = useTheme();
@@ -15,7 +16,8 @@ export function Settings() {
   const tabs = [
     { id: 'general', label: 'General', icon: Settings2 },
     { id: 'workflow', label: 'Workflow Management', icon: GitBranch },
-    { id: 'templates', label: 'Service Templates', icon: FileText }
+    { id: 'templates', label: 'Service Templates', icon: FileText },
+    { id: 'reminders', label: 'Reminders', icon: Bell }
   ] as const;
 
   const handleWorkflowManagement = () => {
@@ -152,6 +154,9 @@ export function Settings() {
 
       case 'templates':
         return <ServiceTemplatesTab />;
+
+      case 'reminders':
+        return <RemindersTab />;
 
       default:
         return null;
