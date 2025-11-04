@@ -58,7 +58,7 @@ async function main() {
 
   try {
     // Step 1: Get all users with pending reminders who have email notifications enabled
-    const usersQuery = `
+    const users = await sql`
       SELECT DISTINCT
         r.user_id,
         u.email_address as email,
@@ -69,9 +69,7 @@ async function main() {
       WHERE r.status = 'pending'
         AND p.enabled = true
         AND (r.due_date IS NULL OR r.due_date <= CURRENT_DATE + INTERVAL '1 day')
-    `;
-
-    const users = await sql(usersQuery) as UserWithEmail[];
+    ` as UserWithEmail[];
 
     console.log(`👥 Found ${users.length} users with pending reminders`);
 
@@ -87,10 +85,10 @@ async function main() {
     for (const user of users) {
       try {
         // Get user's pending reminders
-        const remindersQuery = `
+        const reminders = await sql`
           SELECT *
           FROM reminders
-          WHERE user_id = $1
+          WHERE user_id = ${user.user_id}
             AND status = 'pending'
             AND (due_date IS NULL OR due_date <= CURRENT_DATE + INTERVAL '1 day')
           ORDER BY
@@ -100,9 +98,7 @@ async function main() {
               WHEN 'low' THEN 3
             END,
             due_date ASC NULLS LAST
-        `;
-
-        const reminders = await sql(remindersQuery, [user.user_id]) as Reminder[];
+        ` as Reminder[];
 
         if (reminders.length === 0) {
           console.log(`  ⏭️  User ${user.email}: No reminders to send`);
