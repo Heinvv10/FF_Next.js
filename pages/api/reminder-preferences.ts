@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getAuth } from '@clerk/nextjs/server';
+import { getAuth, clerkClient } from '@clerk/nextjs/server';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -12,6 +12,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Get user email from Clerk
+    const user = await clerkClient.users.getUser(userId);
+    const email = user.emailAddresses[0]?.emailAddress;
+
     if (req.method === 'GET') {
       // Get user preferences (create default if doesn't exist)
       let preferences = await sql`
@@ -20,10 +24,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       `;
 
       if (preferences.length === 0) {
-        // Create default preferences
+        // Create default preferences with email
         preferences = await sql`
-          INSERT INTO reminder_preferences (user_id)
-          VALUES (${userId})
+          INSERT INTO reminder_preferences (user_id, email)
+          VALUES (${userId}, ${email})
+          RETURNING *
+        `;
+      } else if (!preferences[0].email && email) {
+        // Update existing preference with email if missing
+        preferences = await sql`
+          UPDATE reminder_preferences
+          SET email = ${email}, updated_at = NOW()
+          WHERE user_id = ${userId}
           RETURNING *
         `;
       }

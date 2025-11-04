@@ -61,13 +61,13 @@ async function main() {
     const users = await sql`
       SELECT DISTINCT
         r.user_id,
-        u.email_address as email,
-        u.first_name
+        p.email,
+        NULL as first_name
       FROM reminders r
       INNER JOIN reminder_preferences p ON r.user_id = p.user_id
-      INNER JOIN users u ON r.user_id = u.clerk_id
       WHERE r.status = 'pending'
         AND p.enabled = true
+        AND p.email IS NOT NULL
         AND (r.due_date IS NULL OR r.due_date <= CURRENT_DATE + INTERVAL '1 day')
     ` as UserWithEmail[];
 
