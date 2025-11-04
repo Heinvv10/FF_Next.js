@@ -65,11 +65,10 @@ async function sendTestEmail() {
     const emailHtml = generateDailyReminderEmail(sampleReminders);
 
     // Send email via Resend
-    // Using the email address verified in Resend account
-    // To send to other addresses, verify a domain at resend.com/domains
+    // Domain fibreflow.app is now verified - can send to any email address!
     const result = await resend.emails.send({
-      from: 'FibreFlow <onboarding@resend.dev>',
-      to: 'ai@velocityfibre.co.za', // Only verified email allowed for now
+      from: 'FibreFlow Reminders <reminders@fibreflow.app>',
+      to: 'louisrdup@gmail.com', // Can now send to any email!
       subject: `[TEST] Your Daily Reminders (${sampleReminders.length} pending)`,
       html: emailHtml
     });
