@@ -1,20 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getAuth, clerkClient } from '@clerk/nextjs/server';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { userId } = getAuth(req);
-
-  if (!userId) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
-  }
+  // TODO: Replace with proper Clerk auth when ready for production
+  const userId = 'dev-user-1';
+  const email = 'ai@velocityfibre.co.za'; // TODO: Get from Clerk when ready
 
   try {
-    // Get user email from Clerk
-    const user = await clerkClient.users.getUser(userId);
-    const email = user.emailAddresses[0]?.emailAddress;
 
     if (req.method === 'GET') {
       // Get user preferences (create default if doesn't exist)

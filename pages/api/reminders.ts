@@ -1,15 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getAuth } from '@clerk/nextjs/server';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { userId } = getAuth(req);
-
-  if (!userId) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
-  }
+  // TODO: Replace with proper Clerk auth when ready for production
+  // For now, use a test user ID for development
+  const userId = 'dev-user-1';
 
   try {
     if (req.method === 'GET') {
