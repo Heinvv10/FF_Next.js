@@ -1,3 +1,4 @@
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Simple edge-compatible logging
@@ -9,7 +10,7 @@ function edgeLog(level: string, message: string, data?: any) {
     message,
     ...data
   };
-  
+
   if (process.env.NODE_ENV === 'development') {
     console.log(`[${timestamp}] ${level.toUpperCase()}: ${message}`, data || '');
   } else {
@@ -17,7 +18,15 @@ function edgeLog(level: string, message: string, data?: any) {
   }
 }
 
-export async function middleware(request: NextRequest) {
+// Define public routes that don't require authentication
+const isPublicRoute = createRouteMatcher([
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+  '/api/health(.*)',
+  '/',
+]);
+
+export default clerkMiddleware((auth, request: NextRequest) => {
   const startTime = Date.now();
   const { pathname, searchParams } = request.nextUrl;
   
@@ -58,12 +67,17 @@ export async function middleware(request: NextRequest) {
     return response;
   }
   
+  // Protect all routes except public ones
+  if (!isPublicRoute(request)) {
+    auth().protect();
+  }
+
   // For pages, just add response time header
   const response = NextResponse.next();
   response.headers.set('X-Response-Time', `${Date.now() - startTime}ms`);
-  
+
   return response;
-}
+});
 
 export const config = {
   matcher: [
