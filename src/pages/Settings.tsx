@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/router';
 import { useTheme } from '@/contexts/ThemeContext';
 import { VFLogoUpload } from '@/components/settings/VFLogoUpload';
 import { ServiceTemplatesTab } from '@/components/settings/ServiceTemplatesTab';
@@ -11,7 +11,7 @@ type SettingsTab = 'general' | 'workflow' | 'templates' | 'reminders';
 export function Settings() {
   const { themeConfig, setTheme, availableThemes } = useTheme();
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const tabs = [
     { id: 'general', label: 'General', icon: Settings2 },
@@ -21,7 +21,7 @@ export function Settings() {
   ] as const;
 
   const handleWorkflowManagement = () => {
-    navigate('/workflow-portal');
+    router.push('/workflow-portal');
   };
 
   const renderTabContent = () => {
