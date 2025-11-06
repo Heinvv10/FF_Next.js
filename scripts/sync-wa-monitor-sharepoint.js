@@ -5,13 +5,18 @@
  *
  * Usage: node scripts/sync-wa-monitor-sharepoint.js
  * Cron: Runs daily at 8pm SAST (18:00 SAST = 16:00 UTC)
+ *
+ * Email notifications sent to: ai@velocityfibre.co.za
  */
 
 const http = require('http');
+const https = require('https');
 
 // Configuration
 const API_URL = 'http://localhost:3005/api/wa-monitor-sync-sharepoint';
 const LOG_PREFIX = '[WA Monitor SharePoint Sync]';
+const NOTIFICATION_EMAIL = 'ai@velocityfibre.co.za';
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 
 /**
  * Get current timestamp in South African timezone
@@ -38,6 +43,168 @@ function log(message, data = null) {
   if (data) {
     console.log(JSON.stringify(data, null, 2));
   }
+}
+
+/**
+ * Send email notification via Resend API
+ */
+async function sendEmailNotification(subject, htmlContent, textContent) {
+  if (!RESEND_API_KEY) {
+    log('⚠️  RESEND_API_KEY not set, skipping email notification');
+    return false;
+  }
+
+  return new Promise((resolve, reject) => {
+    const emailData = JSON.stringify({
+      from: 'FibreFlow Alerts <alerts@mail.fibreflow.app>',
+      to: [NOTIFICATION_EMAIL],
+      subject: subject,
+      html: htmlContent,
+      text: textContent,
+    });
+
+    const options = {
+      hostname: 'api.resend.com',
+      port: 443,
+      path: '/emails',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(emailData),
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          log('✅ Email notification sent successfully');
+          resolve(true);
+        } else {
+          log('❌ Failed to send email notification', { statusCode: res.statusCode, response: data });
+          resolve(false);
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      log('❌ Email notification error', { error: error.message });
+      resolve(false);
+    });
+
+    req.write(emailData);
+    req.end();
+  });
+}
+
+/**
+ * Generate email HTML content
+ */
+function generateEmailHTML(data) {
+  const statusEmoji = data.status === 'success' ? '✅' : data.status === 'partial' ? '⚠️' : '❌';
+  const statusColor = data.status === 'success' ? '#10b981' : data.status === 'partial' ? '#f59e0b' : '#ef4444';
+  const statusText = data.status === 'success' ? 'Success' : data.status === 'partial' ? 'Partial Success' : 'Failed';
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SharePoint Sync - ${statusText}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px;">
+          <tr>
+            <td style="padding: 32px 40px; background-color: ${statusColor}; border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px;">
+                ${statusEmoji} WA Monitor SharePoint Sync
+              </h1>
+              <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">
+                ${data.date}
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 40px;">
+              <h2 style="margin: 0 0 16px 0; font-size: 18px; color: #111827;">Status: ${statusText}</h2>
+              <p style="margin: 0 0 24px 0; font-size: 14px; color: #6b7280;">${data.message}</p>
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding: 12px; background-color: #f0fdf4; border-radius: 6px; width: 33%;">
+                    <p style="margin: 0; font-size: 12px; color: #166534;">SUCCEEDED</p>
+                    <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #15803d;">${data.succeeded}</p>
+                  </td>
+                  <td style="width: 2%;"></td>
+                  <td style="padding: 12px; background-color: #fef2f2; border-radius: 6px; width: 33%;">
+                    <p style="margin: 0; font-size: 12px; color: #991b1b;">FAILED</p>
+                    <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #dc2626;">${data.failed}</p>
+                  </td>
+                  <td style="width: 2%;"></td>
+                  <td style="padding: 12px; background-color: #f3f4f6; border-radius: 6px; width: 33%;">
+                    <p style="margin: 0; font-size: 12px; color: #374151;">TOTAL</p>
+                    <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 700; color: #1f2937;">${data.total}</p>
+                  </td>
+                </tr>
+              </table>
+              ${data.duration ? `<p style="margin: 16px 0 0 0; font-size: 14px; color: #6b7280;"><strong>Duration:</strong> ${data.duration}</p>` : ''}
+              ${data.error ? `<div style="margin-top: 16px; padding: 16px; background-color: #fef2f2; border-radius: 6px; border-left: 4px solid #ef4444;"><p style="margin: 0; font-size: 13px; color: #7f1d1d;">${data.error}</p></div>` : ''}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px;">
+              <p style="margin: 0; font-size: 12px; color: #6b7280; text-align: center;">
+                FibreFlow WA Monitor | <a href="https://app.fibreflow.app/wa-monitor" style="color: #2563eb;">View Dashboard</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Generate email plain text content
+ */
+function generateEmailText(data) {
+  const statusText = data.status === 'success' ? 'SUCCESS' : data.status === 'partial' ? 'PARTIAL SUCCESS' : 'FAILED';
+
+  let text = `
+WA Monitor SharePoint Sync Report
+Date: ${data.date}
+Status: ${statusText}
+
+${data.message}
+
+Statistics:
+- Succeeded: ${data.succeeded}
+- Failed: ${data.failed}
+- Total: ${data.total}
+`;
+
+  if (data.duration) {
+    text += `\nDuration: ${data.duration}`;
+  }
+
+  if (data.error) {
+    text += `\n\nError Details:\n${data.error}`;
+  }
+
+  text += `\n\nView Dashboard: https://app.fibreflow.app/wa-monitor`;
+
+  return text.trim();
 }
 
 /**
@@ -97,11 +264,13 @@ async function syncToSharePoint() {
  * Main execution
  */
 async function main() {
+  const startTime = Date.now();
   log('Starting daily SharePoint sync...');
 
   try {
     // Call sync API
     const result = await syncToSharePoint();
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
 
     // Check if successful
     if (result.success) {
@@ -116,7 +285,32 @@ async function main() {
         total,
         message: data.message || 'No message',
         date: data.date || new Date().toISOString().split('T')[0],
+        duration,
       });
+
+      // Determine status for email
+      const status = failed === 0 ? 'success' : 'partial';
+      const subject = status === 'success'
+        ? '✅ WA Monitor SharePoint Sync - Success'
+        : '⚠️ WA Monitor SharePoint Sync - Partial Success';
+
+      // Prepare email data
+      const emailData = {
+        status,
+        date: data.date || new Date().toISOString().split('T')[0],
+        succeeded,
+        failed,
+        total,
+        message: data.message || 'Sync completed',
+        duration,
+      };
+
+      // Send email notification
+      await sendEmailNotification(
+        subject,
+        generateEmailHTML(emailData),
+        generateEmailText(emailData)
+      );
 
       // Exit with error code if any writes failed
       if (failed > 0) {
@@ -126,11 +320,51 @@ async function main() {
 
       process.exit(0);
     } else {
-      log('❌ Sync failed', { error: result.error || 'Unknown error' });
+      const errorMessage = result.error || 'Unknown error';
+      log('❌ Sync failed', { error: errorMessage });
+
+      // Send failure email
+      const emailData = {
+        status: 'failure',
+        date: new Date().toISOString().split('T')[0],
+        succeeded: 0,
+        failed: 0,
+        total: 0,
+        message: 'SharePoint sync failed',
+        duration: ((Date.now() - startTime) / 1000).toFixed(1) + 's',
+        error: errorMessage,
+      };
+
+      await sendEmailNotification(
+        '❌ WA Monitor SharePoint Sync - Failed',
+        generateEmailHTML(emailData),
+        generateEmailText(emailData)
+      );
+
       process.exit(1);
     }
   } catch (error) {
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
     log('❌ Error during sync', { error: error.message });
+
+    // Send failure email
+    const emailData = {
+      status: 'failure',
+      date: new Date().toISOString().split('T')[0],
+      succeeded: 0,
+      failed: 0,
+      total: 0,
+      message: 'SharePoint sync encountered an error',
+      duration,
+      error: error.message,
+    };
+
+    await sendEmailNotification(
+      '❌ WA Monitor SharePoint Sync - Error',
+      generateEmailHTML(emailData),
+      generateEmailText(emailData)
+    );
+
     process.exit(1);
   }
 }
