@@ -6,16 +6,17 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { Alert, Button, Card, CardContent, Grid, Typography, Box, CircularProgress } from '@mui/material';
+import { useState, useEffect, useMemo, memo } from 'react';
+import { Alert, Button, Card, CardContent, Grid, Typography, Box, CircularProgress, Pagination } from '@mui/material';
 import { RefreshCw, Download, AlertCircle } from 'lucide-react';
-import { fetchAllDrops } from '../services/waMonitorApiService';
+import { fetchAllDrops, sendFeedbackToWhatsApp } from '../services/waMonitorApiService';
 import { downloadCSV } from '../utils/waMonitorHelpers';
 import { QaReviewCard } from './QaReviewCard';
 import { WaMonitorFilters, type FilterState } from './WaMonitorFilters';
 import type { QaReviewDrop, WaMonitorSummary } from '../types/wa-monitor.types';
 
 const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
+const ITEMS_PER_PAGE = 20; // Show 20 drops per page
 
 export function WaMonitorDashboard() {
   const [drops, setDrops] = useState<QaReviewDrop[]>([]);
@@ -24,6 +25,7 @@ export function WaMonitorDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '' });
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch data function
   const fetchData = async (showLoading = true) => {
@@ -90,9 +92,6 @@ export function WaMonitorDashboard() {
   // Handle send feedback - sends to WhatsApp and updates database
   const handleSendFeedback = async (dropId: string, dropNumber: string, message: string, project?: string) => {
     try {
-      // Import the sendFeedbackToWhatsApp function
-      const { sendFeedbackToWhatsApp } = await import('../services/waMonitorApiService');
-
       // Send feedback to WhatsApp group (defaults to Velo Test for testing)
       const result = await sendFeedbackToWhatsApp(dropId, dropNumber, message, project);
 
@@ -128,9 +127,26 @@ export function WaMonitorDashboard() {
     });
   }, [drops, filters]);
 
+  // Paginate filtered drops
+  const paginatedDrops = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredDrops.slice(startIndex, endIndex);
+  }, [filteredDrops, currentPage]);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredDrops.length / ITEMS_PER_PAGE);
+
   // Handle filter change
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
+    setCurrentPage(1); // Reset to page 1 when filters change
+  };
+
+  // Handle page change
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top on page change
   };
 
   return (
@@ -240,6 +256,14 @@ export function WaMonitorDashboard() {
         />
       )}
 
+      {/* Pagination Info */}
+      {filteredDrops.length > 0 && (
+        <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+          Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+          {Math.min(currentPage * ITEMS_PER_PAGE, filteredDrops.length)} of {filteredDrops.length} drops
+        </Typography>
+      )}
+
       {/* QA Review Cards */}
       {loading && drops.length === 0 ? (
         <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
@@ -262,16 +286,33 @@ export function WaMonitorDashboard() {
           </CardContent>
         </Card>
       ) : (
-        <Box>
-          {filteredDrops.map((drop) => (
-            <QaReviewCard
-              key={drop.id}
-              drop={drop}
-              onUpdate={handleDropUpdate}
-              onSendFeedback={handleSendFeedback}
-            />
-          ))}
-        </Box>
+        <>
+          <Box>
+            {paginatedDrops.map((drop) => (
+              <QaReviewCard
+                key={drop.id}
+                drop={drop}
+                onUpdate={handleDropUpdate}
+                onSendFeedback={handleSendFeedback}
+              />
+            ))}
+          </Box>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Box display="flex" justifyContent="center" mt={4}>
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+                size="large"
+                showFirstButton
+                showLastButton
+              />
+            </Box>
+          )}
+        </>
       )}
     </div>
   );

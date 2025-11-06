@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import {
   Card,
   CardContent,
@@ -35,7 +35,7 @@ interface QaReviewCardProps {
   onSendFeedback: (dropId: string, dropNumber: string, message: string, project?: string) => Promise<void>;
 }
 
-export function QaReviewCard({ drop, onUpdate, onSendFeedback }: QaReviewCardProps) {
+export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendFeedback }: QaReviewCardProps) {
   const [steps, setSteps] = useState<QaSteps>({
     step_01_house_photo: drop.step_01_house_photo,
     step_02_cable_from_pole: drop.step_02_cable_from_pole,
@@ -273,4 +273,4 @@ export function QaReviewCard({ drop, onUpdate, onSendFeedback }: QaReviewCardPro
       </CardActions>
     </Card>
   );
-}
+});
