@@ -107,42 +107,113 @@ async function findNextRow(
 }
 
 /**
- * Write daily drops to SharePoint
+ * Retry logic with exponential backoff
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+
+      // Don't retry on final attempt
+      if (attempt === maxRetries) {
+        break;
+      }
+
+      // Exponential backoff: 1s, 2s, 4s
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.log(`Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError || new Error('Retry failed');
+}
+
+/**
+ * Write single row to SharePoint with retry
+ */
+async function writeRowWithRetry(
+  accessToken: string,
+  config: SharePointConfig,
+  rowNum: number,
+  data: { date: string; project: string; count: number }
+): Promise<void> {
+  const rangeAddr = `A${rowNum}:C${rowNum}`;
+  const updateUrl = `${GRAPH_API_BASE}/drives/${config.driveId}/items/${config.fileId}/workbook/worksheets/${config.worksheetName}/range(address='${rangeAddr}')`;
+
+  await retryWithBackoff(async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+    try {
+      const response = await fetch(updateUrl, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ values: [[data.date, data.project, data.count]] }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      clearTimeout(timeout);
+      throw error;
+    }
+  }, 3, 2000); // 3 retries, 2s base delay
+}
+
+/**
+ * Write daily drops to SharePoint with retry logic
  */
 async function syncToSharePoint(
   accessToken: string,
   config: SharePointConfig,
   drops: Array<{ date: string; project: string; count: number }>
-): Promise<void> {
+): Promise<{ succeeded: number; failed: number }> {
   // Find next available row
   const nextRow = await findNextRow(accessToken, config);
 
-  // Write each project's data
+  let succeeded = 0;
+  let failed = 0;
+
+  // Write each project's data with retry
   for (let i = 0; i < drops.length; i++) {
     const drop = drops[i];
     const rowNum = nextRow + i;
-    const rangeAddr = `A${rowNum}:C${rowNum}`;
 
-    const updateUrl = `${GRAPH_API_BASE}/drives/${config.driveId}/items/${config.fileId}/workbook/worksheets/${config.worksheetName}/range(address='${rangeAddr}')`;
-
-    const values = [[drop.date, drop.project, drop.count]];
-
-    const response = await fetch(updateUrl, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ values }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to update row ${rowNum}: ${response.statusText}`);
+    try {
+      await writeRowWithRetry(accessToken, config, rowNum, drop);
+      succeeded++;
+      console.log(`✅ Wrote ${drop.project}: ${drop.count} drops to row ${rowNum}`);
+    } catch (error: any) {
+      failed++;
+      console.error(`❌ Failed to write ${drop.project} to row ${rowNum}:`, error.message);
     }
 
-    // Rate limiting - wait 500ms between writes
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Rate limiting - wait 1s between writes
+    if (i < drops.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
+
+  return { succeeded, failed };
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -173,12 +244,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Get access token
     const accessToken = await getAccessToken(config);
 
-    // Sync to SharePoint
-    await syncToSharePoint(accessToken, config, dailyDrops);
+    // Sync to SharePoint with retry logic
+    const result = await syncToSharePoint(accessToken, config, dailyDrops);
+
+    // Determine response based on results
+    const message = result.failed === 0
+      ? `Successfully synced ${result.succeeded}/${dailyDrops.length} project(s) to SharePoint`
+      : `Synced ${result.succeeded}/${dailyDrops.length} project(s) (${result.failed} failed)`;
 
     return apiResponse.success(res, {
-      synced: dailyDrops.length,
-      message: `Successfully synced ${dailyDrops.length} project(s) to SharePoint`,
+      succeeded: result.succeeded,
+      failed: result.failed,
+      total: dailyDrops.length,
+      message,
       date: new Date().toISOString().split('T')[0],
     });
 

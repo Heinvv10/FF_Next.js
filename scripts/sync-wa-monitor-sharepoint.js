@@ -105,11 +105,25 @@ async function main() {
 
     // Check if successful
     if (result.success) {
-      log('✅ Sync completed successfully', {
-        synced: result.data?.synced || 0,
-        message: result.data?.message || 'No message',
-        date: result.data?.date || new Date().toISOString().split('T')[0],
+      const data = result.data || {};
+      const succeeded = data.succeeded || 0;
+      const failed = data.failed || 0;
+      const total = data.total || 0;
+
+      log('✅ Sync completed', {
+        succeeded,
+        failed,
+        total,
+        message: data.message || 'No message',
+        date: data.date || new Date().toISOString().split('T')[0],
       });
+
+      // Exit with error code if any writes failed
+      if (failed > 0) {
+        log('⚠️  Some writes failed - check logs above');
+        process.exit(1);
+      }
+
       process.exit(0);
     } else {
       log('❌ Sync failed', { error: result.error || 'Unknown error' });
