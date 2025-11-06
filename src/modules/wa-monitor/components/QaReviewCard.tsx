@@ -120,7 +120,7 @@ export function QaReviewCard({ drop, onUpdate, onSendFeedback }: QaReviewCardPro
       return;
     }
 
-    const message = `Hi ${drop.assignedAgent || 'Agent'},\n\nQA Review for ${drop.dropNumber} is incomplete. Missing:\n\n${missing.map((step, i) => `${i + 1}. ${step}`).join('\n')}\n\nPlease provide the missing items. Thank you!`;
+    const message = `${drop.dropNumber} is incomplete. Missing: ${missing.join(', ')}`;
     setFeedbackMessage(message);
   };
 
