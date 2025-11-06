@@ -10,6 +10,22 @@
 
 const fs = require('fs');
 const https = require('https');
+const path = require('path');
+
+// Load environment variables from .env.production
+const envPath = path.join(__dirname, '..', '.env.production');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key && valueParts.length > 0) {
+        process.env[key.trim()] = valueParts.join('=').trim();
+      }
+    }
+  });
+}
 
 // Configuration
 const LOG_FILE = '/var/log/wa-monitor-sharepoint-sync.log';
