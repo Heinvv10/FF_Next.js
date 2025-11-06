@@ -144,17 +144,18 @@ export async function calculateSummary(): Promise<WaMonitorSummary> {
 /**
  * Get daily drops count per project
  * Returns count of drops submitted today grouped by project
+ * Uses whatsapp_message_date to reflect actual submission date, not database insert date
  */
 export async function getDailyDropsPerProject(): Promise<Array<{ date: string; project: string; count: number }>> {
   try {
     const rows = await sql`
       SELECT
-        DATE(created_at) as date,
+        DATE(COALESCE(whatsapp_message_date, created_at)) as date,
         COALESCE(project, 'Unknown') as project,
         COUNT(*) as count
       FROM qa_photo_reviews
-      WHERE DATE(created_at) = CURRENT_DATE
-      GROUP BY DATE(created_at), project
+      WHERE DATE(COALESCE(whatsapp_message_date, created_at)) = CURRENT_DATE
+      GROUP BY DATE(COALESCE(whatsapp_message_date, created_at)), project
       ORDER BY project ASC
     `;
 

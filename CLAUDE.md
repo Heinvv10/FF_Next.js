@@ -454,6 +454,79 @@ Modules integrate with the main app through:
 3. **Navigation**: Links added to sidebar config
 4. **Shared Services**: Can use shared utilities from `src/lib/` and `src/utils/`
 
+## WhatsApp Monitor (WA Monitor) Integration
+
+### System Overview
+The WA Monitor module displays real-time QA photo review submissions from WhatsApp groups. It's an external integration with data flowing from VPS → Database → Dashboard.
+
+### Architecture
+
+```
+WhatsApp Groups
+    ↓
+VPS Server (72.60.17.245:/opt/velo-test-monitor/)
+    ├── WhatsApp Bridge (Go) - Captures messages via whatsmeow
+    │   └── SQLite: store/messages.db
+    └── Drop Monitor (Python) - Scans for DR######## patterns
+        └── Inserts to: Neon PostgreSQL qa_photo_reviews table
+    ↓
+FibreFlow Dashboard (/wa-monitor)
+    ├── API: /api/wa-monitor-daily-drops
+    ├── Auto-refresh: 30 seconds
+    └── Displays: Daily submissions by project
+    ↓
+SharePoint Sync (Nightly at 8pm SAST)
+```
+
+### Database Schema
+**Table**: `qa_photo_reviews`
+
+Key columns:
+- `drop_number` - Drop ID (e.g., DR1751832)
+- `project` - Project name (Lawley, Mohadin, Velo Test)
+- `whatsapp_message_date` - **Actual WhatsApp message timestamp** (source of truth for daily counts)
+- `created_at` - When database entry was created (may differ from message date)
+- `review_date` - Date of QA review
+- `step_01_house_photo` through `step_12_customer_signature` - QA checklist
+
+### Dashboard Features
+- Real-time display of today's submissions by project
+- Accurate daily counts using `whatsapp_message_date` (not `created_at`)
+- Avoids counting historical batch processing as "today's submissions"
+- Auto-refresh every 30 seconds
+- Export to CSV
+
+### API Endpoints
+- **GET** `/api/wa-monitor-drops` - Get all drops with summary
+- **GET** `/api/wa-monitor-daily-drops` - Get today's submissions by project
+- **POST** `/api/wa-monitor-sync-sharepoint` - Sync to SharePoint
+
+### Important Notes
+1. **Data Source**: VPS-hosted WhatsApp bridge (`/opt/velo-test-monitor/`)
+2. **Accurate Counting**: Uses `whatsapp_message_date` to avoid historical batch processing inflation
+3. **VPS Updates**: Changes to drop monitor require VPS SSH access and service restart
+4. **Documentation**: See `docs/WA_MONITOR_DATA_FLOW_REPORT.md` for complete investigation
+
+### Monitored Groups
+- **Lawley**: 120363418298130331@g.us (Lawley Activation 3)
+- **Mohadin**: 120363421532174586@g.us (Mohadin Activations)
+- **Velo Test**: 120363421664266245@g.us (Velo Test group)
+
+### VPS Management
+```bash
+# Check running services
+ssh root@72.60.17.245
+ps aux | grep -E 'whatsapp-bridge|drop.*monitor'
+
+# View logs
+tail -f /opt/velo-test-monitor/logs/drop_monitor.log
+
+# Restart drop monitor
+cd /opt/velo-test-monitor/services
+kill -TERM [PID]
+nohup python3 realtime_drop_monitor.py --interval 15 >> ../logs/drop_monitor.log 2>&1 &
+```
+
 ## Deployment Architecture
 
 ### Two Deployment Environments
