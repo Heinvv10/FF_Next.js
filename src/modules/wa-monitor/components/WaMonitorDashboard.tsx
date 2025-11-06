@@ -272,6 +272,19 @@ export function WaMonitorDashboard() {
                 Auto-syncs to SharePoint daily at 8pm SAST
               </Typography>
             </Box>
+
+            {/* Informational Note about Data Accuracy */}
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>Accurate Daily Counts:</strong> Shows submissions by actual WhatsApp message date, not database processing time.
+              </Typography>
+              <Typography variant="caption" color="textSecondary">
+                Note: Historical batch processing (e.g., old messages processed today) are excluded from today's count.
+                Only drops submitted via WhatsApp <strong>today</strong> are shown. Previous issue where 27 historical drops
+                inflated the count has been resolved (Nov 6, 2025).
+              </Typography>
+            </Alert>
+
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
                 <TableHead>
