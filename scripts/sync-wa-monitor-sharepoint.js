@@ -73,7 +73,7 @@ async function sendEmailNotification(subject, htmlContent, textContent) {
 
   return new Promise((resolve, reject) => {
     const emailData = JSON.stringify({
-      from: 'FibreFlow Alerts <alerts@mail.fibreflow.app>',
+      from: 'FibreFlow Alerts <alerts@fibreflow.app>',
       to: [NOTIFICATION_EMAIL],
       subject: subject,
       html: htmlContent,
