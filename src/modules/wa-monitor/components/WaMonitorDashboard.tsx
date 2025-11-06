@@ -7,8 +7,8 @@
 'use client';
 
 import { useState, useEffect, useMemo, memo } from 'react';
-import { Alert, Button, Card, CardContent, Grid, Typography, Box, CircularProgress, Pagination, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Snackbar } from '@mui/material';
-import { RefreshCw, Download, AlertCircle, Calendar, Cloud } from 'lucide-react';
+import { Alert, Button, Card, CardContent, Grid, Typography, Box, CircularProgress, Pagination, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { RefreshCw, Download, AlertCircle, Calendar } from 'lucide-react';
 import { fetchAllDrops, sendFeedbackToWhatsApp, fetchDailyDropsPerProject } from '../services/waMonitorApiService';
 import { downloadCSV } from '../utils/waMonitorHelpers';
 import { QaReviewCard } from './QaReviewCard';
@@ -27,8 +27,6 @@ export function WaMonitorDashboard() {
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [syncingSharePoint, setSyncingSharePoint] = useState(false);
-  const [sharePointMessage, setSharePointMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Fetch data function
   const fetchData = async (showLoading = true) => {
@@ -161,40 +159,6 @@ export function WaMonitorDashboard() {
     window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top on page change
   };
 
-  // Handle SharePoint sync
-  const handleSharePointSync = async () => {
-    try {
-      setSyncingSharePoint(true);
-      setSharePointMessage(null);
-
-      const response = await fetch('/api/wa-monitor-sync-sharepoint', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Sync failed' }));
-        throw new Error(error.message || error.error || 'Failed to sync to SharePoint');
-      }
-
-      const data = await response.json();
-      setSharePointMessage({
-        type: 'success',
-        text: data.data?.message || 'Successfully synced to SharePoint',
-      });
-    } catch (error) {
-      console.error('Error syncing to SharePoint:', error);
-      setSharePointMessage({
-        type: 'error',
-        text: error instanceof Error ? error.message : 'Failed to sync to SharePoint',
-      });
-    } finally {
-      setSyncingSharePoint(false);
-    }
-  };
-
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -213,14 +177,6 @@ export function WaMonitorDashboard() {
             disabled={loading}
           >
             Refresh
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Cloud size={18} />}
-            onClick={handleSharePointSync}
-            disabled={syncingSharePoint || !dailyDrops || dailyDrops.drops.length === 0}
-          >
-            {syncingSharePoint ? 'Syncing...' : 'Sync to SharePoint'}
           </Button>
           <Button
             variant="contained"
@@ -305,10 +261,15 @@ export function WaMonitorDashboard() {
       {dailyDrops && dailyDrops.drops.length > 0 && (
         <Card>
           <CardContent>
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <Calendar size={20} />
-              <Typography variant="h6" component="h2">
-                Today's Submissions ({dailyDrops.date})
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <Calendar size={20} />
+                <Typography variant="h6" component="h2">
+                  Today's Submissions ({dailyDrops.date})
+                </Typography>
+              </Box>
+              <Typography variant="caption" color="textSecondary">
+                Auto-syncs to SharePoint daily at 8pm SAST
               </Typography>
             </Box>
             <TableContainer component={Paper} variant="outlined">
@@ -412,22 +373,6 @@ export function WaMonitorDashboard() {
           )}
         </>
       )}
-
-      {/* SharePoint Sync Notification */}
-      <Snackbar
-        open={!!sharePointMessage}
-        autoHideDuration={6000}
-        onClose={() => setSharePointMessage(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          severity={sharePointMessage?.type || 'info'}
-          onClose={() => setSharePointMessage(null)}
-          sx={{ width: '100%' }}
-        >
-          {sharePointMessage?.text}
-        </Alert>
-      </Snackbar>
     </div>
   );
 }
