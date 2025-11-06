@@ -7,13 +7,13 @@
 'use client';
 
 import { useState, useEffect, useMemo, memo } from 'react';
-import { Alert, Button, Card, CardContent, Grid, Typography, Box, CircularProgress, Pagination } from '@mui/material';
-import { RefreshCw, Download, AlertCircle } from 'lucide-react';
-import { fetchAllDrops, sendFeedbackToWhatsApp } from '../services/waMonitorApiService';
+import { Alert, Button, Card, CardContent, Grid, Typography, Box, CircularProgress, Pagination, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Snackbar } from '@mui/material';
+import { RefreshCw, Download, AlertCircle, Calendar, Cloud } from 'lucide-react';
+import { fetchAllDrops, sendFeedbackToWhatsApp, fetchDailyDropsPerProject } from '../services/waMonitorApiService';
 import { downloadCSV } from '../utils/waMonitorHelpers';
 import { QaReviewCard } from './QaReviewCard';
 import { WaMonitorFilters, type FilterState } from './WaMonitorFilters';
-import type { QaReviewDrop, WaMonitorSummary } from '../types/wa-monitor.types';
+import type { QaReviewDrop, WaMonitorSummary, DailyDropsPerProject } from '../types/wa-monitor.types';
 
 const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
 const ITEMS_PER_PAGE = 20; // Show 20 drops per page
@@ -21,11 +21,14 @@ const ITEMS_PER_PAGE = 20; // Show 20 drops per page
 export function WaMonitorDashboard() {
   const [drops, setDrops] = useState<QaReviewDrop[]>([]);
   const [summary, setSummary] = useState<WaMonitorSummary | null>(null);
+  const [dailyDrops, setDailyDrops] = useState<{ drops: DailyDropsPerProject[]; total: number; date: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [syncingSharePoint, setSyncingSharePoint] = useState(false);
+  const [sharePointMessage, setSharePointMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Fetch data function
   const fetchData = async (showLoading = true) => {
@@ -33,9 +36,18 @@ export function WaMonitorDashboard() {
       if (showLoading) setLoading(true);
       setError(null);
 
-      const { drops: fetchedDrops, summary: fetchedSummary } = await fetchAllDrops();
+      // Fetch both regular drops and daily drops in parallel
+      const [
+        { drops: fetchedDrops, summary: fetchedSummary },
+        dailyDropsData
+      ] = await Promise.all([
+        fetchAllDrops(),
+        fetchDailyDropsPerProject()
+      ]);
+
       setDrops(fetchedDrops);
       setSummary(fetchedSummary || null);
+      setDailyDrops(dailyDropsData);
       setLastRefresh(new Date());
     } catch (err) {
       console.error('Error fetching drops:', err);
@@ -149,6 +161,40 @@ export function WaMonitorDashboard() {
     window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top on page change
   };
 
+  // Handle SharePoint sync
+  const handleSharePointSync = async () => {
+    try {
+      setSyncingSharePoint(true);
+      setSharePointMessage(null);
+
+      const response = await fetch('/api/wa-monitor-sync-sharepoint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Sync failed' }));
+        throw new Error(error.message || error.error || 'Failed to sync to SharePoint');
+      }
+
+      const data = await response.json();
+      setSharePointMessage({
+        type: 'success',
+        text: data.data?.message || 'Successfully synced to SharePoint',
+      });
+    } catch (error) {
+      console.error('Error syncing to SharePoint:', error);
+      setSharePointMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to sync to SharePoint',
+      });
+    } finally {
+      setSyncingSharePoint(false);
+    }
+  };
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -167,6 +213,14 @@ export function WaMonitorDashboard() {
             disabled={loading}
           >
             Refresh
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Cloud size={18} />}
+            onClick={handleSharePointSync}
+            disabled={syncingSharePoint || !dailyDrops || dailyDrops.drops.length === 0}
+          >
+            {syncingSharePoint ? 'Syncing...' : 'Sync to SharePoint'}
           </Button>
           <Button
             variant="contained"
@@ -247,6 +301,50 @@ export function WaMonitorDashboard() {
         </Grid>
       )}
 
+      {/* Daily Drops Per Project */}
+      {dailyDrops && dailyDrops.drops.length > 0 && (
+        <Card>
+          <CardContent>
+            <Box display="flex" alignItems="center" gap={1} mb={2}>
+              <Calendar size={20} />
+              <Typography variant="h6" component="h2">
+                Today's Submissions ({dailyDrops.date})
+              </Typography>
+            </Box>
+            <TableContainer component={Paper} variant="outlined">
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell><strong>Project</strong></TableCell>
+                    <TableCell align="right"><strong>Drops Submitted</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {dailyDrops.drops.map((item) => (
+                    <TableRow key={item.project}>
+                      <TableCell>{item.project}</TableCell>
+                      <TableCell align="right">
+                        <Typography variant="h6" color="primary">
+                          {item.count}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                    <TableCell><strong>Total</strong></TableCell>
+                    <TableCell align="right">
+                      <Typography variant="h6" color="primary">
+                        <strong>{dailyDrops.total}</strong>
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filters */}
       {drops.length > 0 && (
         <WaMonitorFilters
@@ -314,6 +412,22 @@ export function WaMonitorDashboard() {
           )}
         </>
       )}
+
+      {/* SharePoint Sync Notification */}
+      <Snackbar
+        open={!!sharePointMessage}
+        autoHideDuration={6000}
+        onClose={() => setSharePointMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          severity={sharePointMessage?.type || 'info'}
+          onClose={() => setSharePointMessage(null)}
+          sx={{ width: '100%' }}
+        >
+          {sharePointMessage?.text}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

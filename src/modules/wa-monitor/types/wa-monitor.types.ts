@@ -98,6 +98,30 @@ export interface WaMonitorSummary {
   totalFeedback: number;
 }
 
+/**
+ * Daily drops per project
+ */
+export interface DailyDropsPerProject {
+  date: string;
+  project: string;
+  count: number;
+}
+
+/**
+ * Daily drops API response
+ */
+export interface DailyDropsResponse {
+  success: boolean;
+  data: {
+    drops: DailyDropsPerProject[];
+    total: number;
+    date: string;
+  };
+  meta?: {
+    timestamp: string;
+  };
+}
+
 // ==================== FILTER & SORT ====================
 
 /**

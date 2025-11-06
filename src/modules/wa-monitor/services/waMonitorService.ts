@@ -141,6 +141,34 @@ export async function calculateSummary(): Promise<WaMonitorSummary> {
   }
 }
 
+/**
+ * Get daily drops count per project
+ * Returns count of drops submitted today grouped by project
+ */
+export async function getDailyDropsPerProject(): Promise<Array<{ date: string; project: string; count: number }>> {
+  try {
+    const rows = await sql`
+      SELECT
+        DATE(created_at) as date,
+        COALESCE(project, 'Unknown') as project,
+        COUNT(*) as count
+      FROM qa_photo_reviews
+      WHERE DATE(created_at) = CURRENT_DATE
+      GROUP BY DATE(created_at), project
+      ORDER BY project ASC
+    `;
+
+    return rows.map((row: any) => ({
+      date: row.date,
+      project: row.project,
+      count: parseInt(row.count, 10),
+    }));
+  } catch (error) {
+    console.error('Error getting daily drops per project:', error);
+    throw new Error('Failed to get daily drops per project');
+  }
+}
+
 // ==================== HELPERS ====================
 
 /**

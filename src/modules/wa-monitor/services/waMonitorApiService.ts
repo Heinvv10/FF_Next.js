@@ -4,11 +4,12 @@
  * Handles API communication and error handling
  */
 
-import type { QaReviewDrop, WaMonitorApiResponse, WaMonitorSummary } from '../types/wa-monitor.types';
+import type { QaReviewDrop, WaMonitorApiResponse, WaMonitorSummary, DailyDropsPerProject } from '../types/wa-monitor.types';
 
 // ==================== API ENDPOINTS ====================
 
 const API_BASE = '/api/wa-monitor-drops';
+const API_DAILY_DROPS = '/api/wa-monitor-daily-drops';
 
 // ==================== API CALLS ====================
 
@@ -93,6 +94,36 @@ export async function fetchDropsByStatus(status: 'incomplete' | 'complete'): Pro
   } catch (error) {
     console.error(`Error fetching drops with status ${status}:`, error);
     throw error instanceof Error ? error : new Error('Failed to fetch drops by status');
+  }
+}
+
+/**
+ * Fetch daily drops per project for today
+ * Returns count of drops submitted today grouped by project
+ */
+export async function fetchDailyDropsPerProject(): Promise<{
+  drops: DailyDropsPerProject[];
+  total: number;
+  date: string;
+}> {
+  try {
+    const response = await fetch(API_DAILY_DROPS, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      throw new Error(error.message || error.error || `HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result.data || { drops: [], total: 0, date: new Date().toISOString().split('T')[0] };
+  } catch (error) {
+    console.error('Error fetching daily drops:', error);
+    throw error instanceof Error ? error : new Error('Failed to fetch daily drops per project');
   }
 }
 

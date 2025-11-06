@@ -1,0 +1,4 @@
+{
+  "deployment": "dev:kindred-cassowary-768",
+  "functions": "convex/"
+}
