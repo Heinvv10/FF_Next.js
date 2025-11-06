@@ -37,17 +37,17 @@ export interface QaSteps {
  * QA Step Labels - Human-readable names for each step
  */
 export const QA_STEP_LABELS: Record<keyof QaSteps, string> = {
-  step_01_house_photo: '1. House Photo',
-  step_02_cable_from_pole: '2. Cable From Pole',
-  step_03_cable_entry_outside: '3. Cable Entry Outside',
-  step_04_cable_entry_inside: '4. Cable Entry Inside',
-  step_05_wall_for_installation: '5. Wall for Installation',
-  step_06_ont_back_after_install: '6. ONT Back After Install',
-  step_07_power_meter_reading: '7. Power Meter Reading',
+  step_01_house_photo: '1. Property Photo',
+  step_02_cable_from_pole: '2. Location on Wall',
+  step_03_cable_entry_outside: '3. Cable from Pole',
+  step_04_cable_entry_inside: '4. Cable Entry Outside',
+  step_05_wall_for_installation: '5. Cable Entry Inside',
+  step_06_ont_back_after_install: '6. Fibre Entry to ONT',
+  step_07_power_meter_reading: '7. Overall Work area - final installation',
   step_08_ont_barcode: '8. ONT Barcode',
-  step_09_ups_serial: '9. UPS Serial Number',
-  step_10_final_installation: '10. Final Installation',
-  step_11_green_lights: '11. Green Lights (Active)',
+  step_09_ups_serial: '9. UPS Serial number',
+  step_10_final_installation: '10. Powermeter at ONT',
+  step_11_green_lights: '11. Green Lights',
   step_12_customer_signature: '12. Customer Signature',
 };
 
