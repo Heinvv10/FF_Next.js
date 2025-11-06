@@ -32,7 +32,7 @@ if (fs.existsSync(envPath)) {
 // Configuration
 const API_URL = 'http://localhost:3005/api/wa-monitor-sync-sharepoint';
 const LOG_PREFIX = '[WA Monitor SharePoint Sync]';
-const NOTIFICATION_EMAIL = 'ai@velocityfibre.co.za';
+const NOTIFICATION_EMAILS = ['ai@velocityfibre.co.za', 'louisrdup@gmail.com'];
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 
 /**
@@ -74,7 +74,7 @@ async function sendEmailNotification(subject, htmlContent, textContent) {
   return new Promise((resolve, reject) => {
     const emailData = JSON.stringify({
       from: 'FibreFlow Alerts <alerts@fibreflow.app>',
-      to: [NOTIFICATION_EMAIL],
+      to: NOTIFICATION_EMAILS,
       subject: subject,
       html: htmlContent,
       text: textContent,

@@ -29,7 +29,7 @@ if (fs.existsSync(envPath)) {
 
 // Configuration
 const LOG_FILE = '/var/log/wa-monitor-sharepoint-sync.log';
-const NOTIFICATION_EMAIL = 'ai@velocityfibre.co.za';
+const NOTIFICATION_EMAILS = ['ai@velocityfibre.co.za', 'louisrdup@gmail.com'];
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const CHECK_TIME_WINDOW = 30 * 60 * 1000; // 30 minutes
 
@@ -45,7 +45,7 @@ async function sendEmailNotification(subject, htmlContent, textContent) {
   return new Promise((resolve) => {
     const emailData = JSON.stringify({
       from: 'FibreFlow Alerts <alerts@fibreflow.app>',
-      to: [NOTIFICATION_EMAIL],
+      to: NOTIFICATION_EMAILS,
       subject: subject,
       html: htmlContent,
       text: textContent,
