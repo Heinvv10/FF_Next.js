@@ -458,82 +458,167 @@ Modules integrate with the main app through:
 
 ### Two Deployment Environments
 
-FibreFlow is deployed to two separate environments:
+FibreFlow uses a **dual environment setup** on VPS for professional development workflow:
 
-| Environment | URL | Provider | Deployment |
-|-------------|-----|----------|------------|
-| **Production** | https://www.fibreflow.app | Vercel | ✅ Automatic on git push |
-| **Staging/VPS** | https://app.fibreflow.app | Hostinger VPS (Lithuania) | ❌ Manual SSH deployment |
+| Environment | URL | Branch | Port | PM2 Process | Purpose |
+|-------------|-----|--------|------|-------------|---------|
+| **Production** | https://app.fibreflow.app | `master` | 3005 | `fibreflow-prod` | Live production site |
+| **Development** | https://dev.fibreflow.app | `develop` | 3006 | `fibreflow-dev` | Testing & QA before production |
 
-### Vercel Deployment (Production)
-
-**Automatic Deployment Process:**
-1. Push code to `master` branch on GitHub
-2. Vercel automatically detects the push
-3. Vercel builds the Next.js app
-4. Vercel deploys to production (1-3 minutes)
-5. Live at https://www.fibreflow.app
-
-**No manual steps required** - Vercel handles everything.
-
-### VPS Deployment (Staging)
-
-**Manual Deployment Process:**
-
-```bash
-# Quick deploy command:
-sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \
-  "cd /var/www/fibreflow && git pull && npm ci && npm run build && pm2 restart fibreflow"
-```
-
-**Step-by-step:**
-1. SSH into VPS server (72.60.17.245)
-2. Navigate to `/var/www/fibreflow/`
-3. Pull latest code from git (`git pull`)
-4. Install dependencies (`npm ci`)
-5. Build the app (`npm run build`)
-6. Restart PM2 process (`pm2 restart fibreflow`)
-
-**VPS Stack:**
+**VPS Infrastructure:**
+- **Server**: Hostinger VPS (Lithuania) - 72.60.17.245
 - **OS**: Ubuntu 24.04 LTS
 - **Node.js**: v20.19.5
 - **Process Manager**: PM2 v6.0.13
 - **Web Server**: Nginx v1.24.0 (reverse proxy)
-- **SSL**: Let's Encrypt (Certbot)
-- **Port**: Next.js runs on 3005, Nginx proxies 80/443 → 3005
+- **SSL**: Let's Encrypt (auto-renewal enabled)
 
-**VPS Documentation:**
-- Complete guide: `docs/VPS/DEPLOYMENT.md`
-- Quick reference: `docs/VPS/QUICK_REFERENCE.md`
-- Deployment history: `docs/VPS/DEPLOYMENT_HISTORY.md`
+**Directory Structure:**
+```
+/var/www/
+├── fibreflow/          → Production (master branch, port 3005)
+├── fibreflow-dev/      → Development (develop branch, port 3006)
+└── ecosystem.config.js → PM2 configuration for both processes
+```
 
-### Deployment Workflow
+### 🚀 Professional Deployment Workflow
 
-**Typical Development Flow:**
-1. Develop locally (http://localhost:3005)
-2. Test changes locally
-3. Commit changes to git
-4. Push to GitHub `master` branch
-5. ✅ **Vercel auto-deploys** to www.fibreflow.app
-6. ❌ **Manually deploy to VPS** using SSH command above
-7. Verify both environments
+**CRITICAL: Always deploy to DEV first, test, then promote to PRODUCTION.**
+
+#### Git Branch Strategy
+```
+feature/new-feature  →  develop  →  master
+     (local)          (dev site)   (production)
+```
+
+#### Step-by-Step Workflow
+
+**1. Local Development**
+```bash
+# Create feature branch from develop
+git checkout develop
+git pull origin develop
+git checkout -b feature/my-new-feature
+
+# Develop locally
+npm run build
+PORT=3005 npm start
+# Test at http://localhost:3005
+```
+
+**2. Deploy to Development (Testing)**
+```bash
+# Commit and push to develop branch
+git add .
+git commit -m "feat: description of changes"
+git checkout develop
+git merge feature/my-new-feature
+git push origin develop
+
+# Deploy to DEV environment
+sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \
+  "cd /var/www/fibreflow-dev && git pull && npm ci && npm run build && pm2 restart fibreflow-dev"
+
+# Test at https://dev.fibreflow.app
+```
+
+**3. Test on Development**
+- ✅ Verify all features work
+- ✅ Check for console errors
+- ✅ Test user flows
+- ✅ Verify API endpoints
+- ✅ Check responsive design
+
+**4. Promote to Production (Go Live)**
+```bash
+# Only after dev testing passes!
+git checkout master
+git merge develop
+git push origin master
+
+# Deploy to PRODUCTION
+sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \
+  "cd /var/www/fibreflow && git pull && npm ci && npm run build && pm2 restart fibreflow-prod"
+
+# Verify at https://app.fibreflow.app
+```
+
+### 🤖 AI Assistant Guidelines
+
+**When implementing features, Claude Code MUST:**
+
+1. **Always work on feature branches** - Never commit directly to `master` or `develop`
+2. **Deploy to dev.fibreflow.app first** - Test all changes on dev before production
+3. **Wait for user confirmation** - Only deploy to production after user approves dev testing
+4. **Document changes** - Update relevant logs in `docs/page-logs/` and `docs/CHANGELOG.md`
+
+**Deployment Command Shortcuts:**
+
+```bash
+# Deploy to DEV (for testing)
+sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \
+  "cd /var/www/fibreflow-dev && git pull && npm ci && npm run build && pm2 restart fibreflow-dev"
+
+# Deploy to PRODUCTION (after dev testing)
+sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \
+  "cd /var/www/fibreflow && git pull && npm ci && npm run build && pm2 restart fibreflow-prod"
+```
+
+### VPS Management Commands
+
+```bash
+# SSH into VPS
+ssh root@72.60.17.245
+
+# View PM2 processes
+pm2 list
+pm2 logs fibreflow-prod
+pm2 logs fibreflow-dev
+
+# Restart processes
+pm2 restart fibreflow-prod
+pm2 restart fibreflow-dev
+pm2 restart all
+
+# Monitor resources
+pm2 monit
+
+# View Nginx logs
+tail -f /var/log/nginx/fibreflow-access.log
+tail -f /var/log/nginx/fibreflow-dev-access.log
+```
 
 ### Environment Variables
 
-Both environments share the same:
+Both environments share the same backend services:
 - **Database**: Neon PostgreSQL (cloud)
 - **Authentication**: Clerk
 - **File Storage**: Firebase Storage
 
-Environment variables are configured in:
-- **Vercel**: Dashboard → Project → Settings → Environment Variables
-- **VPS**: `/var/www/fibreflow/.env.production`
+Environment files:
+- **Production**: `/var/www/fibreflow/.env.production`
+- **Development**: `/var/www/fibreflow-dev/.env.production`
 
-### Future Enhancement: Auto-Deploy to VPS
+### VPS Documentation
 
-To make VPS auto-deploy like Vercel, consider:
-- GitHub Actions CI/CD pipeline
-- Webhook from GitHub to VPS
-- Deployment platforms (Coolify, Portainer, Dokku)
+Detailed documentation available in:
+- Complete guide: `docs/VPS/DEPLOYMENT.md`
+- Quick reference: `docs/VPS/QUICK_REFERENCE.md`
+- Deployment history: `docs/VPS/DEPLOYMENT_HISTORY.md`
 
-For now, manual SSH deployment is used for staging/testing.
+### Rollback Process
+
+If production deployment fails:
+
+```bash
+# SSH into VPS
+ssh root@72.60.17.245
+
+# Rollback production to previous commit
+cd /var/www/fibreflow
+git log --oneline -5  # Find last working commit
+git reset --hard <commit-hash>
+npm ci
+npm run build
+pm2 restart fibreflow-prod
+```
