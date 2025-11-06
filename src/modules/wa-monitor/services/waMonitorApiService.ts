@@ -96,6 +96,49 @@ export async function fetchDropsByStatus(status: 'incomplete' | 'complete'): Pro
   }
 }
 
+/**
+ * Send QA feedback to WhatsApp group
+ * @param dropId - Database ID of the drop
+ * @param dropNumber - Drop number (e.g., DR1857010)
+ * @param message - Feedback message to send
+ * @param project - Project name (defaults to Velo Test for testing)
+ */
+export async function sendFeedbackToWhatsApp(
+  dropId: string,
+  dropNumber: string,
+  message: string,
+  project?: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await fetch('/api/wa-monitor-send-feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dropId,
+        dropNumber,
+        message,
+        project: project || 'Velo Test', // Default to Velo Test for testing
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      throw new Error(error.error?.message || error.message || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      success: data.success,
+      message: data.message || 'Feedback sent successfully'
+    };
+  } catch (error) {
+    console.error('Error sending feedback:', error);
+    throw error instanceof Error ? error : new Error('Failed to send feedback');
+  }
+}
+
 // ==================== HELPERS ====================
 
 /**

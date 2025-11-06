@@ -87,19 +87,22 @@ export function WaMonitorDashboard() {
     }
   };
 
-  // Handle send feedback
-  const handleSendFeedback = async (dropId: string, dropNumber: string, message: string) => {
+  // Handle send feedback - sends to WhatsApp and updates database
+  const handleSendFeedback = async (dropId: string, dropNumber: string, message: string, project?: string) => {
     try {
-      // Call API to send feedback
-      const response = await fetch('/api/wa-monitor-feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dropId, dropNumber, message }),
-      });
+      // Import the sendFeedbackToWhatsApp function
+      const { sendFeedbackToWhatsApp } = await import('../services/waMonitorApiService');
 
-      if (!response.ok) throw new Error('Failed to send feedback');
+      // Send feedback to WhatsApp group (defaults to Velo Test for testing)
+      const result = await sendFeedbackToWhatsApp(dropId, dropNumber, message, project);
 
-      // Refresh data
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to send feedback');
+      }
+
+      console.log('✅ Feedback sent:', result.message);
+
+      // Refresh data to show updated feedback_sent timestamp
       await fetchData(false);
     } catch (error) {
       console.error('Error sending feedback:', error);

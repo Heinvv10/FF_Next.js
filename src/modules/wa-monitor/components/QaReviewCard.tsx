@@ -32,7 +32,7 @@ import { formatDateTime } from '../utils/waMonitorHelpers';
 interface QaReviewCardProps {
   drop: QaReviewDrop;
   onUpdate: (dropId: string, updates: Partial<QaReviewDrop>) => Promise<void>;
-  onSendFeedback: (dropId: string, dropNumber: string, message: string) => Promise<void>;
+  onSendFeedback: (dropId: string, dropNumber: string, message: string, project?: string) => Promise<void>;
 }
 
 export function QaReviewCard({ drop, onUpdate, onSendFeedback }: QaReviewCardProps) {
@@ -101,10 +101,12 @@ export function QaReviewCard({ drop, onUpdate, onSendFeedback }: QaReviewCardPro
 
     try {
       setSending(true);
-      await onSendFeedback(drop.id, drop.dropNumber, feedbackMessage);
+      // Send feedback with project info (defaults to Velo Test for testing)
+      await onSendFeedback(drop.id, drop.dropNumber, feedbackMessage, drop.project || undefined);
       setFeedbackMessage('');
     } catch (error) {
       console.error('Error sending feedback:', error);
+      alert(`Failed to send feedback: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSending(false);
     }
