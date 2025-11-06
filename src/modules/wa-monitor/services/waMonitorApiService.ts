@@ -1,0 +1,128 @@
+/**
+ * WA Monitor Frontend API Service
+ * Client-side API calls for QA review drops
+ * Handles API communication and error handling
+ */
+
+import type { QaReviewDrop, WaMonitorApiResponse, WaMonitorSummary } from '../types/wa-monitor.types';
+
+// ==================== API ENDPOINTS ====================
+
+const API_BASE = '/api/wa-monitor-drops';
+
+// ==================== API CALLS ====================
+
+/**
+ * Fetch all QA review drops
+ * Returns drops with summary statistics
+ */
+export async function fetchAllDrops(): Promise<{
+  drops: QaReviewDrop[];
+  summary?: WaMonitorSummary;
+}> {
+  try {
+    const response = await fetch(API_BASE, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      throw new Error(error.message || error.error || `HTTP ${response.status}`);
+    }
+
+    const data: WaMonitorApiResponse = await response.json();
+
+    // Handle standard API response format
+    const drops = data.data || [];
+    const summary = data.summary;
+
+    return { drops, summary };
+  } catch (error) {
+    console.error('Error fetching drops:', error);
+    throw error instanceof Error ? error : new Error('Failed to fetch QA review drops');
+  }
+}
+
+/**
+ * Fetch a single drop by ID
+ */
+export async function fetchDropById(id: string): Promise<QaReviewDrop> {
+  try {
+    const response = await fetch(`${API_BASE}?id=${encodeURIComponent(id)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      throw new Error(error.message || error.error || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data || data;
+  } catch (error) {
+    console.error(`Error fetching drop ${id}:`, error);
+    throw error instanceof Error ? error : new Error('Failed to fetch drop');
+  }
+}
+
+/**
+ * Fetch drops by status
+ */
+export async function fetchDropsByStatus(status: 'incomplete' | 'complete'): Promise<QaReviewDrop[]> {
+  try {
+    const response = await fetch(`${API_BASE}?status=${status}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      throw new Error(error.message || error.error || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data || [];
+  } catch (error) {
+    console.error(`Error fetching drops with status ${status}:`, error);
+    throw error instanceof Error ? error : new Error('Failed to fetch drops by status');
+  }
+}
+
+// ==================== HELPERS ====================
+
+/**
+ * Handle standard API response format
+ * Unwraps { success: true, data: {...} } responses
+ */
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Request failed' }));
+    throw new Error(error.message || error.error || `HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.data || data;
+}
+
+/**
+ * Build query string from parameters
+ */
+export function buildQueryString(params: Record<string, any>): string {
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      query.append(key, String(value));
+    }
+  });
+
+  return query.toString();
+}

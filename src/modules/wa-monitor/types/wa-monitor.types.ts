@@ -1,0 +1,163 @@
+/**
+ * WA Monitor Types
+ * Type definitions for WhatsApp QA drop monitoring system
+ * Created: Jan 6, 2025
+ */
+
+// ==================== ENUMS ====================
+
+/**
+ * Drop status - QA review completion status
+ */
+export type DropStatus = 'incomplete' | 'complete';
+
+// ==================== CORE INTERFACES ====================
+
+/**
+ * QA Steps - 12 required steps for installation QA (WA Monitor schema)
+ * Each step represents a photo/verification requirement
+ * Maps to qa_photo_reviews table in Neon PostgreSQL
+ */
+export interface QaSteps {
+  step_01_house_photo: boolean;
+  step_02_cable_from_pole: boolean;
+  step_03_cable_entry_outside: boolean;
+  step_04_cable_entry_inside: boolean;
+  step_05_wall_for_installation: boolean;
+  step_06_ont_back_after_install: boolean;
+  step_07_power_meter_reading: boolean;
+  step_08_ont_barcode: boolean;
+  step_09_ups_serial: boolean;
+  step_10_final_installation: boolean;
+  step_11_green_lights: boolean;
+  step_12_customer_signature: boolean;
+}
+
+/**
+ * QA Step Labels - Human-readable names for each step
+ */
+export const QA_STEP_LABELS: Record<keyof QaSteps, string> = {
+  step_01_house_photo: '1. House Photo',
+  step_02_cable_from_pole: '2. Cable From Pole',
+  step_03_cable_entry_outside: '3. Cable Entry Outside',
+  step_04_cable_entry_inside: '4. Cable Entry Inside',
+  step_05_wall_for_installation: '5. Wall for Installation',
+  step_06_ont_back_after_install: '6. ONT Back After Install',
+  step_07_power_meter_reading: '7. Power Meter Reading',
+  step_08_ont_barcode: '8. ONT Barcode',
+  step_09_ups_serial: '9. UPS Serial Number',
+  step_10_final_installation: '10. Final Installation',
+  step_11_green_lights: '11. Green Lights (Active)',
+  step_12_customer_signature: '12. Customer Signature',
+};
+
+/**
+ * QA Review Drop - Main data structure
+ * Maps to qa_photo_reviews table in Neon PostgreSQL (WA Monitor)
+ */
+export interface QaReviewDrop extends QaSteps {
+  id: string;
+  dropNumber: string;
+  status: DropStatus;
+  reviewDate: Date;
+  userName: string;
+  completedPhotos: number;
+  outstandingPhotos: number;
+  outstandingPhotosLoadedTo1map: boolean;
+  comment: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  project: string | null;
+  assignedAgent: string | null;
+  completed: boolean;
+  incomplete: boolean;
+  feedbackSent: Date | null;
+  senderPhone: string | null;
+}
+
+/**
+ * API Response for drop list
+ */
+export interface WaMonitorApiResponse {
+  success: boolean;
+  data: QaReviewDrop[];
+  summary?: WaMonitorSummary;
+  meta?: {
+    timestamp: string;
+  };
+}
+
+/**
+ * Summary statistics for dashboard
+ */
+export interface WaMonitorSummary {
+  total: number;
+  incomplete: number;
+  complete: number;
+  averageFeedbackCount: number;
+  totalFeedback: number;
+}
+
+// ==================== FILTER & SORT ====================
+
+/**
+ * Filter options for WA Monitor dashboard
+ */
+export interface WaMonitorFilter {
+  status?: DropStatus[];
+  searchTerm?: string; // Search drop number
+  dateRange?: {
+    startDate: Date;
+    endDate: Date;
+  };
+}
+
+/**
+ * Sort configuration
+ */
+export interface WaMonitorSort {
+  field: keyof QaReviewDrop;
+  order: 'asc' | 'desc';
+}
+
+// ==================== DISPLAY CONFIG ====================
+
+/**
+ * Drop status display configuration
+ */
+export const DROP_STATUS_CONFIG = {
+  incomplete: {
+    label: 'Incomplete',
+    color: 'red',
+    bgColor: 'bg-red-100',
+    textColor: 'text-red-800',
+    borderColor: 'border-red-300',
+    emoji: '🔴',
+    description: 'QA review not yet complete',
+  },
+  complete: {
+    label: 'Complete',
+    color: 'green',
+    bgColor: 'bg-green-100',
+    textColor: 'text-green-800',
+    borderColor: 'border-green-300',
+    emoji: '🟢',
+    description: 'QA review completed',
+  },
+} as const;
+
+// ==================== VALIDATION ====================
+
+/**
+ * Check if a value is a valid drop status
+ */
+export function isValidDropStatus(value: any): value is DropStatus {
+  return value === 'incomplete' || value === 'complete';
+}
+
+/**
+ * Validate drop number format (DR########)
+ */
+export function isValidDropNumber(dropNumber: string): boolean {
+  return /^DR\d{8}$/.test(dropNumber);
+}
