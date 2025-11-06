@@ -45,6 +45,9 @@ interface WhatsAppApiResponse {
  */
 async function sendWhatsAppMessage(recipient: string, message: string): Promise<{ success: boolean; message: string }> {
   try {
+    // Add FF App header to make it clear the message is from the app
+    const formattedMessage = `🤖 *[FF App - QA Feedback]*\n\n${message}`;
+
     const response = await fetch(`${WHATSAPP_BRIDGE_URL}/send`, {
       method: 'POST',
       headers: {
@@ -52,7 +55,7 @@ async function sendWhatsAppMessage(recipient: string, message: string): Promise<
       },
       body: JSON.stringify({
         recipient,
-        message,
+        message: formattedMessage,
       }),
     });
 
