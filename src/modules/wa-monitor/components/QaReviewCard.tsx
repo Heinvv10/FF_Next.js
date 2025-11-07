@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, memo } from 'react';
+import { useState, useEffect, memo } from 'react';
 import {
   Card,
   CardContent,
@@ -55,6 +55,26 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+
+  // Sync local state with props when drop data changes (e.g., after refresh)
+  // This ensures the component shows the latest saved values from the database
+  useEffect(() => {
+    setSteps({
+      step_01_house_photo: drop.step_01_house_photo,
+      step_02_cable_from_pole: drop.step_02_cable_from_pole,
+      step_03_cable_entry_outside: drop.step_03_cable_entry_outside,
+      step_04_cable_entry_inside: drop.step_04_cable_entry_inside,
+      step_05_wall_for_installation: drop.step_05_wall_for_installation,
+      step_06_ont_back_after_install: drop.step_06_ont_back_after_install,
+      step_07_power_meter_reading: drop.step_07_power_meter_reading,
+      step_08_ont_barcode: drop.step_08_ont_barcode,
+      step_09_ups_serial: drop.step_09_ups_serial,
+      step_10_final_installation: drop.step_10_final_installation,
+      step_11_green_lights: drop.step_11_green_lights,
+      step_12_customer_signature: drop.step_12_customer_signature,
+    });
+    setComment(drop.comment || '');
+  }, [drop]);
 
   // Calculate progress
   const completedSteps = Object.values(steps).filter(Boolean).length;
