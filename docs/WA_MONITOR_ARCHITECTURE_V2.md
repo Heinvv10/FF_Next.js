@@ -203,6 +203,44 @@ projects:
 
 ---
 
+### Development: /opt/wa-monitor/dev/config/projects.yaml
+
+```yaml
+# WhatsApp Monitor - Development Projects
+# Test projects only
+
+projects:
+  - name: Velo Test
+    enabled: true
+    group_jid: "120363421664266245@g.us"
+    description: "Velo Test group (dev testing)"
+```
+
+**Dual-Monitoring Setup:**
+- Velo Test group is monitored by **BOTH** prod and dev services
+- Same `group_jid` in both config files
+- Allows testing dev changes against prod baseline
+- Compare behavior side-by-side using real messages
+
+**Use Cases:**
+1. **Testing new features:** Deploy to dev, compare output with prod
+2. **Debugging issues:** Reproduce in dev without affecting prod
+3. **Performance testing:** Compare processing times between versions
+4. **Validation:** Ensure dev behaves identically to prod before promoting
+
+**Example - Compare Logs:**
+```bash
+# Terminal 1: Production logs
+tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log | grep "Velo Test"
+
+# Terminal 2: Dev logs (same group, same messages)
+tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log | grep "Velo Test"
+
+# Both should show same drops being processed
+```
+
+---
+
 ### Environment Variables: /opt/wa-monitor/prod/.env
 
 ```bash

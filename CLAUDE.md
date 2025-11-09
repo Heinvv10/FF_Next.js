@@ -463,16 +463,29 @@ Modules integrate with the main app through:
 ### System Overview
 The WA Monitor module displays real-time QA photo review submissions from WhatsApp groups. It's an external integration with data flowing from VPS → Database → Dashboard.
 
-### Architecture
+**Version:** 2.0 - Refactored (November 9, 2025)
+**Architecture:** Modular, Config-Driven, Prod/Dev Separation
+
+### Architecture v2.0
 
 ```
 WhatsApp Groups
     ↓
-VPS Server (72.60.17.245:/opt/velo-test-monitor/)
+VPS Server (72.60.17.245)
     ├── WhatsApp Bridge (Go) - Captures messages via whatsmeow
-    │   └── SQLite: store/messages.db
-    └── Drop Monitor (Python) - Scans for DR######## patterns
-        └── Inserts to: Neon PostgreSQL qa_photo_reviews table
+    │   └── SQLite: /opt/velo-test-monitor/services/whatsapp-bridge/store/messages.db
+    │
+    ├── Drop Monitor - PRODUCTION (/opt/wa-monitor/prod/)
+    │   ├── Service: wa-monitor-prod
+    │   ├── Config: config/projects.yaml (4 projects)
+    │   └── Logs: logs/wa-monitor-prod.log
+    │
+    └── Drop Monitor - DEVELOPMENT (/opt/wa-monitor/dev/)
+        ├── Service: wa-monitor-dev
+        ├── Config: config/projects.yaml (1 project: Velo Test)
+        └── Logs: logs/wa-monitor-dev.log
+    ↓
+Neon PostgreSQL (qa_photo_reviews table)
     ↓
 FibreFlow Dashboard (/wa-monitor)
     ├── API: /api/wa-monitor-daily-drops
@@ -481,6 +494,12 @@ FibreFlow Dashboard (/wa-monitor)
     ↓
 SharePoint Sync (Nightly at 8pm SAST)
 ```
+
+**Key Features:**
+- ✅ **Dual-Monitoring:** Velo Test monitored by BOTH prod and dev for comparison testing
+- ✅ **Config-Driven:** Edit YAML file instead of Python code
+- ✅ **5-Minute Project Addition:** Down from 4 hours
+- ✅ **Modular Code:** Separate modules for config, database, monitoring
 
 ### Database Schema
 **Table**: `qa_photo_reviews`
@@ -517,115 +536,126 @@ Key columns:
 - **Velo Test**: 120363421664266245@g.us (Velo Test group)
 - **Mamelodi**: 120363408849234743@g.us (Mamelodi POP1 Activations)
 
-### Adding a New WhatsApp Group
+### Adding a New WhatsApp Group (v2.0 - 5 Minutes!)
 
-**Important:** The WhatsApp bridge (number 064 041 2391) automatically captures messages from ALL groups it's in. The drop monitor filters which groups to process drops from.
+**Process Time:** 5 minutes (down from 4 hours in v1.0)
 
-**Steps to Add a New Group:**
+**Prerequisites:**
+- WhatsApp bridge is in the group (number 064 041 2391)
+- Group JID (find using: `tail -100 /opt/velo-test-monitor/logs/whatsapp-bridge.log | grep "Chat="`)
 
-1. **Ensure WhatsApp bridge is in the group** (064 041 2391)
-   - The bridge captures messages from all groups automatically
-   - No action needed if the number is already a group member
+**Steps:**
 
-2. **Find the Group JID** (WhatsApp Group ID):
-   ```bash
-   # SSH into VPS
-   ssh root@72.60.17.245
-
-   # List all groups the bridge can see
-   sqlite3 /opt/velo-test-monitor/services/whatsapp-bridge/store/whatsapp.db \
-     "SELECT name FROM sqlite_master WHERE type='table';"
-
-   # Check recent activity to find new group JID
-   tail -50 /opt/velo-test-monitor/logs/whatsapp-bridge.log | grep "Chat="
-
-   # Or search by posting a test message and checking logs
-   # Post "TEST" to the new group, then:
-   tail -100 /opt/velo-test-monitor/logs/whatsapp-bridge.log
-   # Look for: Chat=XXXXXXXXXX@g.us
-   ```
-
-3. **Add Group to Drop Monitor Configuration**:
-   ```bash
-   # Edit the Python script
-   nano /opt/velo-test-monitor/services/realtime_drop_monitor.py
-
-   # Find the PROJECTS dictionary (around line 43)
-   # Add new entry (example for Mamelodi):
-   ```
-
-   ```python
-   PROJECTS = {
-       'Lawley': {
-           'group_jid': '120363418298130331@g.us',
-           'project_name': 'Lawley',
-           'group_description': 'Lawley Activation 3 group'
-       },
-       'Mohadin': {
-           'group_jid': '120363421532174586@g.us',
-           'project_name': 'Mohadin',
-           'group_description': 'Mohadin Activations group'
-       },
-       'Velo Test': {
-           'group_jid': '120363421664266245@g.us',
-           'project_name': 'Velo Test',
-           'group_description': 'Velo Test group'
-       },
-       'Mamelodi': {  # NEW GROUP - ADD HERE
-           'group_jid': '120363408849234743@g.us',
-           'project_name': 'Mamelodi',
-           'group_description': 'Mamelodi POP1 Activations group'
-       }
-   }
-   ```
-
-4. **Test Script Syntax**:
-   ```bash
-   python3 -m py_compile /opt/velo-test-monitor/services/realtime_drop_monitor.py
-   # Should show no errors
-   ```
-
-5. **Restart Drop Monitor**:
-   ```bash
-   systemctl restart drop-monitor
-
-   # Verify it started
-   systemctl status drop-monitor
-
-   # Check logs to confirm new group is monitored
-   tail -30 /opt/velo-test-monitor/logs/drop_monitor.log
-   # Look for: "• Mamelodi: 120363408849234743@g.us (Mamelodi POP1 Activations group)"
-   ```
-
-6. **Test the New Group**:
-   ```bash
-   # Post a test drop number to the new group (e.g., DR99999999)
-   # Wait 15 seconds (scan interval)
-   # Check dashboard:
-   curl https://app.fibreflow.app/api/wa-monitor-daily-drops | jq .
-   ```
-
-**Files to Update After Adding Group:**
-- `/opt/velo-test-monitor/services/realtime_drop_monitor.py` - PROJECTS dictionary
-- `CLAUDE.md` - Update "Monitored Groups" section
-- `docs/WA_MONITOR_DATABASE_SETUP.md` - Update group list
-
-### VPS Management
+**1. Test in Dev First (Recommended):**
 ```bash
-# Check running services
 ssh root@72.60.17.245
-systemctl status drop-monitor
-ps aux | grep -E 'whatsapp-bridge|drop.*monitor'
+nano /opt/wa-monitor/dev/config/projects.yaml
 
-# View logs
-tail -f /opt/velo-test-monitor/logs/drop_monitor.log
+# Add project in YAML format:
+# - name: NewProject
+#   enabled: true
+#   group_jid: "XXXXXXXXXX@g.us"
+#   description: "NewProject description"
 
-# Restart drop monitor (systemd service)
-systemctl restart drop-monitor
+systemctl restart wa-monitor-dev
+tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log
+# Verify it's monitoring the new group
+```
 
-# Check drop monitor is using correct database
-systemctl show drop-monitor --property=Environment
-grep 'NEON_DB_URL' /opt/velo-test-monitor/services/realtime_drop_monitor.py
+**2. Deploy to Production:**
+```bash
+nano /opt/wa-monitor/prod/config/projects.yaml
+# Add same project
+
+systemctl restart wa-monitor-prod
+tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log
+# Verify production is monitoring
+```
+
+**3. Verify:**
+- Post test drop to group
+- Check dashboard: https://app.fibreflow.app/wa-monitor
+- Update `CLAUDE.md` - "Monitored Groups" section
+
+**That's it! ✅**
+
+**Detailed Guide:** See `docs/WA_MONITOR_ADD_PROJECT_5MIN.md`
+
+### Dual-Monitoring Setup (Velo Test)
+
+**Velo Test group is monitored by BOTH prod and dev services:**
+
+**Production Config:**
+```yaml
+# /opt/wa-monitor/prod/config/projects.yaml
+- name: Velo Test
+  enabled: true
+  group_jid: "120363421664266245@g.us"
+  description: "Velo Test group"
+```
+
+**Dev Config:**
+```yaml
+# /opt/wa-monitor/dev/config/projects.yaml
+- name: Velo Test
+  enabled: true
+  group_jid: "120363421664266245@g.us"
+  description: "Velo Test group (dev testing)"
+```
+
+**Use Cases:**
+1. **Compare behavior:** Test dev changes against prod baseline
+2. **Debug issues:** Reproduce in dev without affecting prod
+3. **Validate:** Ensure dev behaves identically before promoting
+
+**Compare Logs:**
+```bash
+# Terminal 1: Production
+tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log | grep "Velo Test"
+
+# Terminal 2: Development
+tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log | grep "Velo Test"
+```
+
+Both services process the same messages from the same group!
+
+### VPS Management (v2.0)
+
+**Service Commands:**
+```bash
+# Check both services status
+ssh root@72.60.17.245
+systemctl status wa-monitor-prod wa-monitor-dev
+
+# View production logs
+tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log
+
+# View dev logs
+tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log
+
+# Restart services
+systemctl restart wa-monitor-prod
+systemctl restart wa-monitor-dev
+
+# Check WhatsApp bridge
+ps aux | grep whatsapp-bridge
+
+# Compare prod/dev behavior (same group)
+# Terminal 1:
+tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log | grep "Velo Test"
+# Terminal 2:
+tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log | grep "Velo Test"
+```
+
+**Quick Verification:**
+```bash
+# Verify both services running
+ssh root@72.60.17.245 "systemctl is-active wa-monitor-prod wa-monitor-dev"
+# Should show: active, active
+
+# Check configs
+cat /opt/wa-monitor/prod/config/projects.yaml
+cat /opt/wa-monitor/dev/config/projects.yaml
 ```
 
 ### 🚨 CRITICAL: Database Configuration

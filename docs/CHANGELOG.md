@@ -26,6 +26,128 @@ Track daily work, deployments, and major updates.
 
 ---
 
+## 2025-11-09 - [REFACTOR]: WA Monitor v2.0 - Professional Prod/Dev Architecture
+
+### What Was Done
+**MAJOR REFACTORING:** Transformed WA Monitor from 4-hour project addition to 5-minute process.
+
+**Architecture Changes:**
+1. **Prod/Dev Separation:**
+   - Created separate production service: `wa-monitor-prod`
+   - Created development service: `wa-monitor-dev`
+   - Both services auto-start on boot
+   - Safe testing environment before deploying to production
+
+2. **Config-Driven System:**
+   - All projects defined in YAML config files
+   - Edit 1 file instead of 8 files to add projects
+   - Automatic configuration validation
+   - No code changes needed
+
+3. **Modular Code Structure:**
+   - `config.py` - Configuration management
+   - `database.py` - PostgreSQL operations
+   - `monitor.py` - Drop detection logic
+   - `main.py` - Entry point
+   - Each module has single responsibility
+
+4. **Dual-Monitoring Setup:**
+   - Velo Test group monitored by BOTH prod and dev
+   - Allows testing dev changes against prod baseline
+   - Same WhatsApp bridge, same database
+   - Compare behavior side-by-side
+
+**Benefits Delivered:**
+- ⏱️ 5-minute project addition (down from 4 hours - **98% faster**)
+- 📝 Edit 1 file instead of 8 (**87% fewer files**)
+- 🧪 Test in dev before deploying to prod
+- 🔧 Modular, maintainable code
+- ✅ Enterprise-grade architecture
+
+**Current Status:**
+- ✅ Production service running: 4 projects monitored
+- ✅ Development service running: 1 test project (Velo Test)
+- ✅ Both services processing drops successfully
+- ✅ Old service disabled, new services enabled
+
+### Files Changed
+
+**VPS - New Structure Created:**
+```
+/opt/wa-monitor/
+├── prod/
+│   ├── config/projects.yaml          ← ADD PROJECTS HERE
+│   ├── modules/config.py
+│   ├── modules/database.py
+│   ├── modules/monitor.py
+│   ├── main.py
+│   ├── .env
+│   └── logs/wa-monitor-prod.log
+├── dev/
+│   ├── config/projects.yaml
+│   ├── modules/
+│   ├── main.py
+│   ├── .env
+│   └── logs/wa-monitor-dev.log
+└── shared/whatsapp-bridge/
+
+/etc/systemd/system/
+├── wa-monitor-prod.service
+└── wa-monitor-dev.service
+```
+
+**Documentation Created:**
+- `docs/WA_MONITOR_REFACTORING_DESIGN.md` - Complete design documentation
+- `docs/WA_MONITOR_ADD_PROJECT_5MIN.md` - Step-by-step 5-minute guide
+- `docs/WA_MONITOR_ARCHITECTURE_V2.md` - Full architecture documentation
+- `docs/WA_MONITOR_LESSONS_LEARNED.md` - Why it took 4 hours (created earlier today)
+
+**CLAUDE.md Updates:**
+- Added dual-monitoring capability documentation
+- Updated monitored groups section
+- Added quick commands for both services
+
+### How to Add a New Project Now
+
+```bash
+# 1. Edit config (2 min)
+nano /opt/wa-monitor/prod/config/projects.yaml
+
+# 2. Restart (1 min)
+systemctl restart wa-monitor-prod
+
+# 3. Verify (2 min)
+tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log
+
+# Done! ✅
+```
+
+### Testing Dual-Monitoring (Velo Test)
+
+Velo Test group is monitored by BOTH services for comparison:
+```bash
+# Production logs
+tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log | grep "Velo Test"
+
+# Dev logs (same group, same messages)
+tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log | grep "Velo Test"
+```
+
+**Use Case:** Test dev changes against prod baseline using real messages
+
+### Deployed
+- [x] Deployed to VPS (72.60.17.245)
+- [x] Production service live and monitoring
+- [x] Development service running for testing
+- [x] Old service disabled
+
+### Related
+- Git commits: `b6f961d`, `3aee0c7`
+- Design docs: `docs/WA_MONITOR_*.md`
+- Time saved: **3 hours 55 minutes per project addition**
+
+---
+
 ## 2025-11-09 - [UPDATE]: Added Mamelodi POP1 Activations Group to WA Monitor
 
 ### What Was Done
