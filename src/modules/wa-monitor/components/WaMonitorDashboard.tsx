@@ -25,7 +25,7 @@ export function WaMonitorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-  const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '' });
+  const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '', resubmitted: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch data function
@@ -125,6 +125,16 @@ export function WaMonitorDashboard() {
       // Filter by status
       if (filters.status !== 'all' && drop.status !== filters.status) {
         return false;
+      }
+
+      // Filter by resubmitted
+      if (filters.resubmitted && filters.resubmitted !== 'all') {
+        if (filters.resubmitted === 'resubmitted' && !drop.resubmitted) {
+          return false;
+        }
+        if (filters.resubmitted === 'not_resubmitted' && drop.resubmitted) {
+          return false;
+        }
       }
 
       // Filter by search term (drop number)

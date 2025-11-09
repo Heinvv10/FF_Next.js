@@ -31,29 +31,37 @@ interface WaMonitorFiltersProps {
 export interface FilterState {
   status: DropStatus | 'all';
   searchTerm: string;
+  resubmitted?: 'all' | 'resubmitted' | 'not_resubmitted';
 }
 
 export function WaMonitorFilters({ onFilterChange, totalCount, filteredCount }: WaMonitorFiltersProps) {
   const [status, setStatus] = useState<DropStatus | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [resubmitted, setResubmitted] = useState<'all' | 'resubmitted' | 'not_resubmitted'>('all');
 
   const handleStatusChange = (newStatus: DropStatus | 'all') => {
     setStatus(newStatus);
-    onFilterChange({ status: newStatus, searchTerm });
+    onFilterChange({ status: newStatus, searchTerm, resubmitted });
   };
 
   const handleSearchChange = (newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
-    onFilterChange({ status, searchTerm: newSearchTerm });
+    onFilterChange({ status, searchTerm: newSearchTerm, resubmitted });
+  };
+
+  const handleResubmittedChange = (newResubmitted: 'all' | 'resubmitted' | 'not_resubmitted') => {
+    setResubmitted(newResubmitted);
+    onFilterChange({ status, searchTerm, resubmitted: newResubmitted });
   };
 
   const handleClearFilters = () => {
     setStatus('all');
     setSearchTerm('');
-    onFilterChange({ status: 'all', searchTerm: '' });
+    setResubmitted('all');
+    onFilterChange({ status: 'all', searchTerm: '', resubmitted: 'all' });
   };
 
-  const hasActiveFilters = status !== 'all' || searchTerm !== '';
+  const hasActiveFilters = status !== 'all' || searchTerm !== '' || resubmitted !== 'all';
 
   return (
     <Card sx={{ mb: 3 }}>
@@ -86,6 +94,20 @@ export function WaMonitorFilters({ onFilterChange, totalCount, filteredCount }: 
               <MenuItem value="all">All Statuses</MenuItem>
               <MenuItem value="incomplete">🔴 Incomplete</MenuItem>
               <MenuItem value="complete">🟢 Complete</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Filter by Resubmitted */}
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel>Resubmission</InputLabel>
+            <Select
+              value={resubmitted}
+              label="Resubmission"
+              onChange={(e) => handleResubmittedChange(e.target.value as 'all' | 'resubmitted' | 'not_resubmitted')}
+            >
+              <MenuItem value="all">All Drops</MenuItem>
+              <MenuItem value="resubmitted">🔄 Resubmitted Only</MenuItem>
+              <MenuItem value="not_resubmitted">New Drops Only</MenuItem>
             </Select>
           </FormControl>
 

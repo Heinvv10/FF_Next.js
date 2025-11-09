@@ -1,14 +1,17 @@
 # Database Consolidation Documentation
-**Date**: November 6, 2025
+**Created**: November 6, 2025 (Local Development)
+**Updated**: November 7, 2025 (VPS Production - CRITICAL FIX)
 **Status**: ✅ COMPLETE
 
 ## Overview
-FibreFlow app and WA Monitor service now share a single Neon PostgreSQL database.
+All FibreFlow services (app and WA Monitor) now share a single Neon PostgreSQL database across all environments (local, VPS production, VPS development).
 
 ## Consolidated Database
 
 ### Database Details
-- **Name**: ep-dry-night-a9qyh4sj
+- **Neon Project Name**: FF_React
+- **Neon Project ID**: sparkling-bar-47287977
+- **Database Name**: ep-dry-night-a9qyh4sj
 - **Host**: ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech
 - **Region**: Azure GWC (Global West Coast)
 - **Connection URL**:
@@ -133,10 +136,142 @@ cd /home/louisdup/VF/deployments/railway/WA_monitor\ _Velo_Test
 3. Test with new drop submission
 
 ## Record Count History
-- **Nov 6, 2025 12:00 PM**: 553 QA reviews migrated
+- **Nov 7, 2025**: 558 QA reviews (after VPS production consolidation + 5 missing rows migrated)
+- **Nov 6, 2025 12:00 PM**: 553 QA reviews migrated (local development)
 - **Nov 6, 2025 10:32 AM**: Last drop (DR1857010) from Mohadin project
 
 ---
-**Document Version**: 1.0
-**Last Updated**: November 6, 2025
+
+## VPS Production Consolidation (Nov 7, 2025)
+
+### CRITICAL FIX - Production Outage
+
+**Problem**: VPS production site (app.fibreflow.app) was **DOWN** due to wrong database configuration.
+
+**Symptoms**:
+- Users unable to access https://app.fibreflow.app/wa-monitor
+- Database errors: `relation "projects" does not exist`
+- FibreFlow app connected to WhatsApp ticketing system database (WRONG!)
+- Drop Monitor writing to different database than FibreFlow reading from
+
+### VPS Configuration Updates (Nov 7, 2025)
+
+**1. FibreFlow Production (VPS)**
+**File**: `/var/www/fibreflow/.env.production`
+```bash
+# BEFORE (WRONG!)
+DATABASE_URL=postgresql://neondb_owner:npg_RIgDxzo4St6d@ep-damp-credit-a857vku0-pooler.eastus2.azure.neon.tech/neondb
+
+# AFTER (CORRECT!)
+DATABASE_URL=postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb
+```
+
+**2. FibreFlow Development (VPS)**
+**File**: `/var/www/fibreflow-dev/.env.production`
+```bash
+# BEFORE (WRONG!)
+DATABASE_URL=postgresql://neondb_owner:npg_RIgDxzo4St6d@ep-damp-credit-a857vku0-pooler.eastus2.azure.neon.tech/neondb
+
+# AFTER (CORRECT!)
+DATABASE_URL=postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb
+```
+
+**3. Drop Monitor (VPS Python Service)**
+**File**: `/opt/velo-test-monitor/.env`
+```bash
+# BEFORE (WRONG!)
+NEON_DATABASE_URL=postgresql://neondb_owner:npg_RIgDxzo4St6d@ep-damp-credit-a857vku0-pooler.eastus2.azure.neon.tech/neondb
+
+# AFTER (CORRECT!)
+NEON_DATABASE_URL=postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb
+```
+
+### Schema & Data Migration (Nov 7, 2025)
+
+**Added Missing Column:**
+```sql
+ALTER TABLE qa_photo_reviews
+ADD COLUMN IF NOT EXISTS whatsapp_message_date TIMESTAMPTZ;
+```
+
+**Migrated Missing Data:**
+- DR1751923 (Lawley)
+- DR1751928 (Lawley)
+- DR1751927 (Lawley)
+- DR1751942 (Lawley)
+- DR1751939 (Lawley)
+
+**Result**: 553 + 5 = 558 total QA photo reviews consolidated in FibreFlow DB
+
+### Services Restarted (Nov 7, 2025)
+
+```bash
+# VPS Production
+ssh root@72.60.17.245
+pm2 restart fibreflow-prod
+pm2 restart fibreflow-dev
+
+# Drop Monitor
+pkill -f realtime_drop_monitor.py
+cd /opt/velo-test-monitor/services
+nohup python3 realtime_drop_monitor.py --interval 15 >> ../logs/drop_monitor.log 2>&1 &
+```
+
+### Verification (Nov 7, 2025)
+
+**✅ All Services Using Correct Database:**
+
+| Service | Environment | Database | Status |
+|---------|-------------|----------|--------|
+| FibreFlow Prod | VPS (app.fibreflow.app) | ep-dry-night | ✅ Online |
+| FibreFlow Dev | VPS (dev.fibreflow.app) | ep-dry-night | ✅ Online |
+| Drop Monitor | VPS (Python service) | ep-dry-night | ✅ Running |
+| Local Development | localhost:3005 | ep-dry-night | ✅ Working |
+
+**API Tests:**
+```bash
+# WA Monitor API (VPS Production)
+curl https://app.fibreflow.app/api/wa-monitor-daily-drops
+# Response: {"success":true,"data":{...}} ✅
+
+# Database row count
+node -e "sql\`SELECT COUNT(*) FROM qa_photo_reviews\`"
+# Result: 558 rows ✅
+```
+
+### Two Databases Explained
+
+**OLD DATABASE (ep-damp-credit) - DEPRECATED FOR FIBREFLOW**
+- Host: ep-damp-credit-a857vku0-pooler.eastus2.azure.neon.tech
+- Purpose: WhatsApp ticketing system (separate project, NOT FibreFlow)
+- Tables: ContactCustomFields, Contacts, Messages, Queues, Tickets, Users
+- Status: ⚠️ **DO NOT USE FOR FIBREFLOW**
+- Contains: WhatsApp ticketing data + old QA reviews (558 rows - now migrated)
+
+**NEW DATABASE (ep-dry-night) - FIBREFLOW SOURCE OF TRUTH** ✅
+- **Neon Project**: FF_React (ID: sparkling-bar-47287977)
+- Host: ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech
+- Purpose: FibreFlow production database (ALL environments)
+- Tables: projects, clients, contractors, staff, sow_*, qa_photo_reviews (104 total tables)
+- Status: ✅ **SINGLE SOURCE OF TRUTH FOR FIBREFLOW**
+- Contains: All FibreFlow data + consolidated QA reviews (558 rows)
+
+### Impact & Resolution
+
+**Downtime**: ~20 minutes (Nov 7, 2025 07:00-07:20 UTC)
+**Root Cause**: Environment variables pointing to wrong database
+**Resolution**: All VPS services consolidated to FibreFlow database (ep-dry-night)
+**Status**: ✅ Production restored, all services stable
+
+**Additional Fix (Nov 7, 2025 - Later):**
+- Fixed local `.env.local` file to point to correct database
+- Was pointing to ep-damp-credit (old), now points to ep-dry-night (correct)
+- Did not cause downtime (production mode was using `.env.production.local` which was already correct)
+- Fix ensures consistency across all environment files
+
+**Lesson Learned**: Always verify DATABASE_URL in ALL environment files after VPS deployments
+
+---
+**Document Version**: 2.0
+**Last Updated**: November 7, 2025
 **Maintained By**: FibreFlow Development Team

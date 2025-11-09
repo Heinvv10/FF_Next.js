@@ -28,8 +28,12 @@
 
 ### Database & Infrastructure
 - `neon/` - **Neon PostgreSQL database**
+  - **Project**: FF_React (Neon Project ID: sparkling-bar-47287977)
+  - **Database**: ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech
+  - **Connection**: postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb
   - Uses @neondatabase/serverless client for direct SQL queries
   - No ORM - direct SQL with template literals
+  - **Single source of truth** for all environments (local, VPS prod/dev, WA Monitor)
   - Database configuration and connection setup
 - `scripts/migrations/` - Custom database migration scripts
   - Migration runner and SQL files
@@ -511,21 +515,182 @@ Key columns:
 - **Lawley**: 120363418298130331@g.us (Lawley Activation 3)
 - **Mohadin**: 120363421532174586@g.us (Mohadin Activations)
 - **Velo Test**: 120363421664266245@g.us (Velo Test group)
+- **Mamelodi**: 120363408849234743@g.us (Mamelodi POP1 Activations)
+
+### Adding a New WhatsApp Group
+
+**Important:** The WhatsApp bridge (number 064 041 2391) automatically captures messages from ALL groups it's in. The drop monitor filters which groups to process drops from.
+
+**Steps to Add a New Group:**
+
+1. **Ensure WhatsApp bridge is in the group** (064 041 2391)
+   - The bridge captures messages from all groups automatically
+   - No action needed if the number is already a group member
+
+2. **Find the Group JID** (WhatsApp Group ID):
+   ```bash
+   # SSH into VPS
+   ssh root@72.60.17.245
+
+   # List all groups the bridge can see
+   sqlite3 /opt/velo-test-monitor/services/whatsapp-bridge/store/whatsapp.db \
+     "SELECT name FROM sqlite_master WHERE type='table';"
+
+   # Check recent activity to find new group JID
+   tail -50 /opt/velo-test-monitor/logs/whatsapp-bridge.log | grep "Chat="
+
+   # Or search by posting a test message and checking logs
+   # Post "TEST" to the new group, then:
+   tail -100 /opt/velo-test-monitor/logs/whatsapp-bridge.log
+   # Look for: Chat=XXXXXXXXXX@g.us
+   ```
+
+3. **Add Group to Drop Monitor Configuration**:
+   ```bash
+   # Edit the Python script
+   nano /opt/velo-test-monitor/services/realtime_drop_monitor.py
+
+   # Find the PROJECTS dictionary (around line 43)
+   # Add new entry (example for Mamelodi):
+   ```
+
+   ```python
+   PROJECTS = {
+       'Lawley': {
+           'group_jid': '120363418298130331@g.us',
+           'project_name': 'Lawley',
+           'group_description': 'Lawley Activation 3 group'
+       },
+       'Mohadin': {
+           'group_jid': '120363421532174586@g.us',
+           'project_name': 'Mohadin',
+           'group_description': 'Mohadin Activations group'
+       },
+       'Velo Test': {
+           'group_jid': '120363421664266245@g.us',
+           'project_name': 'Velo Test',
+           'group_description': 'Velo Test group'
+       },
+       'Mamelodi': {  # NEW GROUP - ADD HERE
+           'group_jid': '120363408849234743@g.us',
+           'project_name': 'Mamelodi',
+           'group_description': 'Mamelodi POP1 Activations group'
+       }
+   }
+   ```
+
+4. **Test Script Syntax**:
+   ```bash
+   python3 -m py_compile /opt/velo-test-monitor/services/realtime_drop_monitor.py
+   # Should show no errors
+   ```
+
+5. **Restart Drop Monitor**:
+   ```bash
+   systemctl restart drop-monitor
+
+   # Verify it started
+   systemctl status drop-monitor
+
+   # Check logs to confirm new group is monitored
+   tail -30 /opt/velo-test-monitor/logs/drop_monitor.log
+   # Look for: "• Mamelodi: 120363408849234743@g.us (Mamelodi POP1 Activations group)"
+   ```
+
+6. **Test the New Group**:
+   ```bash
+   # Post a test drop number to the new group (e.g., DR99999999)
+   # Wait 15 seconds (scan interval)
+   # Check dashboard:
+   curl https://app.fibreflow.app/api/wa-monitor-daily-drops | jq .
+   ```
+
+**Files to Update After Adding Group:**
+- `/opt/velo-test-monitor/services/realtime_drop_monitor.py` - PROJECTS dictionary
+- `CLAUDE.md` - Update "Monitored Groups" section
+- `docs/WA_MONITOR_DATABASE_SETUP.md` - Update group list
 
 ### VPS Management
 ```bash
 # Check running services
 ssh root@72.60.17.245
+systemctl status drop-monitor
 ps aux | grep -E 'whatsapp-bridge|drop.*monitor'
 
 # View logs
 tail -f /opt/velo-test-monitor/logs/drop_monitor.log
 
-# Restart drop monitor
-cd /opt/velo-test-monitor/services
-kill -TERM [PID]
-nohup python3 realtime_drop_monitor.py --interval 15 >> ../logs/drop_monitor.log 2>&1 &
+# Restart drop monitor (systemd service)
+systemctl restart drop-monitor
+
+# Check drop monitor is using correct database
+systemctl show drop-monitor --property=Environment
+grep 'NEON_DB_URL' /opt/velo-test-monitor/services/realtime_drop_monitor.py
 ```
+
+### 🚨 CRITICAL: Database Configuration
+
+**THE APP AND DROP MONITOR MUST USE THE SAME DATABASE**
+
+**Correct Database (ALWAYS):**
+```
+postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb
+```
+
+**Configuration Files That MUST Match:**
+
+1. **Drop Monitor Script** (Line 66):
+   ```python
+   # /opt/velo-test-monitor/services/realtime_drop_monitor.py
+   NEON_DB_URL = os.getenv('NEON_DATABASE_URL', 'postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require')
+   ```
+
+2. **Drop Monitor Systemd Service**:
+   ```bash
+   # /etc/systemd/system/drop-monitor.service
+   Environment="NEON_DATABASE_URL=postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require"
+   ```
+
+3. **Production App Environment**:
+   ```bash
+   # /var/www/fibreflow/.env.production
+   DATABASE_URL=postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require
+   ```
+
+4. **WhatsApp Bridge SQLite Path** (Line 65):
+   ```python
+   # /opt/velo-test-monitor/services/realtime_drop_monitor.py
+   MESSAGES_DB_PATH = os.getenv('WHATSAPP_DB_PATH', '/opt/velo-test-monitor/services/whatsapp-bridge/store/messages.db')
+   ```
+
+**Verification Commands:**
+```bash
+# 1. Check drop monitor database connection
+ssh root@72.60.17.245 "grep 'NEON_DB_URL' /opt/velo-test-monitor/services/realtime_drop_monitor.py"
+
+# 2. Check systemd environment
+ssh root@72.60.17.245 "cat /etc/systemd/system/drop-monitor.service | grep Environment"
+
+# 3. Check production app environment
+ssh root@72.60.17.245 "grep 'DATABASE_URL' /var/www/fibreflow/.env.production"
+
+# 4. Test dashboard shows drops
+curl https://app.fibreflow.app/api/wa-monitor-daily-drops | jq .
+```
+
+**After ANY Database Configuration Change:**
+```bash
+# 1. Restart drop monitor
+ssh root@72.60.17.245 "systemctl daemon-reload && systemctl restart drop-monitor"
+
+# 2. Rebuild and restart production app
+ssh root@72.60.17.245 "cd /var/www/fibreflow && npm run build && pm2 restart fibreflow-prod"
+
+# 3. Verify both are using same database
+ssh root@72.60.17.245 "psql 'postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require' -c 'SELECT COUNT(*) FROM qa_photo_reviews;'"
+```
+
+**Common Issue:** If dashboard shows different data than drop monitor logs, they're using different databases. Check all 4 configuration files above.
 
 ## Deployment Architecture
 

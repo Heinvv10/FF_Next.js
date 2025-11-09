@@ -153,6 +153,14 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
               {drop.dropNumber}
             </Typography>
             <Box display="flex" alignItems="center" gap={1}>
+              {drop.resubmitted && (
+                <Chip
+                  label="🔄 Resubmitted"
+                  color="info"
+                  size="small"
+                  sx={{ fontWeight: 'bold' }}
+                />
+              )}
               <Chip
                 label={`${completedSteps}/${totalSteps} Complete`}
                 color={progressPercent === 100 ? 'success' : 'warning'}

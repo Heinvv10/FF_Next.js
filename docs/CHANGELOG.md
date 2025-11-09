@@ -26,6 +26,177 @@ Track daily work, deployments, and major updates.
 
 ---
 
+## 2025-11-09 - [UPDATE]: Added Mamelodi POP1 Activations Group to WA Monitor
+
+### What Was Done
+**Added 4th WhatsApp group** to drop monitor for Mamelodi POP1 Activations.
+
+**Steps Taken:**
+1. Identified group JID from WhatsApp bridge logs: `120363408849234743@g.us`
+2. Updated `/opt/velo-test-monitor/services/realtime_drop_monitor.py` PROJECTS dictionary
+3. Tested script syntax
+4. Restarted drop monitor systemd service
+5. Verified group appears in monitoring logs
+
+**Now Monitoring 4 Groups:**
+- ✅ Lawley (120363418298130331@g.us)
+- ✅ Mohadin (120363421532174586@g.us)
+- ✅ Velo Test (120363421664266245@g.us)
+- ✅ **Mamelodi** (120363408849234743@g.us) - NEW
+
+**Documentation Updated:**
+- ✅ Added "Adding a New WhatsApp Group" section to CLAUDE.md
+- ✅ Updated monitored groups list in CLAUDE.md
+- ✅ Complete step-by-step guide for future group additions
+
+### Files Changed
+- `/opt/velo-test-monitor/services/realtime_drop_monitor.py` (VPS) - Added Mamelodi to PROJECTS
+- `CLAUDE.md` - Added group addition guide + updated monitored groups list
+- `docs/CHANGELOG.md` - This entry
+
+### Deployed
+- [x] Drop monitor restarted with Mamelodi group
+- [x] Verified in logs: "• Mamelodi: 120363408849234743@g.us (Mamelodi POP1 Activations group)"
+
+### Related
+- **Guide:** CLAUDE.md lines 520-611 (Adding a New WhatsApp Group)
+
+---
+
+## 2025-11-09 - [FIX]: Complete Database Consolidation & Drop Monitor Fix (ALL 3 GROUPS WORKING)
+
+### What Was Done
+**✅ RESOLVED:** All WhatsApp Monitor groups (Lawley, Mohadin, Velo Test) now working with single unified database.
+
+**Root Cause Analysis:**
+1. Drop Monitor Python script had **hardcoded fallback** to OLD database (ep-damp-credit)
+2. Production app was still reading from OLD database (rebuild needed to pick up .env changes)
+3. Test drops went to OLD database, app showed them, but we thought system was broken
+4. WhatsApp bridge path was hardcoded to `/app/store/messages.db` (Docker path) instead of actual path
+
+**Complete Fix Applied:**
+- ✅ Fixed Drop Monitor hardcoded database URL (Line 66) → NEW database (ep-dry-night)
+- ✅ Fixed WhatsApp bridge path (Line 65) → `/opt/velo-test-monitor/services/whatsapp-bridge/store/messages.db`
+- ✅ Updated systemd service with inline Environment variable
+- ✅ Migrated all 3 test drops from OLD → NEW database
+- ✅ Rebuilt production app to use NEW database from .env.production
+- ✅ Restarted both drop monitor service and production app
+- ✅ **Verified all 3 groups working:** Lawley, Mohadin, Velo Test
+
+**Test Results:**
+- DR0000016 (Velo Test) - ✅ Visible in dashboard
+- DR0000017 (Mohadin) - ✅ Visible in dashboard
+- DR0000018 (Lawley) - ✅ Visible in dashboard
+- Dashboard API: https://app.fibreflow.app/api/wa-monitor-daily-drops - ✅ Shows all 3 drops
+
+**Services Now Using Single Database (ep-dry-night):**
+- ✅ Drop Monitor systemd service
+- ✅ FibreFlow Production app (VPS)
+- ✅ FibreFlow Development app (VPS)
+- ✅ Local development environment
+
+**Key Configuration Files Updated:**
+1. `/opt/velo-test-monitor/services/realtime_drop_monitor.py` (Lines 65-66)
+2. `/etc/systemd/system/drop-monitor.service` (Environment variable)
+3. `/var/www/fibreflow/.env.production` (Verified correct)
+
+**Documentation Created:**
+- ✅ Updated `CLAUDE.md` with critical database configuration section
+- ✅ Created `docs/WA_MONITOR_DATABASE_SETUP.md` - Complete setup and troubleshooting guide
+- ✅ Added verification commands and checklists
+
+**Prevention Measures:**
+- Systemd service now has inline Environment variable (no external file dependency)
+- Both hardcoded fallbacks in Python script updated to NEW database
+- Documentation shows exact line numbers and verification commands
+- Checklist created to prevent same issue in future
+
+### Files Changed
+- `/opt/velo-test-monitor/services/realtime_drop_monitor.py` (VPS) - Lines 65, 66
+- `/etc/systemd/system/drop-monitor.service` (VPS) - Added Environment variable
+- `/var/www/fibreflow/.next/**` (Production app rebuilt)
+- `CLAUDE.md` - Added "🚨 CRITICAL: Database Configuration" section
+- `docs/WA_MONITOR_DATABASE_SETUP.md` (NEW) - Complete setup guide
+- `docs/CHANGELOG.md` - This entry
+
+### Deployed
+- [x] Drop Monitor systemd service running on VPS (ep-dry-night database)
+- [x] Production app rebuilt and restarted (ep-dry-night database)
+- [x] All 3 WhatsApp groups tested and working
+- [x] Dashboard verified: https://app.fibreflow.app/wa-monitor
+
+### Related
+- **Previous consolidation:** 2025-11-07 CHANGELOG entry
+- **Database:** Neon FF_React (ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech)
+- **Setup Guide:** docs/WA_MONITOR_DATABASE_SETUP.md
+- **CLAUDE.md:** Lines 537-599 (Database Configuration section)
+
+---
+
+## 2025-11-07 - [CRITICAL FIX]: Database Consolidation & Production Outage Fix
+
+### What Was Done
+**CRITICAL PRODUCTION FIX**: Consolidated all VPS services to single FibreFlow database and restored production site.
+
+**Problem Discovered:**
+- Production site (app.fibreflow.app) was **down** - "relation does not exist" errors
+- FibreFlow app connected to **wrong database** (WhatsApp ticketing system)
+- Drop Monitor writing to **different database** than FibreFlow reading from
+- Two separate Neon databases causing data fragmentation
+
+**Database Consolidation:**
+- ✅ Updated all VPS services to use single FibreFlow database (ep-dry-night)
+- ✅ Added `whatsapp_message_date` column to FibreFlow DB schema
+- ✅ Migrated 5 missing QA photo reviews from old database
+- ✅ Total consolidated: 558 QA photo reviews in single database
+- ✅ All services (FibreFlow prod/dev + Drop Monitor) now use one database
+
+**Services Fixed:**
+- ✅ FibreFlow Production (VPS) - restored and online
+- ✅ FibreFlow Development (VPS) - restored and online
+- ✅ Drop Monitor (Python) - restarted with correct database
+- ✅ FibreFlow Local (.env.local) - fixed to point to correct database
+- ✅ All API endpoints tested and working
+
+### Files Changed
+**VPS Configuration (via SSH):**
+- `/var/www/fibreflow/.env.production` - Updated DATABASE_URL
+- `/var/www/fibreflow-dev/.env.production` - Updated DATABASE_URL
+- `/opt/velo-test-monitor/.env` - Updated NEON_DATABASE_URL
+- `/opt/velo-test-monitor/services/start_drop_monitor.sh` - Created startup script
+
+**Local Configuration:**
+- `.env.local` - Updated DATABASE_URL (was pointing to old ep-damp-credit database)
+- `.env.production.local` - Already correct (ep-dry-night)
+
+**Documentation:**
+- `docs/VPS/DEPLOYMENT_HISTORY.md` - Added Nov 7 database consolidation entry
+- `docs/CHANGELOG.md` - This entry
+- `CLAUDE.md` - Already documented WA Monitor integration
+
+**Database Schema:**
+- Added column: `qa_photo_reviews.whatsapp_message_date TIMESTAMPTZ`
+- Migrated 5 rows: DR1751923, DR1751928, DR1751927, DR1751942, DR1751939
+
+### Deployed
+- [x] ✅ Deployed to VPS Production (app.fibreflow.app)
+- [x] ✅ Deployed to VPS Development (dev.fibreflow.app)
+- **Downtime:** ~20 minutes during troubleshooting
+- **Status:** All services restored and stable
+
+### Related
+- VPS deployment logs: `docs/VPS/DEPLOYMENT_HISTORY.md`
+- WA Monitor docs: `docs/WA_MONITOR_DATA_FLOW_REPORT.md`
+- Root cause: Database URL misconfiguration during initial VPS deployment
+
+### Impact
+- **User Reports:** Some users unable to access app.fibreflow.app/wa-monitor
+- **Root Cause:** Wrong database configuration (WhatsApp ticketing DB vs FibreFlow DB)
+- **Resolution:** All services consolidated to single FibreFlow database
+- **Result:** Production restored, data consolidated, single source of truth established
+
+---
+
 ## 2025-10-27 - [Feature]: Phase 3 Complete - Performance Optimization & Monitoring
 
 ### What Was Done

@@ -35,6 +35,7 @@ export async function getAllDrops(): Promise<QaReviewDrop[]> {
         incomplete,
         feedback_sent as "feedbackSent",
         sender_phone as "senderPhone",
+        resubmitted,
         step_01_house_photo as "step_01_house_photo",
         step_02_cable_from_pole as "step_02_cable_from_pole",
         step_03_cable_entry_outside as "step_03_cable_entry_outside",
@@ -48,7 +49,7 @@ export async function getAllDrops(): Promise<QaReviewDrop[]> {
         step_11_green_lights as "step_11_green_lights",
         step_12_customer_signature as "step_12_customer_signature"
       FROM qa_photo_reviews
-      ORDER BY created_at DESC
+      ORDER BY resubmitted DESC, created_at DESC
     `;
 
     return rows.map(transformDbRowToDrop);
@@ -203,6 +204,7 @@ function transformDbRowToDrop(row: any): QaReviewDrop {
     incomplete: row.incomplete || false,
     feedbackSent: row.feedbackSent ? new Date(row.feedbackSent) : null,
     senderPhone: row.senderPhone || null,
+    resubmitted: row.resubmitted || false,
     // QA Steps (12 steps from WA Monitor)
     step_01_house_photo: row.step_01_house_photo || false,
     step_02_cable_from_pole: row.step_02_cable_from_pole || false,

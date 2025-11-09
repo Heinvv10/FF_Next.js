@@ -73,6 +73,7 @@ export interface QaReviewDrop extends QaSteps {
   incomplete: boolean;
   feedbackSent: Date | null;
   senderPhone: string | null;
+  resubmitted: boolean;
 }
 
 /**

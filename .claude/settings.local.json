@@ -61,7 +61,17 @@
       "Bash(mkdir:*)",
       "Read(//home/louisdup/VF/deployments/railway/WA_monitor _Velo_Test/**)",
       "Bash(find:*)",
-      "Read(//home/louisdup/VF/deployments/railway/**)"
+      "Read(//home/louisdup/VF/deployments/railway/**)",
+      "Bash(python3:*)",
+      "Read(//home/louisdup/VF/**)",
+      "Bash(unset:*)",
+      "Bash(timeout 180 go run main.go)",
+      "Bash(tee:*)",
+      "Bash(killall:*)",
+      "Bash(scp:*)",
+      "Bash(go build:*)",
+      "Bash(ssh root@72.60.17.245 \"ps aux | grep whatsapp-bridge | grep -v grep\")",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": [],
