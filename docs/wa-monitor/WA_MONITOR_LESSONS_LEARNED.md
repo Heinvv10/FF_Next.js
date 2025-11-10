@@ -2,6 +2,74 @@
 
 ## Recent Incidents
 
+### November 10, 2025: Multi-User Locking System Implementation
+
+**Date:** November 10, 2025
+**Issue:** Auto-refresh wiping user's checkbox selections while editing
+**Impact:** Lost work, user frustration
+**Solution:** Multi-user locking system with Edit mode
+
+#### The Problem
+User reported:
+> "die WA Monitor sal elke nou en dan my selection van tickboxes wipe terwyl ek nog besig is met die selection"
+
+- Auto-refresh runs every 30 seconds
+- Fetches new data from database and updates React state
+- Overwrites user's local checkbox selections
+- User loses their work mid-review
+
+#### The Solution (3-Phase Implementation)
+**Phase 1: Database + API**
+- Added `locked_by VARCHAR(255)` and `locked_at TIMESTAMP` columns
+- Created lock/unlock API endpoints
+- 5-minute timeout for abandoned locks
+- Lock conflict detection (409 status)
+
+**Phase 2: Frontend UI**
+- Checkboxes disabled by default (read-only mode)
+- Edit button acquires database lock
+- Save/Cancel buttons release lock
+- Blue alert: "Editing mode active - Auto-refresh disabled"
+- Lock status warnings when someone else editing
+
+**Phase 3: Auto-Refresh Skip**
+- Dashboard preserves local state for locked drops
+- Auto-refresh still runs every 30s
+- But skips drops locked by current user
+- Other users see real-time updates
+
+#### Results
+- ✅ Checkbox selections preserved while editing
+- ✅ Multi-user conflict prevention working
+- ✅ Auto-cleanup on browser close
+- ✅ No more lost work
+
+#### Key Lessons
+1. **Edit Mode as Explicit State:** Clear UI pattern (Edit → Save/Cancel)
+2. **Lock Timeout Balance:** 5 minutes = sweet spot (enough time to work, auto-expires if stuck)
+3. **Conditional Refresh:** Skip refresh for locked items, preserve for others
+4. **Neon SQL Limitation:** Can't use template literals in INTERVAL - hardcode instead
+   ```typescript
+   // ❌ Doesn't work
+   INTERVAL '${LOCK_TIMEOUT_MINUTES} minutes'
+
+   // ✅ Works
+   INTERVAL '5 minutes'
+   ```
+
+5. **Cleanup Effects Important:** Auto-unlock on component unmount prevents stuck locks
+
+#### Statistics
+- 470 lines of code
+- 7 files modified
+- 2 database columns
+- 2 API endpoints
+- 3 git commits
+
+**Full Documentation:** See `WA_MONITOR_LOCKING_SYSTEM.md`
+
+---
+
 ### November 10, 2025: WhatsApp Bridge Failure (21 Hours Downtime)
 
 **Date:** November 10, 2025

@@ -250,7 +250,7 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     const missing = getMissingSteps();
     if (missing.length === 0) {
       // All steps complete - generate approval message with drop number
-      setFeedbackMessage(`${editedDropNumber} - All items complete! ✅ Approved for activation.`);
+      setFeedbackMessage(`${editedDropNumber} - All items complete! ✅`);
       return;
     }
 

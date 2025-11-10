@@ -71,7 +71,11 @@
       "Bash(scp:*)",
       "Bash(go build:*)",
       "Bash(ssh root@72.60.17.245 \"ps aux | grep whatsapp-bridge | grep -v grep\")",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(ssh root@72.60.17.245 \"date\")",
+      "Bash(git reset:*)",
+      "Bash(git restore:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": [],
