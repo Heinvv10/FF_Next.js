@@ -13,7 +13,6 @@ import { fetchAllDrops, sendFeedbackToWhatsApp, fetchDailyDropsPerProject } from
 import { downloadCSV } from '../utils/waMonitorHelpers';
 import { QaReviewCard } from './QaReviewCard';
 import { WaMonitorFilters, type FilterState } from './WaMonitorFilters';
-import { SystemHealthPanel } from './SystemHealthPanel';
 import type { QaReviewDrop, WaMonitorSummary, DailyDropsPerProject } from '../types/wa-monitor.types';
 
 const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
@@ -221,9 +220,6 @@ export function WaMonitorDashboard() {
           Last updated: {lastRefresh.toLocaleTimeString()} (Auto-refresh every 30s)
         </Typography>
       )}
-
-      {/* System Health Panel */}
-      <SystemHealthPanel autoRefresh={true} refreshInterval={30000} />
 
       {/* Error Alert */}
       {error && (
