@@ -43,7 +43,29 @@ export function WaMonitorDashboard() {
         fetchDailyDropsPerProject()
       ]);
 
-      setDrops(fetchedDrops);
+      // Only update drops that aren't currently being edited (locked by current user)
+      // This prevents overwriting active edits during auto-refresh
+      setDrops((prevDrops) => {
+        if (prevDrops.length === 0) {
+          // First load - use all fetched drops
+          return fetchedDrops;
+        }
+
+        return fetchedDrops.map(newDrop => {
+          // Find existing drop
+          const existingDrop = prevDrops.find(d => d.id === newDrop.id);
+
+          // If drop is locked by current user, keep old data (don't overwrite edits)
+          // Note: currentUser would need to be passed from QaReviewCard or auth context
+          if (existingDrop?.lockedBy && existingDrop.lockedBy === 'Louis Duplessis') {
+            return existingDrop;
+          }
+
+          // Otherwise use new data
+          return newDrop;
+        });
+      });
+
       setSummary(fetchedSummary || null);
       setDailyDrops(dailyDropsData);
       setLastRefresh(new Date());

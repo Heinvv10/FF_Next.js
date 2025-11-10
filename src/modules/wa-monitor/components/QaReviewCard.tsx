@@ -25,11 +25,12 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { CheckCircle, XCircle, Send, Save, AlertTriangle, Edit2, X } from 'lucide-react';
+import { CheckCircle, XCircle, Send, Save, AlertTriangle, Edit2, X, Edit, Lock } from 'lucide-react';
 import type { QaReviewDrop, QaSteps } from '../types/wa-monitor.types';
 import { QA_STEP_LABELS } from '../types/wa-monitor.types';
 import { DropStatusBadge } from './DropStatusBadge';
 import { formatDateTime } from '../utils/waMonitorHelpers';
+import { lockDrop, unlockDrop } from '../services/waMonitorApiService';
 
 interface QaReviewCardProps {
   drop: QaReviewDrop;
@@ -60,9 +61,20 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   const [isEditingDropNumber, setIsEditingDropNumber] = useState(false);
   const [editedDropNumber, setEditedDropNumber] = useState(drop.dropNumber);
 
+  // Locking system state
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockError, setLockError] = useState<string | null>(null);
+  const [currentUser] = useState('Louis Duplessis'); // TODO: Get from Clerk auth
+
   // Sync local state with props when drop data changes (e.g., after refresh)
-  // This ensures the component shows the latest saved values from the database
+  // Only sync if NOT editing (prevents overwriting active changes)
   useEffect(() => {
+    if (isEditing) {
+      // Don't overwrite user's active changes during auto-refresh
+      return;
+    }
+
     setSteps({
       step_01_house_photo: drop.step_01_house_photo,
       step_02_cable_from_pole: drop.step_02_cable_from_pole,
@@ -79,7 +91,31 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     });
     setComment(drop.comment || '');
     setEditedDropNumber(drop.dropNumber);
-  }, [drop]);
+  }, [drop, isEditing]);
+
+  // Check if drop is locked by someone else
+  useEffect(() => {
+    if (drop.lockedBy && drop.lockedBy !== currentUser) {
+      setIsLocked(true);
+      setLockError(`Currently being edited by ${drop.lockedBy}`);
+    } else if (drop.lockedBy === currentUser) {
+      // We have the lock
+      setIsLocked(true);
+      setIsEditing(true);
+    } else {
+      setIsLocked(false);
+      setLockError(null);
+    }
+  }, [drop.lockedBy, currentUser]);
+
+  // Cleanup: unlock on unmount if editing
+  useEffect(() => {
+    return () => {
+      if (isEditing) {
+        unlockDrop(drop.id, currentUser).catch(console.error);
+      }
+    };
+  }, [isEditing, drop.id, currentUser]);
 
   // Calculate progress
   const completedSteps = Object.values(steps).filter(Boolean).length;
@@ -101,16 +137,87 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     }));
   };
 
-  // Handle save (update DB)
+  // Handle Edit button - acquire lock
+  const handleEdit = async () => {
+    try {
+      setSaving(true);
+      const result = await lockDrop(drop.id, currentUser);
+
+      if (!result.locked) {
+        // Someone else has the lock
+        setLockError(result.error || 'Drop is locked by another user');
+        setIsLocked(true);
+        return;
+      }
+
+      // Lock acquired - enable editing
+      setIsEditing(true);
+      setIsLocked(true);
+      setLockError(null);
+    } catch (error) {
+      console.error('Error acquiring lock:', error);
+      setLockError('Failed to acquire lock');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handle Cancel button - revert changes and unlock
+  const handleCancel = async () => {
+    try {
+      setSaving(true);
+
+      // Revert all changes
+      setSteps({
+        step_01_house_photo: drop.step_01_house_photo,
+        step_02_cable_from_pole: drop.step_02_cable_from_pole,
+        step_03_cable_entry_outside: drop.step_03_cable_entry_outside,
+        step_04_cable_entry_inside: drop.step_04_cable_entry_inside,
+        step_05_wall_for_installation: drop.step_05_wall_for_installation,
+        step_06_ont_back_after_install: drop.step_06_ont_back_after_install,
+        step_07_power_meter_reading: drop.step_07_power_meter_reading,
+        step_08_ont_barcode: drop.step_08_ont_barcode,
+        step_09_ups_serial: drop.step_09_ups_serial,
+        step_10_final_installation: drop.step_10_final_installation,
+        step_11_green_lights: drop.step_11_green_lights,
+        step_12_customer_signature: drop.step_12_customer_signature,
+      });
+      setComment(drop.comment || '');
+
+      // Unlock the drop
+      await unlockDrop(drop.id, currentUser);
+
+      // Exit edit mode
+      setIsEditing(false);
+      setIsLocked(false);
+      setLockError(null);
+    } catch (error) {
+      console.error('Error canceling:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handle save (update DB and unlock)
   const handleSave = async () => {
     try {
       setSaving(true);
+
+      // Save changes to database
       await onUpdate(drop.id, {
         ...steps,
         comment,
         incomplete: completedSteps < totalSteps,
         completed: completedSteps === totalSteps,
       });
+
+      // Unlock the drop
+      await unlockDrop(drop.id, currentUser);
+
+      // Exit edit mode
+      setIsEditing(false);
+      setIsLocked(false);
+      setLockError(null);
     } catch (error) {
       console.error('Error saving:', error);
     } finally {
@@ -258,6 +365,23 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
       />
 
       <CardContent>
+        {/* Lock Status Alerts */}
+        {lockError && !isEditing && (
+          <Alert severity="warning" icon={<Lock size={20} />} sx={{ mb: 2 }}>
+            <Typography variant="body2" fontWeight="medium">
+              🔒 {lockError}
+            </Typography>
+          </Alert>
+        )}
+
+        {isEditing && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              ✏️ Editing mode active - Auto-refresh disabled for this drop
+            </Typography>
+          </Alert>
+        )}
+
         {/* Progress Bar */}
         <Box sx={{ mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
@@ -298,6 +422,7 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
                   checked={steps[stepKey]}
                   onChange={() => handleStepChange(stepKey)}
                   size="small"
+                  disabled={!isEditing}
                 />
               }
               label={
@@ -366,16 +491,47 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
             {sending ? 'Sending...' : 'Send Feedback'}
           </Button>
         </Box>
-        <Button
-          variant="contained"
-          color="success"
-          size="small"
-          startIcon={<Save size={16} />}
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? 'Saving...' : 'Save Changes'}
-        </Button>
+
+        {/* Edit/Save/Cancel buttons */}
+        <Box display="flex" gap={1}>
+          {!isEditing ? (
+            // Read-only mode - show Edit button
+            <Button
+              variant="outlined"
+              color="primary"
+              size="small"
+              startIcon={<Edit size={16} />}
+              onClick={handleEdit}
+              disabled={isLocked && drop.lockedBy !== currentUser}
+            >
+              Edit
+            </Button>
+          ) : (
+            // Edit mode - show Save and Cancel
+            <>
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                startIcon={<X size={16} />}
+                onClick={handleCancel}
+                disabled={saving}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                startIcon={<Save size={16} />}
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : 'Save'}
+              </Button>
+            </>
+          )}
+        </Box>
       </CardActions>
     </Card>
   );
