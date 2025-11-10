@@ -142,11 +142,11 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   const handleGenerateAutoFeedback = () => {
     const missing = getMissingSteps();
     if (missing.length === 0) {
-      setFeedbackMessage('All items complete! ✅');
+      setFeedbackMessage(`${editedDropNumber}: All items complete! ✅`);
       return;
     }
 
-    const message = `${editedDropNumber} is incomplete. Missing: ${missing.join(', ')}`;
+    const message = `${editedDropNumber}: Missing ${missing.join(', ')}`;
     setFeedbackMessage(message);
   };
 
