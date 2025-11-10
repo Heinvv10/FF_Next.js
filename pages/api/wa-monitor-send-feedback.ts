@@ -71,7 +71,7 @@ async function sendWhatsAppMessage(
   message: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const response = await fetch('http://localhost:8080/send-message', {
+    const response = await fetch('http://localhost:8081/send-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
