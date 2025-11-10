@@ -258,6 +258,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       total: dailyDrops.length,
       message,
       date: new Date().toISOString().split('T')[0],
+      projects: dailyDrops, // Include project details for email
     });
 
   } catch (error: any) {

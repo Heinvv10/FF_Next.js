@@ -128,6 +128,36 @@ function generateEmailHTML(data) {
   const statusColor = data.status === 'success' ? '#10b981' : data.status === 'partial' ? '#f59e0b' : '#ef4444';
   const statusText = data.status === 'success' ? 'Success' : data.status === 'partial' ? 'Partial Success' : 'Failed';
 
+  // Generate project summary table
+  let projectsHTML = '';
+  if (data.projects && data.projects.length > 0) {
+    projectsHTML = `
+      <div style="margin-top: 24px;">
+        <h3 style="margin: 0 0 12px 0; font-size: 16px; color: #111827;">Projects Synced to SharePoint</h3>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden;">
+          <thead>
+            <tr style="background-color: #f9fafb;">
+              <th style="padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Project</th>
+              <th style="padding: 12px; text-align: right; font-size: 12px; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Drops</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.projects.map((project, index) => `
+              <tr style="background-color: ${index % 2 === 0 ? '#ffffff' : '#f9fafb'};">
+                <td style="padding: 12px; font-size: 14px; color: #111827; border-bottom: ${index === data.projects.length - 1 ? 'none' : '1px solid #e5e7eb'};">${project.project}</td>
+                <td style="padding: 12px; text-align: right; font-size: 14px; font-weight: 600; color: #111827; border-bottom: ${index === data.projects.length - 1 ? 'none' : '1px solid #e5e7eb'};">${project.count}</td>
+              </tr>
+            `).join('')}
+            <tr style="background-color: #f0fdf4;">
+              <td style="padding: 12px; font-size: 14px; font-weight: 700; color: #166534;">Total</td>
+              <td style="padding: 12px; text-align: right; font-size: 14px; font-weight: 700; color: #166534;">${data.projects.reduce((sum, p) => sum + p.count, 0)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
   return `
 <!DOCTYPE html>
 <html>
@@ -173,13 +203,17 @@ function generateEmailHTML(data) {
                 </tr>
               </table>
               ${data.duration ? `<p style="margin: 16px 0 0 0; font-size: 14px; color: #6b7280;"><strong>Duration:</strong> ${data.duration}</p>` : ''}
+              ${projectsHTML}
               ${data.error ? `<div style="margin-top: 16px; padding: 16px; background-color: #fef2f2; border-radius: 6px; border-left: 4px solid #ef4444;"><p style="margin: 0; font-size: 13px; color: #7f1d1d;">${data.error}</p></div>` : ''}
             </td>
           </tr>
           <tr>
             <td style="padding: 32px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px;">
+              <p style="margin: 0 0 12px 0; font-size: 12px; color: #6b7280; text-align: center;">
+                <a href="https://blitzfibre.sharepoint.com/:x:/s/Velocity_Manco/EYm7g0w6Y1dFgGB_m4YlBxgBeVJpoDXAYjdvK-ZfgHoOqA" style="color: #2563eb; text-decoration: none; font-weight: 600;">📊 View SharePoint (NeonDbase Sheet)</a>
+              </p>
               <p style="margin: 0; font-size: 12px; color: #6b7280; text-align: center;">
-                FibreFlow WA Monitor | <a href="https://app.fibreflow.app/wa-monitor" style="color: #2563eb;">View Dashboard</a>
+                <a href="https://app.fibreflow.app/wa-monitor" style="color: #2563eb; text-decoration: none;">📈 View FibreFlow Dashboard</a>
               </p>
             </td>
           </tr>
@@ -215,11 +249,23 @@ Statistics:
     text += `\nDuration: ${data.duration}`;
   }
 
+  // Add project details
+  if (data.projects && data.projects.length > 0) {
+    text += `\n\nProjects Synced to SharePoint:\n`;
+    data.projects.forEach(project => {
+      text += `- ${project.project}: ${project.count} drops\n`;
+    });
+    const totalDrops = data.projects.reduce((sum, p) => sum + p.count, 0);
+    text += `\nTotal Drops: ${totalDrops}`;
+  }
+
   if (data.error) {
     text += `\n\nError Details:\n${data.error}`;
   }
 
-  text += `\n\nView Dashboard: https://app.fibreflow.app/wa-monitor`;
+  text += `\n\nLinks:`;
+  text += `\n📊 SharePoint: https://blitzfibre.sharepoint.com/:x:/s/Velocity_Manco/EYm7g0w6Y1dFgGB_m4YlBxgBeVJpoDXAYjdvK-ZfgHoOqA`;
+  text += `\n📈 Dashboard: https://app.fibreflow.app/wa-monitor`;
 
   return text.trim();
 }
@@ -320,6 +366,7 @@ async function main() {
         total,
         message: data.message || 'Sync completed',
         duration,
+        projects: data.projects || [], // Include project details
       };
 
       // Send email notification
