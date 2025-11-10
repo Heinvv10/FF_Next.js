@@ -77,7 +77,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         RETURNING *
       `;
 
-      const [updatedDrop] = await sql.unsafe(query, values);
+      const result = await sql.unsafe(query, values);
+      const updatedDrop = Array.isArray(result) ? result[0] : result;
 
       return res.status(200).json({
         success: true,

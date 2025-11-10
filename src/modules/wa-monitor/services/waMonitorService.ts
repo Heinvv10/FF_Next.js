@@ -116,14 +116,44 @@ export async function getDropsByStatus(status: 'incomplete' | 'complete'): Promi
 
 /**
  * Calculate summary statistics for all drops
+ * Complete = All 12 QA checklist steps are TRUE
+ * Incomplete = Any of the 12 QA checklist steps is FALSE
  */
 export async function calculateSummary(): Promise<WaMonitorSummary> {
   try {
     const [stats] = await sql`
       SELECT
         COUNT(*) as total,
-        COUNT(CASE WHEN incomplete = true THEN 1 END) as incomplete,
-        COUNT(CASE WHEN completed = true THEN 1 END) as complete,
+        COUNT(CASE
+          WHEN step_01_house_photo = true
+            AND step_02_cable_from_pole = true
+            AND step_03_cable_entry_outside = true
+            AND step_04_cable_entry_inside = true
+            AND step_05_wall_for_installation = true
+            AND step_06_ont_back_after_install = true
+            AND step_07_power_meter_reading = true
+            AND step_08_ont_barcode = true
+            AND step_09_ups_serial = true
+            AND step_10_final_installation = true
+            AND step_11_green_lights = true
+            AND step_12_customer_signature = true
+          THEN 1
+        END) as complete,
+        COUNT(CASE
+          WHEN step_01_house_photo = false
+            OR step_02_cable_from_pole = false
+            OR step_03_cable_entry_outside = false
+            OR step_04_cable_entry_inside = false
+            OR step_05_wall_for_installation = false
+            OR step_06_ont_back_after_install = false
+            OR step_07_power_meter_reading = false
+            OR step_08_ont_barcode = false
+            OR step_09_ups_serial = false
+            OR step_10_final_installation = false
+            OR step_11_green_lights = false
+            OR step_12_customer_signature = false
+          THEN 1
+        END) as incomplete,
         COALESCE(AVG(completed_photos), 0) as "avgCompletedPhotos",
         COALESCE(SUM(CASE WHEN feedback_sent IS NOT NULL THEN 1 ELSE 0 END), 0) as "totalFeedbackSent"
       FROM qa_photo_reviews
