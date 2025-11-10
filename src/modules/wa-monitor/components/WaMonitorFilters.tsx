@@ -111,7 +111,6 @@ export function WaMonitorFilters({ onFilterChange, totalCount, filteredCount, av
             InputLabelProps={{
               shrink: true,
             }}
-            helperText="Show drops from this date forward"
           />
 
           {/* Filter by Status */}
