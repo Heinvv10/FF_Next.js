@@ -47,13 +47,13 @@ interface QAReview {
   step_02_cable_from_pole: boolean;
   step_03_cable_entry_outside: boolean;
   step_04_cable_entry_inside: boolean;
-  step_05_fibre_to_ont: boolean;
-  step_06_ont_installation: boolean;
-  step_07_splitter_installation: boolean;
-  step_08_work_area_clean: boolean;
-  step_09_ont_barcode: boolean;
-  step_10_router_barcode: boolean;
-  step_11_speed_test: boolean;
+  step_05_wall_for_installation: boolean;
+  step_06_ont_back_after_install: boolean;
+  step_07_power_meter_reading: boolean;
+  step_08_ont_barcode: boolean;
+  step_09_ups_serial: boolean;
+  step_10_final_installation: boolean;
+  step_11_green_lights: boolean;
   step_12_customer_signature: boolean;
 }
 
@@ -117,13 +117,13 @@ function formatQAChecklist(review: QAReview, customMessage: string): string {
     { label: 'Cable from pole', value: review.step_02_cable_from_pole },
     { label: 'Cable entry (outside)', value: review.step_03_cable_entry_outside },
     { label: 'Cable entry (inside)', value: review.step_04_cable_entry_inside },
-    { label: 'Fibre to ONT', value: review.step_05_fibre_to_ont },
-    { label: 'ONT installation', value: review.step_06_ont_installation },
-    { label: 'Splitter installation', value: review.step_07_splitter_installation },
-    { label: 'Work area clean', value: review.step_08_work_area_clean },
-    { label: 'ONT barcode', value: review.step_09_ont_barcode },
-    { label: 'Router barcode', value: review.step_10_router_barcode },
-    { label: 'Speed test', value: review.step_11_speed_test },
+    { label: 'Wall for installation', value: review.step_05_wall_for_installation },
+    { label: 'ONT back after install', value: review.step_06_ont_back_after_install },
+    { label: 'Power meter reading', value: review.step_07_power_meter_reading },
+    { label: 'ONT barcode', value: review.step_08_ont_barcode },
+    { label: 'UPS serial', value: review.step_09_ups_serial },
+    { label: 'Final installation', value: review.step_10_final_installation },
+    { label: 'Green lights', value: review.step_11_green_lights },
     { label: 'Customer signature', value: review.step_12_customer_signature },
   ];
 
@@ -189,13 +189,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         step_02_cable_from_pole,
         step_03_cable_entry_outside,
         step_04_cable_entry_inside,
-        step_05_fibre_to_ont,
-        step_06_ont_installation,
-        step_07_splitter_installation,
-        step_08_work_area_clean,
-        step_09_ont_barcode,
-        step_10_router_barcode,
-        step_11_speed_test,
+        step_05_wall_for_installation,
+        step_06_ont_back_after_install,
+        step_07_power_meter_reading,
+        step_08_ont_barcode,
+        step_09_ups_serial,
+        step_10_final_installation,
+        step_11_green_lights,
         step_12_customer_signature
       FROM qa_photo_reviews
       WHERE id = ${dropId}
