@@ -8,3 +8,4 @@ export { WaMonitorGrid } from './WaMonitorGrid';
 export { DropStatusBadge } from './DropStatusBadge';
 export { QaReviewCard } from './QaReviewCard';
 export { WaMonitorFilters } from './WaMonitorFilters';
+export { SystemHealthPanel } from './SystemHealthPanel';
