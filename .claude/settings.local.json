@@ -75,7 +75,8 @@
       "Bash(ssh root@72.60.17.245 \"date\")",
       "Bash(git reset:*)",
       "Bash(git restore:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cat /opt/velo-test-monitor/services/whatsapp-bridge/main.go | grep -A 20 ''''saveMessageToDB''''\")"
     ],
     "deny": [],
     "ask": [],

@@ -25,6 +25,10 @@ const PROJECT_GROUPS: Record<string, { jid: string; name: string }> = {
   'Mohadin': {
     jid: '120363421532174586@g.us',
     name: 'Mohadin Activations 🥳'
+  },
+  'Mamelodi': {
+    jid: '120363408849234743@g.us',
+    name: 'Mamelodi POP1 Activations'
   }
 };
 
@@ -35,27 +39,47 @@ interface SendFeedbackRequest {
   project?: string;
 }
 
+interface QAReview {
+  drop_number: string;
+  submitted_by: string | null;
+  project: string;
+  step_01_house_photo: boolean;
+  step_02_cable_from_pole: boolean;
+  step_03_cable_entry_outside: boolean;
+  step_04_cable_entry_inside: boolean;
+  step_05_fibre_to_ont: boolean;
+  step_06_ont_installation: boolean;
+  step_07_splitter_installation: boolean;
+  step_08_work_area_clean: boolean;
+  step_09_ont_barcode: boolean;
+  step_10_router_barcode: boolean;
+  step_11_speed_test: boolean;
+  step_12_customer_signature: boolean;
+}
+
 interface WhatsAppApiResponse {
   success: boolean;
   message?: string;
 }
 
 /**
- * Send message to WhatsApp group via Bridge API
+ * Send message to WhatsApp group via Bridge API with mention
  */
-async function sendWhatsAppMessage(recipient: string, message: string, dropNumber: string): Promise<{ success: boolean; message: string }> {
+async function sendWhatsAppMessage(
+  groupJID: string,
+  recipientJID: string,
+  message: string
+): Promise<{ success: boolean; message: string }> {
   try {
-    // Add FF App header with drop number to make it clear the message is from the app
-    const formattedMessage = `🤖 *[FF App - ${dropNumber} Feedback]*\n\n${message}`;
-
-    const response = await fetch(`${WHATSAPP_BRIDGE_URL}/send`, {
+    const response = await fetch('http://localhost:8080/send-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        recipient,
-        message: formattedMessage,
+        group_jid: groupJID,
+        recipient_jid: recipientJID,
+        message: message,
       }),
     });
 
@@ -82,6 +106,48 @@ async function sendWhatsAppMessage(recipient: string, message: string, dropNumbe
 }
 
 /**
+ * Format QA checklist for WhatsApp message
+ */
+function formatQAChecklist(review: QAReview, customMessage: string): string {
+  const checkmark = '✓';
+  const cross = '✗';
+
+  const steps = [
+    { label: 'House photo', value: review.step_01_house_photo },
+    { label: 'Cable from pole', value: review.step_02_cable_from_pole },
+    { label: 'Cable entry (outside)', value: review.step_03_cable_entry_outside },
+    { label: 'Cable entry (inside)', value: review.step_04_cable_entry_inside },
+    { label: 'Fibre to ONT', value: review.step_05_fibre_to_ont },
+    { label: 'ONT installation', value: review.step_06_ont_installation },
+    { label: 'Splitter installation', value: review.step_07_splitter_installation },
+    { label: 'Work area clean', value: review.step_08_work_area_clean },
+    { label: 'ONT barcode', value: review.step_09_ont_barcode },
+    { label: 'Router barcode', value: review.step_10_router_barcode },
+    { label: 'Speed test', value: review.step_11_speed_test },
+    { label: 'Customer signature', value: review.step_12_customer_signature },
+  ];
+
+  const allPassed = steps.every(step => step.value);
+  const statusEmoji = allPassed ? '✅' : '❌';
+  const statusText = allPassed ? 'APPROVED' : 'REJECTED';
+
+  let message = `${statusEmoji} ${review.drop_number} ${statusText}\n`;
+
+  // Add checklist
+  for (const step of steps) {
+    const symbol = step.value ? checkmark : cross;
+    message += `${symbol} ${step.label}\n`;
+  }
+
+  // Add custom message if provided
+  if (customMessage && customMessage.trim()) {
+    message += `\n${customMessage.trim()}`;
+  }
+
+  return message;
+}
+
+/**
  * Update feedback_sent timestamp in database
  */
 async function updateFeedbackSentTimestamp(dropId: string): Promise<void> {
@@ -103,24 +169,77 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { dropId, dropNumber, message, project }: SendFeedbackRequest = req.body;
+    const { dropId, message }: SendFeedbackRequest = req.body;
 
     // Validation
-    if (!dropId || !dropNumber || !message) {
+    if (!dropId) {
       return res.status(400).json({
         success: false,
-        error: { message: 'Missing required fields: dropId, dropNumber, message' }
+        error: { message: 'Missing required field: dropId' }
       });
     }
 
-    // Determine WhatsApp group (default to Velo Test for testing)
-    const targetProject = project || 'Velo Test';
-    const groupConfig = PROJECT_GROUPS[targetProject] || PROJECT_GROUPS['Velo Test'];
+    // 1. Get drop details from database
+    const drops = await sql<QAReview[]>`
+      SELECT
+        drop_number,
+        submitted_by,
+        project,
+        step_01_house_photo,
+        step_02_cable_from_pole,
+        step_03_cable_entry_outside,
+        step_04_cable_entry_inside,
+        step_05_fibre_to_ont,
+        step_06_ont_installation,
+        step_07_splitter_installation,
+        step_08_work_area_clean,
+        step_09_ont_barcode,
+        step_10_router_barcode,
+        step_11_speed_test,
+        step_12_customer_signature
+      FROM qa_photo_reviews
+      WHERE id = ${dropId}
+      LIMIT 1
+    `;
 
-    console.log(`📤 Sending feedback for ${dropNumber} to ${groupConfig.name} (${groupConfig.jid})`);
+    if (drops.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Drop not found' }
+      });
+    }
 
-    // Send to WhatsApp
-    const whatsappResult = await sendWhatsAppMessage(groupConfig.jid, message, dropNumber);
+    const drop = drops[0];
+
+    // 2. Validate we have sender info
+    if (!drop.submitted_by) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Drop does not have sender information. This drop was created before the feedback feature was added.' }
+      });
+    }
+
+    // 3. Get group JID for project
+    const groupConfig = PROJECT_GROUPS[drop.project];
+    if (!groupConfig) {
+      return res.status(400).json({
+        success: false,
+        error: { message: `Unknown project: ${drop.project}. Cannot determine WhatsApp group.` }
+      });
+    }
+
+    console.log(`📤 Sending feedback for ${drop.drop_number} to ${groupConfig.name} (${groupConfig.jid})`);
+    console.log(`   Mentioning: ${drop.submitted_by}`);
+
+    // 4. Format feedback message with checklist
+    const feedbackMessage = formatQAChecklist(drop, message || '');
+
+    // 5. Send to WhatsApp with mention
+    const whatsappResult = await sendWhatsAppMessage(
+      groupConfig.jid,
+      drop.submitted_by,
+      feedbackMessage
+    );
 
     if (!whatsappResult.success) {
       return res.status(500).json({
@@ -132,17 +251,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Update database with feedback_sent timestamp
+    // 6. Update database with feedback_sent timestamp
     await updateFeedbackSentTimestamp(dropId);
 
-    console.log(`✅ Feedback sent successfully for ${dropNumber}`);
+    console.log(`✅ Feedback sent successfully for ${drop.drop_number}`);
 
     return res.status(200).json({
       success: true,
       data: {
-        dropNumber,
-        project: targetProject,
+        dropNumber: drop.drop_number,
+        project: drop.project,
         group: groupConfig.name,
+        recipient: drop.submitted_by,
         sentAt: new Date().toISOString()
       },
       message: `Feedback sent to ${groupConfig.name}`

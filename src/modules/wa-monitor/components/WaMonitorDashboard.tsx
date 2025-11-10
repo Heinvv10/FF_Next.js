@@ -25,7 +25,7 @@ export function WaMonitorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-  const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '', resubmitted: 'all', project: undefined });
+  const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '', resubmitted: 'all', project: undefined, dateFrom: undefined });
   const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch data function
@@ -152,6 +152,19 @@ export function WaMonitorDashboard() {
   // Filter drops based on current filters
   const filteredDrops = useMemo(() => {
     return drops.filter((drop) => {
+      // Filter by date from (inclusive)
+      if (filters.dateFrom) {
+        const dropDate = new Date(drop.createdAt);
+        const filterDate = new Date(filters.dateFrom);
+        // Set time to start of day for accurate comparison
+        dropDate.setHours(0, 0, 0, 0);
+        filterDate.setHours(0, 0, 0, 0);
+
+        if (dropDate < filterDate) {
+          return false;
+        }
+      }
+
       // Filter by status
       if (filters.status !== 'all' && drop.status !== filters.status) {
         return false;
@@ -183,6 +196,21 @@ export function WaMonitorDashboard() {
       return true;
     });
   }, [drops, filters]);
+
+  // Calculate summary stats from filtered drops
+  const calculatedSummary = useMemo<WaMonitorSummary>(() => {
+    const total = filteredDrops.length;
+    const incomplete = filteredDrops.filter(d => d.incomplete).length;
+    const complete = filteredDrops.filter(d => d.complete).length;
+    const totalFeedback = filteredDrops.filter(d => d.feedbackSent !== null).length;
+
+    return {
+      total,
+      incomplete,
+      complete,
+      totalFeedback
+    };
+  }, [filteredDrops]);
 
   // Paginate filtered drops
   const paginatedDrops = useMemo(() => {
@@ -250,59 +278,62 @@ export function WaMonitorDashboard() {
         </Alert>
       )}
 
-      {/* Summary Cards */}
-      {summary && (
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom variant="body2">
-                  Total Drops
+      {/* Summary Cards - Now showing filtered totals */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom variant="body2">
+                Total Drops
+              </Typography>
+              <Typography variant="h4" component="div">
+                {calculatedSummary.total}
+              </Typography>
+              {filters.dateFrom && (
+                <Typography variant="caption" color="textSecondary">
+                  From {new Date(filters.dateFrom).toLocaleDateString()}
                 </Typography>
-                <Typography variant="h4" component="div">
-                  {summary.total}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom variant="body2">
-                  Incomplete
-                </Typography>
-                <Typography variant="h4" component="div" color="error">
-                  {summary.incomplete}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom variant="body2">
-                  Complete
-                </Typography>
-                <Typography variant="h4" component="div" color="success.main">
-                  {summary.complete}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom variant="body2">
-                  Total Feedback
-                </Typography>
-                <Typography variant="h4" component="div">
-                  {summary.totalFeedback}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+              )}
+            </CardContent>
+          </Card>
         </Grid>
-      )}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom variant="body2">
+                Incomplete
+              </Typography>
+              <Typography variant="h4" component="div" color="error">
+                {calculatedSummary.incomplete}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom variant="body2">
+                Complete
+              </Typography>
+              <Typography variant="h4" component="div" color="success.main">
+                {calculatedSummary.complete}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom variant="body2">
+                Total Feedback
+              </Typography>
+              <Typography variant="h4" component="div">
+                {calculatedSummary.totalFeedback}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Daily Drops Per Project */}
       {dailyDrops && dailyDrops.drops.length > 0 && (
