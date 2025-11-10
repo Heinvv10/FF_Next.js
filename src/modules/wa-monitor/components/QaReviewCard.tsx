@@ -249,11 +249,13 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   const handleGenerateAutoFeedback = () => {
     const missing = getMissingSteps();
     if (missing.length === 0) {
-      setFeedbackMessage(`${editedDropNumber}: All items complete! ✅`);
+      // All steps complete - generate approval message with drop number
+      setFeedbackMessage(`${editedDropNumber} - All items complete! ✅ Approved for activation.`);
       return;
     }
 
-    const message = `${editedDropNumber}: Missing ${missing.join(', ')}`;
+    // Some steps missing - generate feedback with drop number
+    const message = `${editedDropNumber} - Missing: ${missing.join(', ')}`;
     setFeedbackMessage(message);
   };
 

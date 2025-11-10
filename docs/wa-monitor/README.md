@@ -73,6 +73,12 @@ Complete documentation for the WhatsApp Monitor system that tracks QA photo revi
   - Historical batch processing issues
 
 ### Troubleshooting
+- **[Device Lock Tracking](WA_MONITOR_DEVICE_LOCK_TRACKING.md)** ⭐ NEW (Nov 10, 2025)
+  - Track WhatsApp device lock status
+  - Pairing attempt history
+  - When to retry pairing
+  - Dev bridge status for +27 72 766 5862
+
 - **[Pairing Troubleshooting](WA_MONITOR_PAIRING_TROUBLESHOOTING.md)**
   - WhatsApp pairing issues
   - Connection problems
@@ -209,6 +215,7 @@ tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log | grep "Velo Test"
 | Dual-Monitoring | 2.0 | Nov 9, 2025 |
 | Refactoring Design | 2.0 | Nov 9, 2025 |
 | Lessons Learned | 1.0 | Nov 9, 2025 |
+| Device Lock Tracking | 1.0 | Nov 10, 2025 |
 
 ---
 
