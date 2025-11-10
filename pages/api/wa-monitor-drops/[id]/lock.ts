@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         FROM qa_photo_reviews
         WHERE id = ${id}
           AND locked_by IS NOT NULL
-          AND locked_at > NOW() - INTERVAL '${LOCK_TIMEOUT_MINUTES} minutes'
+          AND locked_at > NOW() - INTERVAL '5 minutes'
       `;
 
       if (existingLock) {
