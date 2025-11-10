@@ -63,24 +63,32 @@ interface WhatsAppApiResponse {
 }
 
 /**
- * Send message to WhatsApp group via Bridge API with mention
+ * Send message to WhatsApp group via Bridge API with optional mention
+ * If recipientJID is null/empty, sends without @mention
  */
 async function sendWhatsAppMessage(
   groupJID: string,
-  recipientJID: string,
+  recipientJID: string | null,
   message: string
 ): Promise<{ success: boolean; message: string }> {
   try {
+    // Build request body - only include recipient_jid if we have sender info
+    const requestBody: any = {
+      group_jid: groupJID,
+      message: message,
+    };
+
+    // Only add recipient_jid if we have valid sender info (for @mention)
+    if (recipientJID && recipientJID.trim() !== '' && recipientJID !== 'Unknown') {
+      requestBody.recipient_jid = recipientJID;
+    }
+
     const response = await fetch('http://localhost:8081/send-message', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        group_jid: groupJID,
-        recipient_jid: recipientJID,
-        message: message,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -210,15 +218,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const drop = drops[0];
 
-    // 2. Validate we have sender info
-    if (!drop.submitted_by) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'Drop does not have sender information. This drop was created before the feedback feature was added.' }
-      });
-    }
-
-    // 3. Get group JID for project
+    // 2. Get group JID for project
     const groupConfig = PROJECT_GROUPS[drop.project];
     if (!groupConfig) {
       return res.status(400).json({
@@ -228,12 +228,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     console.log(`📤 Sending feedback for ${drop.drop_number} to ${groupConfig.name} (${groupConfig.jid})`);
-    console.log(`   Mentioning: ${drop.submitted_by}`);
 
-    // 4. Format feedback message with checklist
+    // Log mention status
+    if (drop.submitted_by && drop.submitted_by.trim() !== '' && drop.submitted_by !== 'Unknown') {
+      console.log(`   With @mention: ${drop.submitted_by}`);
+    } else {
+      console.log(`   Without @mention (no sender info - manually added drop)`);
+    }
+
+    // 3. Format feedback message with checklist
     const feedbackMessage = formatQAChecklist(drop, message || '');
 
-    // 5. Send to WhatsApp with mention
+    // 4. Send to WhatsApp (with or without mention depending on sender info)
     const whatsappResult = await sendWhatsAppMessage(
       groupConfig.jid,
       drop.submitted_by,
