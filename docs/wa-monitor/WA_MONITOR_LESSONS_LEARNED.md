@@ -32,6 +32,55 @@ Someone recompiled the WhatsApp bridge on Nov 9 at 1:17 PM with old source code 
 
 ---
 
+### November 10, 2025: Timezone Fix (SAST Timestamps)
+
+**Date:** November 10, 2025 (09:45 AM SAST)
+**Issue:** All WhatsApp QA comments showed UTC timestamps instead of South African time
+**User Impact:** 2-hour time difference caused confusion for QA reviewers
+
+#### The Problem
+- VPS server timezone was set to UTC
+- Go code used `time.Now()` without explicit timezone
+- Comments showed: `Auto-created from WhatsApp on 2025-11-10 07:37:59` (UTC)
+- Users expected: `Auto-created from WhatsApp on 2025-11-10 09:37:59 SAST`
+
+#### The Fix (Two-Part Solution)
+1. **Set VPS timezone to Africa/Johannesburg**
+   ```bash
+   sudo timedatectl set-timezone Africa/Johannesburg
+   ```
+   - Ensures ALL services use SAST by default
+
+2. **Update Go code to explicitly use SAST**
+   ```go
+   // Load South African timezone
+   loc, locErr := time.LoadLocation("Africa/Johannesburg")
+   if locErr != nil {
+       loc = time.UTC // Fallback
+   }
+   nowSAST := time.Now().In(loc)
+
+   // Use in comment
+   fmt.Sprintf("Auto-created from WhatsApp on %s SAST", nowSAST.Format("2006-01-02 15:04:05"))
+   ```
+
+#### Key Lessons
+1. **Two-Layer Timezone Strategy:** Set BOTH system timezone AND explicit timezone in code
+2. **Add Timezone Suffix:** Always include "SAST" in user-facing timestamps for clarity
+3. **Database vs Display:** Store in UTC (database), display in SAST (users)
+4. **Explicit is Better:** Don't rely on system timezone - load explicitly in code
+5. **Test with Real Data:** Verified with DR0000021 - timestamp matched perfectly
+
+#### Results
+- ✅ All timestamps now show SAST with clear suffix
+- ✅ VPS timezone permanently set to Africa/Johannesburg
+- ✅ Bridge logs show "+0200 SAST"
+- ✅ Tested with DR0000021: `Auto-created from WhatsApp on 2025-11-10 10:05:47 SAST`
+
+**Full Documentation:** See `WA_MONITOR_TIMEZONE_FIX_NOV2025.md`
+
+---
+
 ### November 9, 2025: Adding Mamelodi Project (4 Hours)
 
 **Task:** Add Mamelodi POP1 Activations group to WA Monitor
