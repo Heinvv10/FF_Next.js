@@ -43,10 +43,10 @@ interface WhatsAppApiResponse {
 /**
  * Send message to WhatsApp group via Bridge API
  */
-async function sendWhatsAppMessage(recipient: string, message: string): Promise<{ success: boolean; message: string }> {
+async function sendWhatsAppMessage(recipient: string, message: string, dropNumber: string): Promise<{ success: boolean; message: string }> {
   try {
-    // Add FF App header to make it clear the message is from the app
-    const formattedMessage = `🤖 *[FF App - QA Feedback]*\n\n${message}`;
+    // Add FF App header with drop number to make it clear the message is from the app
+    const formattedMessage = `🤖 *[FF App - ${dropNumber} Feedback]*\n\n${message}`;
 
     const response = await fetch(`${WHATSAPP_BRIDGE_URL}/send`, {
       method: 'POST',
@@ -120,7 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log(`📤 Sending feedback for ${dropNumber} to ${groupConfig.name} (${groupConfig.jid})`);
 
     // Send to WhatsApp
-    const whatsappResult = await sendWhatsAppMessage(groupConfig.jid, message);
+    const whatsappResult = await sendWhatsAppMessage(groupConfig.jid, message, dropNumber);
 
     if (!whatsappResult.success) {
       return res.status(500).json({
