@@ -25,7 +25,7 @@ export function WaMonitorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-  const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '', resubmitted: 'all' });
+  const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '', resubmitted: 'all', project: undefined });
   const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch data function
@@ -119,6 +119,14 @@ export function WaMonitorDashboard() {
     }
   };
 
+  // Get unique projects from drops
+  const availableProjects = useMemo(() => {
+    const projects = drops
+      .map((drop) => drop.project)
+      .filter((project): project is string => project !== null && project !== undefined && project !== '');
+    return Array.from(new Set(projects)).sort();
+  }, [drops]);
+
   // Filter drops based on current filters
   const filteredDrops = useMemo(() => {
     return drops.filter((drop) => {
@@ -133,6 +141,13 @@ export function WaMonitorDashboard() {
           return false;
         }
         if (filters.resubmitted === 'not_resubmitted' && drop.resubmitted) {
+          return false;
+        }
+      }
+
+      // Filter by project
+      if (filters.project && filters.project !== 'all') {
+        if (drop.project !== filters.project) {
           return false;
         }
       }
@@ -335,6 +350,7 @@ export function WaMonitorDashboard() {
           onFilterChange={handleFilterChange}
           totalCount={drops.length}
           filteredCount={filteredDrops.length}
+          availableProjects={availableProjects}
         />
       )}
 

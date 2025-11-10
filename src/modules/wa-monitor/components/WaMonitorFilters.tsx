@@ -26,42 +26,51 @@ interface WaMonitorFiltersProps {
   onFilterChange: (filters: FilterState) => void;
   totalCount: number;
   filteredCount: number;
+  availableProjects: string[];
 }
 
 export interface FilterState {
   status: DropStatus | 'all';
   searchTerm: string;
   resubmitted?: 'all' | 'resubmitted' | 'not_resubmitted';
+  project?: string;
 }
 
-export function WaMonitorFilters({ onFilterChange, totalCount, filteredCount }: WaMonitorFiltersProps) {
+export function WaMonitorFilters({ onFilterChange, totalCount, filteredCount, availableProjects }: WaMonitorFiltersProps) {
   const [status, setStatus] = useState<DropStatus | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [resubmitted, setResubmitted] = useState<'all' | 'resubmitted' | 'not_resubmitted'>('all');
+  const [project, setProject] = useState<string>('all');
 
   const handleStatusChange = (newStatus: DropStatus | 'all') => {
     setStatus(newStatus);
-    onFilterChange({ status: newStatus, searchTerm, resubmitted });
+    onFilterChange({ status: newStatus, searchTerm, resubmitted, project: project !== 'all' ? project : undefined });
   };
 
   const handleSearchChange = (newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
-    onFilterChange({ status, searchTerm: newSearchTerm, resubmitted });
+    onFilterChange({ status, searchTerm: newSearchTerm, resubmitted, project: project !== 'all' ? project : undefined });
   };
 
   const handleResubmittedChange = (newResubmitted: 'all' | 'resubmitted' | 'not_resubmitted') => {
     setResubmitted(newResubmitted);
-    onFilterChange({ status, searchTerm, resubmitted: newResubmitted });
+    onFilterChange({ status, searchTerm, resubmitted: newResubmitted, project: project !== 'all' ? project : undefined });
+  };
+
+  const handleProjectChange = (newProject: string) => {
+    setProject(newProject);
+    onFilterChange({ status, searchTerm, resubmitted, project: newProject !== 'all' ? newProject : undefined });
   };
 
   const handleClearFilters = () => {
     setStatus('all');
     setSearchTerm('');
     setResubmitted('all');
-    onFilterChange({ status: 'all', searchTerm: '', resubmitted: 'all' });
+    setProject('all');
+    onFilterChange({ status: 'all', searchTerm: '', resubmitted: 'all', project: undefined });
   };
 
-  const hasActiveFilters = status !== 'all' || searchTerm !== '' || resubmitted !== 'all';
+  const hasActiveFilters = status !== 'all' || searchTerm !== '' || resubmitted !== 'all' || project !== 'all';
 
   return (
     <Card sx={{ mb: 3 }}>
@@ -108,6 +117,23 @@ export function WaMonitorFilters({ onFilterChange, totalCount, filteredCount }: 
               <MenuItem value="all">All Drops</MenuItem>
               <MenuItem value="resubmitted">🔄 Resubmitted Only</MenuItem>
               <MenuItem value="not_resubmitted">New Drops Only</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Filter by Project */}
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel>Project</InputLabel>
+            <Select
+              value={project}
+              label="Project"
+              onChange={(e) => handleProjectChange(e.target.value)}
+            >
+              <MenuItem value="all">All Projects</MenuItem>
+              {availableProjects.map((proj) => (
+                <MenuItem key={proj} value={proj}>
+                  {proj}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
 

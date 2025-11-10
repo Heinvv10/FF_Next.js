@@ -207,14 +207,30 @@ export async function getDailyDropsPerProject(): Promise<Array<{ date: string; p
  * Transform database row to QaReviewDrop object
  * Handles date parsing and type conversion
  * Maps qa_photo_reviews table to QaReviewDrop interface
+ * Status is calculated from the 12 QA checklist steps
  */
 function transformDbRowToDrop(row: any): QaReviewDrop {
-  // Determine status based on incomplete/completed flags
-  const status: 'incomplete' | 'complete' = row.incomplete
-    ? 'incomplete'
-    : row.completed
-      ? 'complete'
-      : 'incomplete'; // default to incomplete if neither flag is set
+  // Parse all 12 QA steps
+  const step_01 = row.step_01_house_photo || false;
+  const step_02 = row.step_02_cable_from_pole || false;
+  const step_03 = row.step_03_cable_entry_outside || false;
+  const step_04 = row.step_04_cable_entry_inside || false;
+  const step_05 = row.step_05_wall_for_installation || false;
+  const step_06 = row.step_06_ont_back_after_install || false;
+  const step_07 = row.step_07_power_meter_reading || false;
+  const step_08 = row.step_08_ont_barcode || false;
+  const step_09 = row.step_09_ups_serial || false;
+  const step_10 = row.step_10_final_installation || false;
+  const step_11 = row.step_11_green_lights || false;
+  const step_12 = row.step_12_customer_signature || false;
+
+  // Calculate status: Complete = ALL 12 steps are true
+  const allStepsComplete = step_01 && step_02 && step_03 && step_04 && step_05 && step_06 &&
+                           step_07 && step_08 && step_09 && step_10 && step_11 && step_12;
+
+  const status: 'incomplete' | 'complete' = allStepsComplete ? 'complete' : 'incomplete';
+  const completed = allStepsComplete;
+  const incomplete = !allStepsComplete;
 
   return {
     id: row.id,
@@ -230,24 +246,24 @@ function transformDbRowToDrop(row: any): QaReviewDrop {
     updatedAt: new Date(row.updatedAt),
     project: row.project || null,
     assignedAgent: row.assignedAgent || null,
-    completed: row.completed || false,
-    incomplete: row.incomplete || false,
+    completed,
+    incomplete,
     feedbackSent: row.feedbackSent ? new Date(row.feedbackSent) : null,
     senderPhone: row.senderPhone || null,
     resubmitted: row.resubmitted || false,
     // QA Steps (12 steps from WA Monitor)
-    step_01_house_photo: row.step_01_house_photo || false,
-    step_02_cable_from_pole: row.step_02_cable_from_pole || false,
-    step_03_cable_entry_outside: row.step_03_cable_entry_outside || false,
-    step_04_cable_entry_inside: row.step_04_cable_entry_inside || false,
-    step_05_wall_for_installation: row.step_05_wall_for_installation || false,
-    step_06_ont_back_after_install: row.step_06_ont_back_after_install || false,
-    step_07_power_meter_reading: row.step_07_power_meter_reading || false,
-    step_08_ont_barcode: row.step_08_ont_barcode || false,
-    step_09_ups_serial: row.step_09_ups_serial || false,
-    step_10_final_installation: row.step_10_final_installation || false,
-    step_11_green_lights: row.step_11_green_lights || false,
-    step_12_customer_signature: row.step_12_customer_signature || false,
+    step_01_house_photo: step_01,
+    step_02_cable_from_pole: step_02,
+    step_03_cable_entry_outside: step_03,
+    step_04_cable_entry_inside: step_04,
+    step_05_wall_for_installation: step_05,
+    step_06_ont_back_after_install: step_06,
+    step_07_power_meter_reading: step_07,
+    step_08_ont_barcode: step_08,
+    step_09_ups_serial: step_09,
+    step_10_final_installation: step_10,
+    step_11_green_lights: step_11,
+    step_12_customer_signature: step_12,
   };
 }
 

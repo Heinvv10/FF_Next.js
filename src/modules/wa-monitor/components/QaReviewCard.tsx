@@ -22,8 +22,10 @@ import {
   Typography,
   Divider,
   Alert,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import { CheckCircle, XCircle, Send, Save, AlertTriangle } from 'lucide-react';
+import { CheckCircle, XCircle, Send, Save, AlertTriangle, Edit2, X } from 'lucide-react';
 import type { QaReviewDrop, QaSteps } from '../types/wa-monitor.types';
 import { QA_STEP_LABELS } from '../types/wa-monitor.types';
 import { DropStatusBadge } from './DropStatusBadge';
@@ -55,6 +57,8 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [isEditingDropNumber, setIsEditingDropNumber] = useState(false);
+  const [editedDropNumber, setEditedDropNumber] = useState(drop.dropNumber);
 
   // Sync local state with props when drop data changes (e.g., after refresh)
   // This ensures the component shows the latest saved values from the database
@@ -74,6 +78,7 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
       step_12_customer_signature: drop.step_12_customer_signature,
     });
     setComment(drop.comment || '');
+    setEditedDropNumber(drop.dropNumber);
   }, [drop]);
 
   // Calculate progress
@@ -122,7 +127,8 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     try {
       setSending(true);
       // Send feedback with project info (defaults to Velo Test for testing)
-      await onSendFeedback(drop.id, drop.dropNumber, feedbackMessage, drop.project || undefined);
+      // Use editedDropNumber in case it was changed
+      await onSendFeedback(drop.id, editedDropNumber, feedbackMessage, drop.project || undefined);
       setFeedbackMessage('');
     } catch (error) {
       console.error('Error sending feedback:', error);
@@ -140,8 +146,34 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
       return;
     }
 
-    const message = `${drop.dropNumber} is incomplete. Missing: ${missing.join(', ')}`;
+    const message = `${editedDropNumber} is incomplete. Missing: ${missing.join(', ')}`;
     setFeedbackMessage(message);
+  };
+
+  // Handle drop number edit
+  const handleSaveDropNumber = async () => {
+    if (!editedDropNumber.trim()) {
+      alert('Drop number cannot be empty');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await onUpdate(drop.id, { dropNumber: editedDropNumber.trim() });
+      setIsEditingDropNumber(false);
+    } catch (error) {
+      console.error('Error saving drop number:', error);
+      alert('Failed to save drop number');
+      // Revert to original value
+      setEditedDropNumber(drop.dropNumber);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEditDropNumber = () => {
+    setEditedDropNumber(drop.dropNumber);
+    setIsEditingDropNumber(false);
   };
 
   return (
@@ -149,9 +181,55 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
       <CardHeader
         title={
           <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Typography variant="h6" fontWeight="bold">
-              {drop.dropNumber}
-            </Typography>
+            <Box display="flex" alignItems="center" gap={1}>
+              {isEditingDropNumber ? (
+                <>
+                  <TextField
+                    value={editedDropNumber}
+                    onChange={(e) => setEditedDropNumber(e.target.value)}
+                    size="small"
+                    variant="outlined"
+                    sx={{ width: '200px' }}
+                    autoFocus
+                  />
+                  <Tooltip title="Save">
+                    <IconButton
+                      size="small"
+                      color="success"
+                      onClick={handleSaveDropNumber}
+                      disabled={saving}
+                    >
+                      <Save size={16} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Cancel">
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={handleCancelEditDropNumber}
+                      disabled={saving}
+                    >
+                      <X size={16} />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              ) : (
+                <>
+                  <Typography variant="h6" fontWeight="bold">
+                    {editedDropNumber}
+                  </Typography>
+                  <Tooltip title="Edit drop number">
+                    <IconButton
+                      size="small"
+                      onClick={() => setIsEditingDropNumber(true)}
+                      sx={{ ml: 0.5 }}
+                    >
+                      <Edit2 size={16} />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
+            </Box>
             <Box display="flex" alignItems="center" gap={1}>
               {drop.resubmitted && (
                 <Chip
