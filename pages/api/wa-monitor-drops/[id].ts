@@ -82,10 +82,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         RETURNING *
       `;
 
-      console.log('[WA Monitor API] Executing UPDATE query:', { query, values });
-
-      const result = await sql(query, values);
-      console.log('[WA Monitor API] Query result:', result);
+      // Execute query using sql.query() for parameterized queries
+      const result = await sql.query(query, values);
 
       const updatedDrop = Array.isArray(result) ? result[0] : result;
 
