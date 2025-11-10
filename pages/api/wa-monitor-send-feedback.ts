@@ -109,8 +109,8 @@ async function sendWhatsAppMessage(
  * Format QA checklist for WhatsApp message
  */
 function formatQAChecklist(review: QAReview, customMessage: string): string {
-  const checkmark = '✓';
-  const cross = '✗';
+  const checkmark = '[OK]';
+  const cross = '[MISSING]';
 
   const steps = [
     { label: 'House photo', value: review.step_01_house_photo },
@@ -128,10 +128,9 @@ function formatQAChecklist(review: QAReview, customMessage: string): string {
   ];
 
   const allPassed = steps.every(step => step.value);
-  const statusEmoji = allPassed ? '✅' : '❌';
   const statusText = allPassed ? 'APPROVED' : 'REJECTED';
 
-  let message = `${statusEmoji} ${review.drop_number} ${statusText}\n`;
+  let message = `${review.drop_number} ${statusText}\n\n`;
 
   // Add checklist
   for (const step of steps) {
