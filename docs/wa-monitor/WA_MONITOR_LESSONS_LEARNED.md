@@ -1,11 +1,42 @@
-# WA Monitor: Lessons Learned from Adding Mamelodi Project
+# WA Monitor: Lessons Learned
 
-## Executive Summary
+## Recent Incidents
+
+### November 10, 2025: WhatsApp Bridge Failure (21 Hours Downtime)
+
+**Date:** November 10, 2025
+**Duration:** 21 hours (Nov 9, 1:17 PM → Nov 10, 7:34 AM)
+**Impact:** ALL WhatsApp drops failed to insert into database
+**Root Cause:** Overcomplicated INSERT statement + Wrong column names after recompilation
+
+#### The Problem
+Someone recompiled the WhatsApp bridge on Nov 9 at 1:17 PM with old source code that had:
+- Wrong column names (`step_01_property_frontage` instead of `step_01_house_photo`)
+- Overcomplicated INSERT trying to set all 12 QA step columns explicitly
+- Should have let database defaults handle the QA steps
+
+#### The Fix
+- Simplified INSERT from 14 columns to 5 columns
+- Database auto-fills 12 QA step columns (all have `DEFAULT false`)
+- Installed Go on VPS (`/usr/local/go/bin/go`)
+- Recompiled with corrected code
+- **Time to fix:** 45 minutes
+
+#### Key Lessons
+1. **Keep It Simple:** Bridge should ONLY insert drop number, let database handle defaults
+2. **Version Control:** Created backup of working code (`main.go.backup.20251110_073000`)
+3. **Test Before Deploy:** Always test INSERT statement manually before recompiling
+4. **Monitoring Needed:** Issue took 21 hours to detect - need alerts
+
+**Full Documentation:** See `WA_MONITOR_BRIDGE_FIX_NOV2025.md`
+
+---
+
+### November 9, 2025: Adding Mamelodi Project (4 Hours)
 
 **Task:** Add Mamelodi POP1 Activations group to WA Monitor
 **Expected Time:** 5 minutes
 **Actual Time:** 4 hours
-**Date:** November 9, 2025
 
 **Why it took 4 hours:** Configuration scattered across 7+ locations, multiple database connections, undocumented dependencies, and lack of clear process.
 
