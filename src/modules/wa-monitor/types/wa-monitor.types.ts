@@ -74,6 +74,8 @@ export interface QaReviewDrop extends QaSteps {
   feedbackSent: Date | null;
   senderPhone: string | null;
   resubmitted: boolean;
+  lockedBy: string | null;
+  lockedAt: Date | null;
 }
 
 /**

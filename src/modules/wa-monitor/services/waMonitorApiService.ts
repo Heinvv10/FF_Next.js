@@ -170,6 +170,80 @@ export async function sendFeedbackToWhatsApp(
   }
 }
 
+/**
+ * Lock a drop for editing
+ * Prevents other users from editing the same drop concurrently
+ * @param dropId - Database ID of the drop
+ * @param userName - Name of user requesting the lock
+ */
+export async function lockDrop(
+  dropId: string,
+  userName: string
+): Promise<{ locked: boolean; lockedBy: string; lockedAt: string; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE}/${dropId}/lock`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userName }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      // Handle conflict (locked by another user)
+      if (response.status === 409) {
+        return {
+          locked: false,
+          lockedBy: data.error?.lockedBy || 'Unknown user',
+          lockedAt: data.error?.lockedAt || new Date().toISOString(),
+          error: data.error?.message || 'Drop is locked by another user',
+        };
+      }
+
+      throw new Error(data.error?.message || 'Failed to lock drop');
+    }
+
+    return data.data;
+  } catch (error) {
+    console.error('Error locking drop:', error);
+    throw error instanceof Error ? error : new Error('Failed to lock drop');
+  }
+}
+
+/**
+ * Unlock a drop after editing
+ * Allows other users to edit the drop
+ * @param dropId - Database ID of the drop
+ * @param userName - Name of user releasing the lock
+ */
+export async function unlockDrop(
+  dropId: string,
+  userName: string
+): Promise<{ unlocked: boolean }> {
+  try {
+    const response = await fetch(`${API_BASE}/${dropId}/unlock`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userName }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      throw new Error(error.error?.message || error.message || 'Failed to unlock drop');
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error unlocking drop:', error);
+    throw error instanceof Error ? error : new Error('Failed to unlock drop');
+  }
+}
+
 // ==================== HELPERS ====================
 
 /**
