@@ -49,7 +49,7 @@ export async function getAllDrops(): Promise<QaReviewDrop[]> {
         step_11_green_lights as "step_11_green_lights",
         step_12_customer_signature as "step_12_customer_signature"
       FROM qa_photo_reviews
-      ORDER BY resubmitted DESC, created_at DESC
+      ORDER BY created_at DESC
     `;
 
     return rows.map(transformDbRowToDrop);
