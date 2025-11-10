@@ -43,6 +43,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       // Other fields
+      if (updates.dropNumber !== undefined) {
+        setClauses.push(`drop_number = $${paramIndex++}`);
+        values.push(updates.dropNumber);
+      }
       if (updates.comment !== undefined) {
         setClauses.push(`comment = $${paramIndex++}`);
         values.push(updates.comment);
@@ -70,6 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Add ID as last parameter
       values.push(id);
 
+      // Execute update query using template literal with proper parameter substitution
       const query = `
         UPDATE qa_photo_reviews
         SET ${setClauses.join(', ')}
@@ -77,7 +82,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         RETURNING *
       `;
 
-      const result = await sql.unsafe(query, values);
+      console.log('[WA Monitor API] Executing UPDATE query:', { query, values });
+
+      const result = await sql(query, values);
+      console.log('[WA Monitor API] Query result:', result);
+
       const updatedDrop = Array.isArray(result) ? result[0] : result;
 
       return res.status(200).json({
