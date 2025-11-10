@@ -151,7 +151,7 @@ async function writeRowWithRetry(
 
   await retryWithBackoff(async () => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
+    const timeout = setTimeout(() => controller.abort(), 120000); // 120s timeout (large Excel file)
 
     try {
       const response = await fetch(updateUrl, {
