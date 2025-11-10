@@ -37,7 +37,12 @@ Complete documentation for the WhatsApp Monitor system that tracks QA photo revi
   - Benefits delivered
 
 ### Setup & Configuration
-- **[Database Separation](DATABASE_SEPARATION.md)** ⭐ NEW
+- **[Reliability Improvements](RELIABILITY_IMPROVEMENTS.md)** ⭐ NEW (Nov 10, 2025)
+  - Persistent state (never miss messages)
+  - Daily auto-restart (3am SAST)
+  - How to prevent message loss
+
+- **[Database Separation](DATABASE_SEPARATION.md)**
   - Prod/dev schema isolation
   - How databases are separated
   - Safe testing environment
