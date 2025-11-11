@@ -1,56 +1,69 @@
 # WhatsApp Architecture - Send Feedback Strategy
 
 **Date Created:** November 11, 2025
-**Last Updated:** November 11, 2025
-**Status:** Production (Group Messages Working, @Mentions Awaiting Second Number)
+**Last Updated:** November 11, 2025 (09:42 SAST)
+**Status:** Production (@Mentions Fully Operational with Second Number)
 
 ---
 
-## Current Architecture
+## Current Architecture ✅ IMPLEMENTED
 
-### Production Setup (As of Nov 11, 2025)
+### Production Setup (As of Nov 11, 2025 - 09:42 SAST)
 
 ```
-Phone Number: 064 041 2391 (Single WhatsApp Account)
+Phone Number 1: 064 041 2391
     ↓
 whatsapp-bridge-prod (Port 8080)
     ├─→ LISTENS to groups (receives drop numbers)
     ├─→ Stores messages in SQLite
-    └─→ SENDS group messages (no @mentions)
+    └─→ SENDS simple group messages (fallback for manually added drops)
+
+Phone Number 2: +27 71 155 8396 ⭐ NEW
+    ↓
+whatsapp-sender (Port 8081)
+    └─→ SENDS feedback with @mentions (primary)
 
 Monitor Services
     ├─→ wa-monitor-prod (scans 4 projects)
     └─→ wa-monitor-dev (scans 2 projects)
 
 Next.js App (Port 3005)
-    └─→ /api/wa-monitor-send-feedback
-        └─→ Calls Bridge API: http://localhost:8080/api/send
+    └─→ /api/wa-monitor-send-feedback (Smart Routing)
+        ├─→ With sender info → http://localhost:8081/send-message (@mention)
+        └─→ Without sender info → http://localhost:8080/api/send (group message)
 ```
 
 **Services Running:**
-- ✅ `whatsapp-bridge-prod` - Bridge with REST API
+- ✅ `whatsapp-bridge-prod` - Bridge with REST API (listens + fallback sending)
 - ✅ `whatsapp-bridge-watchdog` - Auto-restart on crashes
 - ✅ `wa-monitor-prod` - Drop number processing
-- ❌ `whatsapp-sender` - **STOPPED** (caused session conflicts)
+- ✅ `whatsapp-sender` - **ACTIVE** - Sends @mentions from +27 71 155 8396
 
 ---
 
-## Why Current Architecture Works
+## Implementation Complete! ✅
 
-### Single WhatsApp Session (No Conflicts)
-- **One service** uses WhatsApp websocket
-- **No session fighting** between bridge and sender
-- **Stable connection** (crashes reduced from every 2 min to every 5-10 min)
-- **Watchdog auto-recovers** within 60-70 seconds
+### Dual WhatsApp Architecture (No Conflicts)
+- **Two separate WhatsApp accounts** - no session conflicts
+- **Bridge** (064 041 2391) - listens to groups only
+- **Sender** (+27 71 155 8396) - sends feedback with @mentions
+- **Each service** uses its own session database
+- **No websocket conflicts** - stable operation
 
-### What Works
+### What Works Now
 - ✅ Drop number detection (all projects)
-- ✅ Group messages sent successfully
+- ✅ **@Mentions to specific contractors** ⭐ NEW
+- ✅ **Push notifications to individuals** ⭐ NEW
+- ✅ Group messages (fallback for manually added drops)
 - ✅ Database updates (feedback_sent timestamp)
+- ✅ Smart routing based on sender info availability
 
-### What Doesn't Work
-- ❌ @Mentions to specific contractors
-- ❌ Push notifications to individuals
+### Implementation Date
+**November 11, 2025 - 09:00-09:42 SAST**
+- Linked +27 71 155 8396 using pairing code MKEB-ATW7
+- Updated API with smart routing logic
+- Fixed JID formatting for proper @mentions
+- Tested and verified in Velo Test group
 
 ---
 
@@ -435,34 +448,54 @@ systemctl restart whatsapp-sender
 - Both services fighting over same WhatsApp account
 
 **Decision:**
-- **Stopped** whatsapp-sender service
+- **Stopped** whatsapp-sender service (temporarily)
 - **Updated** API to use bridge (port 8080)
 - **Created** watchdogs for auto-recovery
 - **Result**: Group messages work, @mentions disabled
 
-**Trade-off Accepted:**
+**Trade-off Accepted (Temporary):**
 - ✅ Stable message sending
 - ❌ No @mentions (temporary)
 - 🔄 Will implement Option 3 (second number) when SIM available
+
+### November 11, 2025 - 09:42 SAST - @Mentions Restored! ✅
+
+**Implementation Completed:**
+- ✅ **Acquired second number** - +27 71 155 8396
+- ✅ **Linked sender service** - Pairing code MKEB-ATW7
+- ✅ **Updated API** - Smart routing (sender for @mentions, bridge for fallback)
+- ✅ **Fixed JID formatting** - Proper @mention display
+- ✅ **Tested and verified** - Working in Velo Test group
+
+**Result:**
+- ✅ @Mentions fully operational
+- ✅ No session conflicts (separate phone numbers)
+- ✅ Stable operation (both services running)
+- ✅ Smart fallback for manually added drops
 
 ---
 
 ## Recommendations
 
-### Immediate (Production)
-- ✅ **Keep current setup** - Group messages working
-- ✅ **Monitor watchdog logs** - Ensure auto-recovery working
-- ✅ **Document dropped messages** - Track if critical drops missed
+### ⚠️ CRITICAL - Immediate Action Required
+**Add +27 71 155 8396 to ALL WhatsApp groups:**
+- ✅ Velo Test (Done - Nov 11, 2025)
+- ⚠️ Lawley Activation 3 - **PENDING**
+- ⚠️ Mohadin Activations - **PENDING**
+- ⚠️ Mamelodi POP1 Activations - **PENDING**
 
-### Short-term (Within 1 week)
-- ⭐ **Get second SIM card** - Implement Option 3
-- ⭐ **5-minute setup** - Link sender to new number
-- ⭐ **Enable @mentions** - Full functionality restored
+**Why:** The sender number MUST be a member of each group to send messages. Without this, feedback will fail silently for those projects.
+
+### Production Monitoring
+- ✅ **Monitor sender service** - `systemctl status whatsapp-sender`
+- ✅ **Check sender logs** - `tail -f /opt/whatsapp-sender/sender.log`
+- ✅ **Monitor watchdog logs** - Ensure auto-recovery working
+- ✅ **Verify both services running** - Bridge and Sender
 
 ### Long-term (Future Enhancement)
-- 🔧 **Enhance bridge API** - Option 2 as backup plan
 - 🔧 **Add sender redundancy** - Second sender for failover
 - 🔧 **WhatsApp Business API** - Official enterprise solution
+- 🔧 **Automated group membership check** - Alert if sender not in group
 
 ---
 
@@ -478,15 +511,55 @@ systemctl restart whatsapp-sender
 ## Contact & Support
 
 **For Issues:**
-- Check service status: `systemctl status whatsapp-bridge-prod`
-- Check logs: `tail -100 /opt/velo-test-monitor/logs/whatsapp-bridge.log`
-- Restart if needed: `systemctl restart whatsapp-bridge-prod`
 
-**For @Mention Setup (Option 3):**
-1. Acquire second WhatsApp number
-2. Contact system admin for setup (5 minutes)
-3. Test with Velo Test group first
-4. Roll out to all projects
+### Check Service Status
+```bash
+# Check all WA services
+systemctl status whatsapp-bridge-prod whatsapp-sender wa-monitor-prod
+
+# Individual services
+systemctl status whatsapp-bridge-prod
+systemctl status whatsapp-sender
+```
+
+### Check Logs
+```bash
+# Bridge logs
+tail -100 /opt/velo-test-monitor/logs/whatsapp-bridge.log
+
+# Sender logs (NEW)
+tail -100 /opt/whatsapp-sender/sender.log
+
+# Monitor logs
+tail -100 /opt/wa-monitor/prod/logs/wa-monitor-prod.log
+```
+
+### Restart Services
+```bash
+# Restart bridge
+systemctl restart whatsapp-bridge-prod
+
+# Restart sender (NEW)
+systemctl restart whatsapp-sender
+
+# Restart monitor
+systemctl restart wa-monitor-prod
+```
+
+### Test Endpoints
+```bash
+# Test bridge health
+curl http://localhost:8080/health
+
+# Test sender health (NEW)
+curl http://localhost:8081/health
+```
+
+**For Adding Sender to New Groups:**
+1. Open WhatsApp group
+2. Add participant: **+27 71 155 8396**
+3. Test Send Feedback from dashboard
+4. Verify message appears with @mention
 
 ---
 

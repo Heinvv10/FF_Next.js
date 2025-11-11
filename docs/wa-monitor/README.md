@@ -57,11 +57,12 @@ Complete documentation for the WhatsApp Monitor system that tracks QA photo revi
   - Historical reference
 
 ### Integration & Features
-- **[WhatsApp Architecture & Send Feedback](WHATSAPP_ARCHITECTURE.md)** ⭐ NEW (Nov 11, 2025)
-  - Group messages vs @mentions
-  - Why sender service was stopped
-  - Three solutions for implementing @mentions
-  - Second phone number strategy (RECOMMENDED)
+- **[WhatsApp Architecture & Send Feedback](WHATSAPP_ARCHITECTURE.md)** ⭐ UPDATED (Nov 11, 2025 - 09:42 SAST)
+  - **@Mentions FULLY OPERATIONAL** ✅
+  - Dual phone number architecture (+27 71 155 8396 for sending)
+  - Smart routing (sender for @mentions, bridge for fallback)
+  - Implementation guide and troubleshooting
+  - **CRITICAL:** Add sender number to all WhatsApp groups
 
 - **[WhatsApp Integration](WA_MONITOR_WHATSAPP_INTEGRATION.md)**
   - How WhatsApp bridge works
