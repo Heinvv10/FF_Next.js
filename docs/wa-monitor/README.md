@@ -57,6 +57,12 @@ Complete documentation for the WhatsApp Monitor system that tracks QA photo revi
   - Historical reference
 
 ### Integration & Features
+- **[WhatsApp Architecture & Send Feedback](WHATSAPP_ARCHITECTURE.md)** ⭐ NEW (Nov 11, 2025)
+  - Group messages vs @mentions
+  - Why sender service was stopped
+  - Three solutions for implementing @mentions
+  - Second phone number strategy (RECOMMENDED)
+
 - **[WhatsApp Integration](WA_MONITOR_WHATSAPP_INTEGRATION.md)**
   - How WhatsApp bridge works
   - Message capture process
