@@ -174,8 +174,9 @@ function formatQAChecklist(review: QAReview, customMessage: string): string {
   const allPassed = steps.every(step => step.value);
   const statusText = allPassed ? 'APPROVED' : 'REJECTED';
 
-  // Format: Drop number and status on separate lines for easier reading
-  let message = `${review.drop_number}\n${statusText}\n\n`;
+  // Add blank lines at start to separate @mention from content
+  // Format: @mention (added by sender), then blank lines, then drop number and status
+  let message = `\n\n${review.drop_number}\n${statusText}\n\n`;
 
   // Add checklist
   for (const step of steps) {
