@@ -27,7 +27,7 @@ import {
 } from '@mui/material';
 import { CheckCircle, XCircle, Send, Save, AlertTriangle, Edit2, X, Edit, Lock } from 'lucide-react';
 import type { QaReviewDrop, QaSteps } from '../types/wa-monitor.types';
-import { QA_STEP_LABELS } from '../types/wa-monitor.types';
+import { QA_STEP_LABELS, ORDERED_STEP_KEYS } from '../types/wa-monitor.types';
 import { DropStatusBadge } from './DropStatusBadge';
 import { formatDateTime } from '../utils/waMonitorHelpers';
 import { lockDrop, unlockDrop } from '../services/waMonitorApiService';
@@ -122,11 +122,15 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   const totalSteps = Object.keys(steps).length;
   const progressPercent = Math.round((completedSteps / totalSteps) * 100);
 
-  // Get missing steps for feedback
+  // Get missing steps for feedback (in correct display order)
   const getMissingSteps = (): string[] => {
-    return (Object.keys(steps) as Array<keyof QaSteps>)
-      .filter((key) => !steps[key])
-      .map((key) => QA_STEP_LABELS[key]);
+    const missing: string[] = [];
+    ORDERED_STEP_KEYS.forEach((key, index) => {
+      if (!steps[key]) {
+        missing.push(`${index + 1}. ${QA_STEP_LABELS[key]}`);
+      }
+    });
+    return missing;
   };
 
   // Handle checkbox change
@@ -416,7 +420,7 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
           Installation QA Checklist (12 Photos)
         </Typography>
         <FormGroup sx={{ pl: 1 }}>
-          {(Object.keys(steps) as Array<keyof QaSteps>).map((stepKey) => (
+          {ORDERED_STEP_KEYS.map((stepKey, index) => (
             <FormControlLabel
               key={stepKey}
               control={
@@ -429,7 +433,7 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
               }
               label={
                 <Typography variant="body2" color={steps[stepKey] ? 'success.main' : 'text.secondary'}>
-                  {QA_STEP_LABELS[stepKey]}
+                  {index + 1}. {QA_STEP_LABELS[stepKey]}
                 </Typography>
               }
             />

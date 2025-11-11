@@ -6,6 +6,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { neon } from '@neondatabase/serverless';
+import { QA_STEP_LABELS, ORDERED_STEP_KEYS } from '@/modules/wa-monitor/types/wa-monitor.types';
 
 const sql = neon(process.env.DATABASE_URL || '');
 
@@ -151,25 +152,17 @@ async function sendWhatsAppMessage(
 
 /**
  * Format QA checklist for WhatsApp message
+ * Uses ORDERED_STEP_KEYS to ensure message order matches dashboard display
  */
 function formatQAChecklist(review: QAReview, customMessage: string): string {
   const checkmark = '[OK]';
   const cross = '[MISSING]';
 
-  const steps = [
-    { label: 'House photo', value: review.step_01_house_photo },
-    { label: 'Cable from pole', value: review.step_02_cable_from_pole },
-    { label: 'Cable entry (outside)', value: review.step_03_cable_entry_outside },
-    { label: 'Cable entry (inside)', value: review.step_04_cable_entry_inside },
-    { label: 'Wall for installation', value: review.step_05_wall_for_installation },
-    { label: 'ONT back after install', value: review.step_06_ont_back_after_install },
-    { label: 'Power meter reading', value: review.step_07_power_meter_reading },
-    { label: 'ONT barcode', value: review.step_08_ont_barcode },
-    { label: 'UPS serial', value: review.step_09_ups_serial },
-    { label: 'Final installation', value: review.step_10_final_installation },
-    { label: 'Green lights', value: review.step_11_green_lights },
-    { label: 'Customer signature', value: review.step_12_customer_signature },
-  ];
+  // Build steps array using ORDERED_STEP_KEYS (matches dashboard order 1-12)
+  const steps = ORDERED_STEP_KEYS.map(key => ({
+    label: QA_STEP_LABELS[key],
+    value: review[key]
+  }));
 
   const allPassed = steps.every(step => step.value);
   const statusText = allPassed ? 'APPROVED' : 'REJECTED';

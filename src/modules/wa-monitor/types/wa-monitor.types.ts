@@ -34,22 +34,43 @@ export interface QaSteps {
 }
 
 /**
- * QA Step Labels - Human-readable names for each step
+ * QA Step Labels - Human-readable names for each database column
+ * NOTE: Database columns (step_01, step_02...) do NOT match display order!
+ * Use ORDERED_STEP_KEYS for correct display order
  */
 export const QA_STEP_LABELS: Record<keyof QaSteps, string> = {
-  step_01_house_photo: '1. Property Photo',
-  step_02_cable_from_pole: '2. Location on Wall',
-  step_03_cable_entry_outside: '3. Cable from Pole',
-  step_04_cable_entry_inside: '4. Cable Entry Outside',
-  step_05_wall_for_installation: '5. Cable Entry Inside',
-  step_06_ont_back_after_install: '6. Fibre Entry to ONT',
-  step_07_power_meter_reading: '7. Overall Work area - final installation',
-  step_08_ont_barcode: '8. ONT Barcode',
-  step_09_ups_serial: '9. UPS Serial number',
-  step_10_final_installation: '10. Powermeter at ONT',
-  step_11_green_lights: '11. Green Lights',
-  step_12_customer_signature: '12. Customer Signature',
+  step_01_house_photo: 'Property Photo',
+  step_02_cable_from_pole: 'Cable from Pole',
+  step_03_cable_entry_outside: 'Cable Entry Outside',
+  step_04_cable_entry_inside: 'Cable Entry Inside',
+  step_05_wall_for_installation: 'Location on Wall',
+  step_06_ont_back_after_install: 'Fibre Entry to ONT',
+  step_07_power_meter_reading: 'Powermeter at ONT',
+  step_08_ont_barcode: 'ONT Barcode',
+  step_09_ups_serial: 'UPS Serial number',
+  step_10_final_installation: 'Overall Work area - final installation',
+  step_11_green_lights: 'Green Lights',
+  step_12_customer_signature: 'Customer Signature',
 };
+
+/**
+ * Ordered Step Keys - Defines the correct display order (1-12)
+ * Use this array to iterate through steps in the correct order
+ */
+export const ORDERED_STEP_KEYS: Array<keyof QaSteps> = [
+  'step_01_house_photo',           // 1. Property Photo
+  'step_05_wall_for_installation', // 2. Location on Wall
+  'step_02_cable_from_pole',       // 3. Cable from Pole
+  'step_03_cable_entry_outside',   // 4. Cable Entry Outside
+  'step_04_cable_entry_inside',    // 5. Cable Entry Inside
+  'step_06_ont_back_after_install', // 6. Fibre Entry to ONT
+  'step_10_final_installation',    // 7. Overall Work area
+  'step_08_ont_barcode',           // 8. ONT Barcode
+  'step_09_ups_serial',            // 9. UPS Serial number
+  'step_07_power_meter_reading',   // 10. Powermeter at ONT
+  'step_11_green_lights',          // 11. Green Lights
+  'step_12_customer_signature',    // 12. Customer Signature
+];
 
 /**
  * QA Review Drop - Main data structure
