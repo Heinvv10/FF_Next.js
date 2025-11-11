@@ -41,42 +41,65 @@ func main() {
 	logger := waLog.Stdout("Sender", "INFO", true)
 	logger.Infof("🚀 WhatsApp Message Sender Service Starting...")
 
-	// Connect to the same WhatsApp session as the bridge
+	// Connect to sender's own WhatsApp session (separate from bridge)
 	dbLog := waLog.Stdout("Database", "WARN", true)
-	storeContainer, err := sqlstore.New("sqlite3", "file:/opt/velo-test-monitor/services/whatsapp-bridge/store/store.db?_foreign_keys=on", dbLog)
+	storeContainer, err := sqlstore.New(context.Background(), "sqlite3", "file:/opt/whatsapp-sender/store/whatsapp.db?_foreign_keys=on", dbLog)
 	if err != nil {
 		logger.Errorf("Failed to connect to store: %v", err)
 		os.Exit(1)
 	}
 
-	// Get the first device (should be the existing WhatsApp session)
-	deviceStore, err := storeContainer.GetFirstDevice()
+	// Get the first device or create new one
+	deviceStore, err := storeContainer.GetFirstDevice(context.Background())
 	if err != nil {
 		logger.Errorf("Failed to get device: %v", err)
 		os.Exit(1)
 	}
 
+	// If no device exists, create a new one
 	if deviceStore == nil {
-		logger.Errorf("No WhatsApp session found. Make sure the main bridge is connected first.")
-		os.Exit(1)
+		deviceStore = storeContainer.NewDevice()
+		logger.Infof("📱 New device created - pairing required")
 	}
 
 	// Create WhatsApp client
 	client = whatsmeow.NewClient(deviceStore, waLog.Stdout("Client", "WARN", true))
 
-	// Connect to WhatsApp
-	if client.Store.ID == nil {
-		logger.Errorf("Device is not logged in. Use the main bridge to log in first.")
-		os.Exit(1)
-	}
-
+	// Connect to WhatsApp websocket first
 	err = client.Connect()
 	if err != nil {
 		logger.Errorf("Failed to connect: %v", err)
 		os.Exit(1)
 	}
 
-	logger.Infof("✅ Connected to WhatsApp!")
+	// Check if device is logged in
+	if client.Store.ID == nil {
+		// Not logged in - need to pair
+		logger.Infof("🔑 Device not logged in - generating pairing code...")
+
+		// Request pairing code for phone number
+		code, err := client.PairPhone(context.Background(), "+27711558396", true, whatsmeow.PairClientChrome, "Chrome (Linux)")
+		if err != nil {
+			logger.Errorf("Failed to generate pairing code: %v", err)
+			os.Exit(1)
+		}
+
+		logger.Infof("========================================")
+		logger.Infof("🔑 PAIRING CODE: %s", code)
+		logger.Infof("========================================")
+		logger.Infof("📱 On phone +27 71 155 8396:")
+		logger.Infof("   1. Open WhatsApp")
+		logger.Infof("   2. Go to Settings → Linked Devices")
+		logger.Infof("   3. Tap 'Link a Device'")
+		logger.Infof("   4. Tap 'Link with Phone Number Instead'")
+		logger.Infof("   5. Enter code: %s", code)
+		logger.Infof("========================================")
+
+		// Wait for pairing to complete
+		logger.Infof("⏳ Waiting for phone to be linked...")
+	} else {
+		logger.Infof("✅ Connected to WhatsApp!")
+	}
 
 	// Set up HTTP server
 	http.HandleFunc("/send-message", handleSendMessage)
@@ -184,7 +207,7 @@ func handleSendMessage(w http.ResponseWriter, r *http.Request) {
 		ExtendedTextMessage: &waProto.ExtendedTextMessage{
 			Text: proto.String(messageText),
 			ContextInfo: &waProto.ContextInfo{
-				MentionedJid: []string{req.RecipientJID},
+				MentionedJID: []string{req.RecipientJID},
 			},
 		},
 	}

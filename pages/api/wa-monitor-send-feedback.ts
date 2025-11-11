@@ -63,8 +63,9 @@ interface WhatsAppApiResponse {
 }
 
 /**
- * Send message to WhatsApp group via Bridge API with optional mention
- * If recipientJID is null/empty, sends without @mention
+ * Send message to WhatsApp group via Sender API with optional @mention
+ * Uses second phone number (+27 71 155 8396) for sending messages
+ * If recipientJID is null/empty, sends as group message without @mention
  */
 async function sendWhatsAppMessage(
   groupJID: string,
@@ -72,39 +73,73 @@ async function sendWhatsAppMessage(
   message: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    // Use Bridge API (port 8080) instead of Sender
-    // Bridge API format: { recipient: "JID", message: "text" }
-    const requestBody = {
-      recipient: groupJID,  // Group JID
-      message: message,
-    };
+    // Use Sender API (port 8081) - Second WhatsApp number
+    // Sender API format with @mentions: { group_jid: "JID", recipient_jid: "JID", message: "text" }
 
-    const response = await fetch('http://localhost:8080/api/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+    // Check if we have recipient info for @mention
+    if (recipientJID && recipientJID.trim() !== '' && recipientJID !== 'Unknown') {
+      // Send with @mention
+      const requestBody = {
+        group_jid: groupJID,
+        recipient_jid: recipientJID,
+        message: message,
+      };
 
-    if (!response.ok) {
-      const errorText = await response.text();
+      const response = await fetch('http://localhost:8081/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return {
+          success: false,
+          message: `WhatsApp Sender API error: HTTP ${response.status} - ${errorText}`
+        };
+      }
+
+      const result: WhatsAppApiResponse = await response.json();
       return {
-        success: false,
-        message: `WhatsApp API error: HTTP ${response.status} - ${errorText}`
+        success: result.success || false,
+        message: result.message || 'Message sent with @mention'
+      };
+    } else {
+      // No recipient info - send as simple group message via bridge
+      const requestBody = {
+        recipient: groupJID,
+        message: message,
+      };
+
+      const response = await fetch('http://localhost:8080/api/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return {
+          success: false,
+          message: `WhatsApp Bridge API error: HTTP ${response.status} - ${errorText}`
+        };
+      }
+
+      const result: WhatsAppApiResponse = await response.json();
+      return {
+        success: result.success || false,
+        message: result.message || 'Group message sent successfully'
       };
     }
-
-    const result: WhatsAppApiResponse = await response.json();
-    return {
-      success: result.success || false,
-      message: result.message || 'Message sent successfully'
-    };
   } catch (error) {
-    console.error('WhatsApp Bridge communication error:', error);
+    console.error('WhatsApp API communication error:', error);
     return {
       success: false,
-      message: `Failed to communicate with WhatsApp Bridge: ${error instanceof Error ? error.message : 'Unknown error'}`
+      message: `Failed to communicate with WhatsApp API: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
   }
 }
