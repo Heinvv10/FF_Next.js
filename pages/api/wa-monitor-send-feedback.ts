@@ -72,18 +72,14 @@ async function sendWhatsAppMessage(
   message: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    // Build request body - only include recipient_jid if we have sender info
-    const requestBody: any = {
-      group_jid: groupJID,
+    // Use Bridge API (port 8080) instead of Sender
+    // Bridge API format: { recipient: "JID", message: "text" }
+    const requestBody = {
+      recipient: groupJID,  // Group JID
       message: message,
     };
 
-    // Only add recipient_jid if we have valid sender info (for @mention)
-    if (recipientJID && recipientJID.trim() !== '' && recipientJID !== 'Unknown') {
-      requestBody.recipient_jid = recipientJID;
-    }
-
-    const response = await fetch('http://localhost:8081/send-message', {
+    const response = await fetch('http://localhost:8080/api/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
