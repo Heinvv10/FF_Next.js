@@ -64,6 +64,12 @@ Complete documentation for the WhatsApp Monitor system that tracks QA photo revi
   - Implementation guide and troubleshooting
   - **CRITICAL:** Add sender number to all WhatsApp groups
 
+- **[LID Resolution Fix](LID_RESOLUTION_FIX.md)** ⭐ NEW (Nov 11, 2025 - 10:18 SAST)
+  - **Fixes @mentions for WhatsApp Web/Desktop users** ✅
+  - Resolves Linked Device IDs (LIDs) to actual phone numbers
+  - Ensures correct contact names in @mentions
+  - Automatic for all future drops
+
 - **[WhatsApp Integration](WA_MONITOR_WHATSAPP_INTEGRATION.md)**
   - How WhatsApp bridge works
   - Message capture process
