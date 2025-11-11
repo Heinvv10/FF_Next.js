@@ -78,10 +78,15 @@ async function sendWhatsAppMessage(
 
     // Check if we have recipient info for @mention
     if (recipientJID && recipientJID.trim() !== '' && recipientJID !== 'Unknown') {
+      // Ensure recipient_jid is in WhatsApp JID format (phone@s.whatsapp.net)
+      const formattedRecipientJID = recipientJID.includes('@')
+        ? recipientJID
+        : `${recipientJID}@s.whatsapp.net`;
+
       // Send with @mention
       const requestBody = {
         group_jid: groupJID,
-        recipient_jid: recipientJID,
+        recipient_jid: formattedRecipientJID,
         message: message,
       };
 
