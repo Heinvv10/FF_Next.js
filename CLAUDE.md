@@ -567,7 +567,7 @@ tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log
 nano /opt/wa-monitor/prod/config/projects.yaml
 # Add same project
 
-systemctl restart wa-monitor-prod
+/opt/wa-monitor/prod/restart-monitor.sh  # ✅ Use safe restart (clears cache)
 tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log
 # Verify production is monitoring
 ```
@@ -621,6 +621,21 @@ Both services process the same messages from the same group!
 
 ### VPS Management (v2.0)
 
+### ⚠️ CRITICAL: ALWAYS Use Safe Restart Script for Production
+
+**WHY:** Python caches .pyc bytecode. Plain `systemctl restart` uses stale cache, causing old buggy code to run even after updating source files.
+
+**ALWAYS USE (Production):**
+```bash
+ssh root@72.60.17.245
+/opt/wa-monitor/prod/restart-monitor.sh  # ✅ Clears cache automatically
+```
+
+**NEVER USE (Production):**
+```bash
+systemctl restart wa-monitor-prod  # ❌ Keeps stale .pyc cache - WRONG!
+```
+
 **Service Commands:**
 ```bash
 # Check both services status
@@ -633,8 +648,10 @@ tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log
 # View dev logs
 tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log
 
-# Restart services
-systemctl restart wa-monitor-prod
+# Restart PRODUCTION (use safe script)
+/opt/wa-monitor/prod/restart-monitor.sh  # ✅ ALWAYS use this
+
+# Restart DEV (regular restart OK for dev)
 systemctl restart wa-monitor-dev
 
 # Check WhatsApp bridge
@@ -657,6 +674,8 @@ ssh root@72.60.17.245 "systemctl is-active wa-monitor-prod wa-monitor-dev"
 cat /opt/wa-monitor/prod/config/projects.yaml
 cat /opt/wa-monitor/dev/config/projects.yaml
 ```
+
+**📖 Read More:** See `docs/wa-monitor/PYTHON_CACHE_ISSUE.md` for full explanation of Python cache problem
 
 ### 🚨 CRITICAL: Database Configuration
 
