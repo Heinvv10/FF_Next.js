@@ -26,6 +26,91 @@ Track daily work, deployments, and major updates.
 
 ---
 
+## 2025-11-12 - [FIX]: SharePoint Sync - Fully Operational
+
+### What Was Done
+**FIXED:** SharePoint sync was not running since Nov 9. Root causes identified and resolved.
+
+**Problems Found:**
+1. **Cron jobs commented out** - Were defined in crontab but as comments (not active)
+2. **Missing environment variables** - SharePoint credentials not in production `.env.production`
+
+**Solutions Implemented:**
+1. **Added active cron jobs:**
+   ```bash
+   # Main sync: 8pm SAST daily
+   0 18 * * * cd /var/www/fibreflow && /usr/bin/node scripts/sync-wa-monitor-sharepoint.js >> /var/log/wa-monitor-sharepoint-sync.log 2>&1
+
+   # Watchdog: 8:30pm SAST daily
+   30 18 * * * cd /var/www/fibreflow && /usr/bin/node scripts/check-sharepoint-sync-completion.js >> /var/log/wa-monitor-sharepoint-watchdog.log 2>&1
+   ```
+
+2. **Added SharePoint credentials to VPS:**
+   - Found credentials in `/root/datahub/.env.local`
+   - Used Microsoft Graph API to extract Site ID, Drive ID, File ID
+   - Added all 7 environment variables to `/var/www/fibreflow/.env.production`
+   - Target file: `VF_Project_Tracker_Mohadin.xlsx` → `NeonDbase` sheet
+
+3. **Testing:**
+   - Ran manual sync test: ✅ Successfully synced 2/2 projects (Lawley, Velo Test)
+   - Duration: 40.6 seconds
+   - Email notifications sent successfully
+
+**Documentation:**
+- Updated `/docs/wa-monitor/WA_MONITOR_SHAREPOINT_SYNC.md` with:
+  - Complete setup instructions with actual credentials
+  - Troubleshooting section for common issues
+  - Quick reference section
+  - Changelog tracking fixes
+- Created `/docs/SHAREPOINT_SYNC_QUICK_REF.md` for easy access
+- Updated `/docs/wa-monitor/README.md` to highlight fixed status
+
+### Files Changed
+- `/docs/wa-monitor/WA_MONITOR_SHAREPOINT_SYNC.md` - Complete rewrite with full config
+- `/docs/SHAREPOINT_SYNC_QUICK_REF.md` - New quick reference guide
+- `/docs/wa-monitor/README.md` - Updated SharePoint Sync status
+- `/scripts/get-sharepoint-ids.js` - New utility to extract SharePoint IDs via Graph API
+- `/scripts/find-wa-monitor-file.js` - New utility to search SharePoint for files
+- VPS `/var/www/fibreflow/.env.production` - Added SharePoint environment variables
+- VPS `crontab` - Added two active cron jobs for sync
+
+### VPS Changes
+**Location:** 72.60.17.245
+
+**Crontab:**
+```bash
+# Added two new cron jobs (previously commented)
+0 18 * * * cd /var/www/fibreflow && /usr/bin/node scripts/sync-wa-monitor-sharepoint.js >> /var/log/wa-monitor-sharepoint-sync.log 2>&1
+30 18 * * * cd /var/www/fibreflow && /usr/bin/node scripts/check-sharepoint-sync-completion.js >> /var/log/wa-monitor-sharepoint-watchdog.log 2>&1
+```
+
+**Environment Variables Added:**
+```bash
+SHAREPOINT_TENANT_ID=<tenant_id>
+SHAREPOINT_CLIENT_ID=<client_id>
+SHAREPOINT_CLIENT_SECRET=<client_secret>
+SHAREPOINT_SITE_ID=<site_id>
+SHAREPOINT_DRIVE_ID=<drive_id>
+SHAREPOINT_FILE_ID=<file_id>
+SHAREPOINT_WORKSHEET_NAME=NeonDbase
+```
+
+**Note:** Actual values stored in VPS `/var/www/fibreflow/.env.production`
+
+### Status
+- ✅ Sync tested and working
+- ✅ Cron jobs active (will run tonight at 8pm SAST)
+- ✅ Email notifications operational
+- ✅ Documentation complete
+
+### Related
+- SharePoint File: [VF_Project_Tracker_Mohadin.xlsx](https://blitzfibre.sharepoint.com/:x:/s/Velocity_Manco/EYm7g0w6Y1dFgGB_m4YlBxgBeVJpoDXAYjdvK-ZfgHoOqA)
+- Dashboard: https://app.fibreflow.app/wa-monitor
+- Documentation: `/docs/wa-monitor/WA_MONITOR_SHAREPOINT_SYNC.md`
+- Quick Ref: `/docs/SHAREPOINT_SYNC_QUICK_REF.md`
+
+---
+
 ## 2025-11-09 - [REFACTOR]: WA Monitor v2.0 - Professional Prod/Dev Architecture
 
 ### What Was Done

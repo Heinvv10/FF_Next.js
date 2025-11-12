@@ -64,6 +64,14 @@ Complete documentation for the WhatsApp Monitor system that tracks QA photo revi
   - Implementation guide and troubleshooting
   - **CRITICAL:** Add sender number to all WhatsApp groups
 
+- **[SharePoint Sync](WA_MONITOR_SHAREPOINT_SYNC.md)** ⭐ FIXED & UPDATED (Nov 12, 2025)
+  - **FULLY WORKING** ✅ (Fixed cron jobs + env vars)
+  - Nightly sync to Excel at 8pm SAST
+  - Complete setup instructions
+  - Full configuration with actual credentials
+  - Troubleshooting for common issues
+  - **Quick Ref**: `/docs/SHAREPOINT_SYNC_QUICK_REF.md`
+
 - **[LID Resolution Fix](LID_RESOLUTION_FIX.md)** ⭐ NEW (Nov 11, 2025 - 10:18 SAST)
   - **Fixes @mentions for WhatsApp Web/Desktop users** ✅
   - Resolves Linked Device IDs (LIDs) to actual phone numbers
@@ -74,11 +82,6 @@ Complete documentation for the WhatsApp Monitor system that tracks QA photo revi
   - How WhatsApp bridge works
   - Message capture process
   - Group pairing
-
-- **[SharePoint Sync](WA_MONITOR_SHAREPOINT_SYNC.md)**
-  - Nightly sync to SharePoint
-  - Configuration
-  - Troubleshooting
 
 - **[Data Flow Report](WA_MONITOR_DATA_FLOW_REPORT.md)**
   - Complete data flow investigation
@@ -221,14 +224,17 @@ tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log | grep "Velo Test"
 
 ## 📝 Document Versions
 
-| Document | Version | Last Updated |
-|----------|---------|--------------|
-| Architecture | 2.0 | Nov 9, 2025 |
-| 5-Minute Guide | 2.0 | Nov 9, 2025 |
-| Dual-Monitoring | 2.0 | Nov 9, 2025 |
-| Refactoring Design | 2.0 | Nov 9, 2025 |
-| Lessons Learned | 1.0 | Nov 9, 2025 |
-| Device Lock Tracking | 1.0 | Nov 10, 2025 |
+| Document | Version | Last Updated | Status |
+|----------|---------|--------------|--------|
+| Architecture | 2.0 | Nov 9, 2025 | ✅ Current |
+| 5-Minute Guide | 2.0 | Nov 9, 2025 | ✅ Current |
+| Dual-Monitoring | 2.0 | Nov 9, 2025 | ✅ Current |
+| SharePoint Sync | 1.1 | Nov 12, 2025 | ✅ Fixed & Working |
+| WhatsApp Architecture | 1.1 | Nov 11, 2025 | ✅ Operational |
+| LID Resolution | 1.0 | Nov 11, 2025 | ✅ Operational |
+| Device Lock Tracking | 1.0 | Nov 10, 2025 | ✅ Current |
+| Refactoring Design | 2.0 | Nov 9, 2025 | ✅ Reference |
+| Lessons Learned | 1.0 | Nov 9, 2025 | ✅ Reference |
 
 ---
 

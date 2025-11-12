@@ -677,6 +677,58 @@ cat /opt/wa-monitor/dev/config/projects.yaml
 
 **📖 Read More:** See `docs/wa-monitor/PYTHON_CACHE_ISSUE.md` for full explanation of Python cache problem
 
+### ⚠️ KNOWN ISSUE: Resubmission Handler LID Bug
+
+**Status:** Database fixed ✅ | VPS code fix pending ⏳
+
+**Problem:** When drops are **resubmitted** (posted again), the monitor resolves LIDs correctly but doesn't update `submitted_by` in the database. This causes @mentions to show LID numbers instead of contact names.
+
+**Example:**
+- Monitor logs: `🔗 Resolved LID 205106247139540 → 27837912771` ✅
+- Database has: `submitted_by = '205106247139540'` ❌
+- WhatsApp shows: `@+20 5106247139540` instead of `@Contractor_Name`
+
+**Root Cause:**
+- File: `/opt/wa-monitor/prod/modules/monitor.py` - Line ~115
+- Bug: `handle_resubmission()` doesn't pass `resolved_phone` parameter
+- File: `/opt/wa-monitor/prod/modules/database.py`
+- Bug: `handle_resubmission()` doesn't update `submitted_by` and `user_name` fields
+
+**Immediate Workaround:**
+If you see LID numbers in feedback, fix manually in database:
+```bash
+# 1. Find drops with LIDs (should be 0 after Nov 12 cleanup)
+psql $DATABASE_URL -c "
+  SELECT drop_number, submitted_by, LENGTH(submitted_by) as len
+  FROM qa_photo_reviews
+  WHERE submitted_by IS NOT NULL AND LENGTH(submitted_by) > 11;
+"
+
+# 2. Look up LID in WhatsApp database on VPS
+ssh root@72.60.17.245
+sqlite3 /opt/velo-test-monitor/services/whatsapp-bridge/store/whatsapp.db \
+  "SELECT lid, pn FROM whatsmeow_lid_map WHERE lid = 'PASTE_LID_HERE';"
+
+# 3. Update database with phone number
+psql $DATABASE_URL -c "
+  UPDATE qa_photo_reviews
+  SET user_name = 'PHONE_NUMBER', submitted_by = 'PHONE_NUMBER', updated_at = NOW()
+  WHERE drop_number = 'DR_NUMBER';
+"
+```
+
+**Permanent Fix:** See `docs/wa-monitor/RESUBMISSION_FIX_NOV12_2025.md` for:
+- Detailed fix instructions for VPS code
+- Testing checklist
+- Prevention measures
+
+**Affected Drops (Fixed Nov 12, 2025):**
+- DR470114 (Mamelodi) - LID: 205106247139540 → Phone: 27837912771
+- DR1857292 (Mohadin) - LID: 26959979507783 → Phone: 27633159281
+- DR1734207 (Lawley) - LID: 160314653982720 → Phone: 27715844472
+- DR1734242 (Lawley) - LID: 265167388586133 → Phone: 27728468714
+- DR1857265 (Mohadin) - LID: 140858317902021 → Phone: 27651775287
+
 ### 🚨 CRITICAL: Database Configuration
 
 **THE APP AND DROP MONITOR MUST USE THE SAME DATABASE**
