@@ -185,12 +185,12 @@ export async function getDailyDropsPerProject(date?: string): Promise<Array<{ da
 
     const rows = await sql`
       SELECT
-        DATE(COALESCE(whatsapp_message_date, created_at)) as date,
+        DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') as date,
         COALESCE(project, 'Unknown') as project,
-        COUNT(*) as count
+        COUNT(DISTINCT drop_number) as count
       FROM qa_photo_reviews
-      WHERE DATE(COALESCE(whatsapp_message_date, created_at)) = ${targetDate}::date
-      GROUP BY DATE(COALESCE(whatsapp_message_date, created_at)), project
+      WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') = ${targetDate}::date
+      GROUP BY DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg'), project
       ORDER BY project ASC
     `;
 
