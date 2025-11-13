@@ -75,35 +75,49 @@ async function getAccessToken(config: SharePointConfig): Promise<string> {
 
 /**
  * Find the next available row in the worksheet
+ * Uses usedRange to be more efficient with large files
  */
 async function findNextRow(
   accessToken: string,
   config: SharePointConfig
 ): Promise<number> {
-  const rangeUrl = `${GRAPH_API_BASE}/drives/${config.driveId}/items/${config.fileId}/workbook/worksheets/${config.worksheetName}/range(address='B1:B2000')`;
+  // Use usedRange to get only cells with data (much faster for large files)
+  const rangeUrl = `${GRAPH_API_BASE}/drives/${config.driveId}/items/${config.fileId}/workbook/worksheets/${config.worksheetName}/usedRange`;
 
-  const response = await fetch(rangeUrl, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  // Use AbortController with 120 second timeout for large files
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120000);
 
-  if (!response.ok) {
-    throw new Error(`Failed to get range: ${response.statusText}`);
-  }
+  try {
+    const response = await fetch(rangeUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      signal: controller.signal,
+    });
 
-  const data = await response.json();
-  const values = data.values || [];
+    clearTimeout(timeout);
 
-  // Find last non-empty row
-  let lastRow = 0;
-  for (let i = 0; i < values.length; i++) {
-    if (values[i][0]) {
-      lastRow = i + 1;
+    if (!response.ok) {
+      // If worksheet is empty, usedRange returns 404
+      if (response.status === 404) {
+        return 1; // Start at row 1 for empty worksheet
+      }
+      throw new Error(`Failed to get range: ${response.statusText}`);
     }
-  }
 
-  return lastRow + 1; // Next available row
+    const data = await response.json();
+    const rowCount = data.rowCount || 0;
+
+    // Next row is one after the last used row
+    return rowCount + 1;
+  } catch (error: any) {
+    clearTimeout(timeout);
+    if (error.name === 'AbortError') {
+      throw new Error('Timeout reading Excel file (120s). File may be too large.');
+    }
+    throw error;
+  }
 }
 
 /**
@@ -231,13 +245,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Get daily drops
-    const dailyDrops = await getDailyDropsPerProject();
+    // Get date from request body (optional, defaults to today)
+    const { date } = req.body || {};
+
+    // Get daily drops for specified date or today
+    const dailyDrops = await getDailyDropsPerProject(date);
 
     if (dailyDrops.length === 0) {
+      const dateStr = date || new Date().toISOString().split('T')[0];
       return apiResponse.success(res, {
         synced: 0,
-        message: 'No drops to sync today',
+        message: `No drops to sync for ${dateStr}`,
+        date: dateStr,
       });
     }
 

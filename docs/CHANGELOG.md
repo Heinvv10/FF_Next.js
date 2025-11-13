@@ -26,6 +26,39 @@ Track daily work, deployments, and major updates.
 
 ---
 
+## 2025-11-13 - [FIX]: SharePoint Sync - Gateway Timeout Fixed
+
+### What Was Done
+**FIXED:** Gateway timeout error when reading large Excel file for SharePoint sync.
+
+**Problem:**
+- Cron job ran at 8pm SAST but failed with HTTP 500 error
+- Root cause: `findNextRow()` function reading 2000 rows timed out
+- Error: "Failed to get range: Gateway Timeout"
+- File `VF_Project_Tracker_Mohadin.xlsx` is too large for fixed range queries
+
+**Solution:**
+- Changed from `range(address='B1:B2000')` to `usedRange` endpoint
+- `usedRange` only returns metadata (rowCount) not all cell values
+- Much faster for large files (37s vs timeout)
+- Added 120-second timeout with AbortController
+- Added fallback for empty worksheets (404 → start at row 1)
+
+**Test Results:**
+- ✅ Manual test: Successfully synced 2/2 projects in 37.3 seconds
+- ✅ Email notification sent
+- ✅ Next automatic sync: Tonight at 8pm SAST
+
+### Files Changed
+- `/pages/api/wa-monitor-sync-sharepoint.ts` - Optimized `findNextRow()` function
+
+### Status
+- ✅ Fix deployed to production
+- ✅ Tested and working
+- ✅ Cron jobs still active (8pm SAST daily)
+
+---
+
 ## 2025-11-12 - [FIX]: SharePoint Sync - Fully Operational
 
 ### What Was Done
