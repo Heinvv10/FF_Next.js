@@ -11,6 +11,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { apiResponse } from '@/lib/apiResponse';
 import { getDailyDropsPerProject } from '@/modules/wa-monitor/services/waMonitorService';
+import { neon } from '@neondatabase/serverless';
+
+// Database connection
+const sql = neon(process.env.DATABASE_URL || '');
 
 // Microsoft Graph API configuration
 const GRAPH_API_BASE = 'https://graph.microsoft.com/v1.0';
@@ -74,49 +78,48 @@ async function getAccessToken(config: SharePointConfig): Promise<string> {
 }
 
 /**
- * Find the next available row in the worksheet
- * Uses usedRange to be more efficient with large files
+ * Get the next available row using database counter
+ * Eliminates need to query large Excel file (which times out)
  */
-async function findNextRow(
-  accessToken: string,
-  config: SharePointConfig
-): Promise<number> {
-  // Use usedRange to get only cells with data (much faster for large files)
-  const rangeUrl = `${GRAPH_API_BASE}/drives/${config.driveId}/items/${config.fileId}/workbook/worksheets/${config.worksheetName}/usedRange`;
-
-  // Use AbortController with 120 second timeout for large files
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 120000);
-
+async function getNextRow(config: SharePointConfig): Promise<number> {
   try {
-    const response = await fetch(rangeUrl, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      signal: controller.signal,
-    });
+    const [row] = await sql`
+      SELECT last_row_written
+      FROM sharepoint_sync_state
+      WHERE sheet_name = ${config.worksheetName}
+    `;
 
-    clearTimeout(timeout);
-
-    if (!response.ok) {
-      // If worksheet is empty, usedRange returns 404
-      if (response.status === 404) {
-        return 1; // Start at row 1 for empty worksheet
-      }
-      throw new Error(`Failed to get range: ${response.statusText}`);
+    if (!row) {
+      // Initialize if not exists
+      await sql`
+        INSERT INTO sharepoint_sync_state (sheet_name, last_row_written)
+        VALUES (${config.worksheetName}, 1)
+      `;
+      return 2; // Next row after header
     }
 
-    const data = await response.json();
-    const rowCount = data.rowCount || 0;
+    return row.last_row_written + 1;
+  } catch (error) {
+    console.error('Error getting next row from database:', error);
+    throw new Error('Failed to get next row number');
+  }
+}
 
-    // Next row is one after the last used row
-    return rowCount + 1;
-  } catch (error: any) {
-    clearTimeout(timeout);
-    if (error.name === 'AbortError') {
-      throw new Error('Timeout reading Excel file (120s). File may be too large.');
-    }
-    throw error;
+/**
+ * Update the last row written to database
+ */
+async function updateLastRow(worksheetName: string, lastRow: number, syncDate: string): Promise<void> {
+  try {
+    await sql`
+      UPDATE sharepoint_sync_state
+      SET last_row_written = ${lastRow},
+          last_sync_date = ${syncDate}::date,
+          updated_at = NOW()
+      WHERE sheet_name = ${worksheetName}
+    `;
+  } catch (error) {
+    console.error('Error updating last row in database:', error);
+    // Don't throw - this is not critical, we can continue
   }
 }
 
@@ -201,11 +204,13 @@ async function syncToSharePoint(
   config: SharePointConfig,
   drops: Array<{ date: string; project: string; count: number }>
 ): Promise<{ succeeded: number; failed: number }> {
-  // Find next available row
-  const nextRow = await findNextRow(accessToken, config);
+  // Get next available row from database (fast!)
+  const nextRow = await getNextRow(config);
 
   let succeeded = 0;
   let failed = 0;
+  let lastWrittenRow = nextRow - 1;
+  const syncDate = drops[0]?.date || new Date().toISOString().split('T')[0];
 
   // Write each project's data with retry
   for (let i = 0; i < drops.length; i++) {
@@ -215,6 +220,7 @@ async function syncToSharePoint(
     try {
       await writeRowWithRetry(accessToken, config, rowNum, drop);
       succeeded++;
+      lastWrittenRow = rowNum;
       console.log(`✅ Wrote ${drop.project}: ${drop.count} drops to row ${rowNum}`);
     } catch (error: any) {
       failed++;
@@ -225,6 +231,12 @@ async function syncToSharePoint(
     if (i < drops.length - 1) {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
+  }
+
+  // Update database with last row written (for next sync)
+  if (succeeded > 0) {
+    await updateLastRow(config.worksheetName, lastWrittenRow, syncDate);
+    console.log(`📊 Updated database: last row = ${lastWrittenRow}`);
   }
 
   return { succeeded, failed };
