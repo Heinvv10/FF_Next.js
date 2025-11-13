@@ -181,7 +181,15 @@ export async function calculateSummary(): Promise<WaMonitorSummary> {
  */
 export async function getDailyDropsPerProject(date?: string): Promise<Array<{ date: string; project: string; count: number }>> {
   try {
-    const targetDate = date || new Date().toISOString().split('T')[0];
+    // If date provided, use it; otherwise use current date in SAST
+    let targetDate: string;
+    if (date) {
+      targetDate = date;
+    } else {
+      // Get current date in SAST timezone
+      const result = await sql`SELECT CURRENT_DATE AT TIME ZONE 'Africa/Johannesburg' as today`;
+      targetDate = result[0].today;
+    }
 
     const rows = await sql`
       SELECT
