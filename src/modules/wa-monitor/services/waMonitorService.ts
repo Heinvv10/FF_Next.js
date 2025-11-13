@@ -193,7 +193,7 @@ export async function getDailyDropsPerProject(date?: string): Promise<Array<{ da
 
     const rows = await sql`
       SELECT
-        DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') as date,
+        TO_CHAR(DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg'), 'YYYY-MM-DD') as date,
         COALESCE(project, 'Unknown') as project,
         COUNT(DISTINCT drop_number) as count
       FROM qa_photo_reviews
@@ -203,7 +203,7 @@ export async function getDailyDropsPerProject(date?: string): Promise<Array<{ da
     `;
 
     return rows.map((row: any) => ({
-      date: row.date,
+      date: row.date,  // Now returns 'YYYY-MM-DD' string instead of timestamp
       project: row.project,
       count: parseInt(row.count, 10),
     }));
