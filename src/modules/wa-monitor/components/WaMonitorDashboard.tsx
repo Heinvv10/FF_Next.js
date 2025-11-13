@@ -96,9 +96,20 @@ export function WaMonitorDashboard() {
     fetchData();
   };
 
-  // Export handler
+  // Export handler - exports only filtered drops
   const handleExport = () => {
-    downloadCSV(drops);
+    // Generate filename with date range if applicable
+    let filename = 'wa-monitor-drops';
+    if (filters.dateFrom) {
+      const dateStr = new Date(filters.dateFrom).toISOString().split('T')[0];
+      filename += `_from_${dateStr}`;
+    }
+    if (filters.project && filters.project !== 'all') {
+      filename += `_${filters.project}`;
+    }
+    filename += '.csv';
+
+    downloadCSV(filteredDrops, filename);
   };
 
   // Handle drop update
@@ -257,9 +268,9 @@ export function WaMonitorDashboard() {
             variant="contained"
             startIcon={<Download size={18} />}
             onClick={handleExport}
-            disabled={drops.length === 0}
+            disabled={filteredDrops.length === 0}
           >
-            Export CSV
+            Export CSV ({filteredDrops.length})
           </Button>
         </div>
       </div>

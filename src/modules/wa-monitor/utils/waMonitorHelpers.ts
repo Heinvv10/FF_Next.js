@@ -147,32 +147,60 @@ export function sortDrops(
 // ==================== EXPORT HELPERS ====================
 
 /**
- * Convert drops to CSV format
+ * Convert drops to CSV format with QA checklist steps
  */
 export function convertDropsToCSV(drops: QaReviewDrop[]): string {
   const headers = [
     'Drop Number',
+    'Project',
     'Status',
-    'Feedback Count',
+    'User Name',
     'Created At',
     'Updated At',
-    'Completed At',
-    'Notes'
+    'Resubmitted',
+    'Feedback Sent',
+    'Step 1: House Photo',
+    'Step 2: Cable from Pole',
+    'Step 3: Cable Entry (Outside)',
+    'Step 4: Cable Entry (Inside)',
+    'Step 5: Wall for Installation',
+    'Step 6: ONT Back After Install',
+    'Step 7: Power Meter Reading',
+    'Step 8: ONT Barcode',
+    'Step 9: UPS Serial',
+    'Step 10: Final Installation',
+    'Step 11: Green Lights',
+    'Step 12: Customer Signature',
+    'Comment'
   ];
 
   const rows = drops.map(drop => [
     drop.dropNumber,
+    drop.project || '',
     drop.status,
-    drop.feedbackCount.toString(),
+    drop.userName || '',
     formatDateTime(drop.createdAt),
     formatDateTime(drop.updatedAt),
-    drop.completedAt ? formatDateTime(drop.completedAt) : '',
-    drop.notes || ''
+    drop.resubmitted ? 'Yes' : 'No',
+    drop.feedbackSent ? formatDateTime(drop.feedbackSent) : 'Not Sent',
+    drop.step_01_house_photo ? 'OK' : 'MISSING',
+    drop.step_02_cable_from_pole ? 'OK' : 'MISSING',
+    drop.step_03_cable_entry_outside ? 'OK' : 'MISSING',
+    drop.step_04_cable_entry_inside ? 'OK' : 'MISSING',
+    drop.step_05_wall_for_installation ? 'OK' : 'MISSING',
+    drop.step_06_ont_back_after_install ? 'OK' : 'MISSING',
+    drop.step_07_power_meter_reading ? 'OK' : 'MISSING',
+    drop.step_08_ont_barcode ? 'OK' : 'MISSING',
+    drop.step_09_ups_serial ? 'OK' : 'MISSING',
+    drop.step_10_final_installation ? 'OK' : 'MISSING',
+    drop.step_11_green_lights ? 'OK' : 'MISSING',
+    drop.step_12_customer_signature ? 'OK' : 'MISSING',
+    drop.comment || ''
   ]);
 
   const csvContent = [
     headers.join(','),
-    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
   ].join('\n');
 
   return csvContent;
