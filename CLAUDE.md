@@ -677,24 +677,25 @@ cat /opt/wa-monitor/dev/config/projects.yaml
 
 **📖 Read More:** See `docs/wa-monitor/PYTHON_CACHE_ISSUE.md` for full explanation of Python cache problem
 
-### ⚠️ KNOWN ISSUE: Resubmission Handler LID Bug
+**🔍 Why This Matters:**
+Python caches compiled bytecode (`.pyc` files). Using plain `systemctl restart` keeps the old cache, so your bug fixes don't actually run - the monitor continues executing old buggy code even though source files are updated. This caused LID bugs to persist for 2 days (Nov 11-13, 2025) despite being fixed in code.
 
-**Status:** Database fixed ✅ | VPS code fix pending ⏳
+### ✅ RESOLVED: Resubmission Handler LID Bug (Nov 13, 2025)
 
-**Problem:** When drops are **resubmitted** (posted again), the monitor resolves LIDs correctly but doesn't update `submitted_by` in the database. This causes @mentions to show LID numbers instead of contact names.
+**Status:** ✅ FIXED - Code updated & cache cleared
 
-**Example:**
-- Monitor logs: `🔗 Resolved LID 205106247139540 → 27837912771` ✅
-- Database has: `submitted_by = '205106247139540'` ❌
-- WhatsApp shows: `@+20 5106247139540` instead of `@Contractor_Name`
+**Problem (Was):** When drops were **resubmitted** (posted again), the monitor resolved LIDs correctly but didn't update `submitted_by` in the database. This caused @mentions to show LID numbers instead of contact names.
 
-**Root Cause:**
-- File: `/opt/wa-monitor/prod/modules/monitor.py` - Line ~115
-- Bug: `handle_resubmission()` doesn't pass `resolved_phone` parameter
-- File: `/opt/wa-monitor/prod/modules/database.py`
-- Bug: `handle_resubmission()` doesn't update `submitted_by` and `user_name` fields
+**Root Cause:** Python bytecode cache. Code was fixed Nov 11, but `systemctl restart` kept stale `.pyc` cache, so old buggy code continued running until Nov 13 when safe restart script was used.
 
-**Immediate Workaround:**
+**Resolution (Nov 13 @ 10:08):**
+1. Used `/opt/wa-monitor/prod/restart-monitor.sh` to clear cache
+2. Fixed all LIDs in database manually:
+   - DR1111113 (Velo Test) - LID → 27640412391
+   - DR1734381 (Lawley) - LID → 27608088270
+   - DR1857337 (Mohadin) - LID → 27734107589
+
+**How to Check for LIDs:**
 If you see LID numbers in feedback, fix manually in database:
 ```bash
 # 1. Find drops with LIDs (should be 0 after Nov 12 cleanup)
@@ -717,17 +718,11 @@ psql $DATABASE_URL -c "
 "
 ```
 
-**Permanent Fix:** See `docs/wa-monitor/RESUBMISSION_FIX_NOV12_2025.md` for:
-- Detailed fix instructions for VPS code
-- Testing checklist
-- Prevention measures
+**Prevention:** ALWAYS use `/opt/wa-monitor/prod/restart-monitor.sh` after code changes (see `docs/wa-monitor/PYTHON_CACHE_ISSUE.md`)
 
-**Affected Drops (Fixed Nov 12, 2025):**
-- DR470114 (Mamelodi) - LID: 205106247139540 → Phone: 27837912771
-- DR1857292 (Mohadin) - LID: 26959979507783 → Phone: 27633159281
-- DR1734207 (Lawley) - LID: 160314653982720 → Phone: 27715844472
-- DR1734242 (Lawley) - LID: 265167388586133 → Phone: 27728468714
-- DR1857265 (Mohadin) - LID: 140858317902021 → Phone: 27651775287
+**All Affected Drops Fixed:**
+- Nov 12: DR470114, DR1857292, DR1734207, DR1734242, DR1857265
+- Nov 13: DR1111113, DR1734381, DR1857337
 
 ### 🚨 CRITICAL: Database Configuration
 
