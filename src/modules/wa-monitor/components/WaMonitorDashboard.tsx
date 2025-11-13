@@ -25,7 +25,7 @@ export function WaMonitorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-  const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '', resubmitted: 'all', project: undefined, dateFrom: undefined });
+  const [filters, setFilters] = useState<FilterState>({ status: 'all', searchTerm: '', resubmitted: 'all', project: undefined, dateFrom: undefined, dateTo: undefined });
   const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch data function
@@ -100,9 +100,16 @@ export function WaMonitorDashboard() {
   const handleExport = () => {
     // Generate filename with date range if applicable
     let filename = 'wa-monitor-drops';
-    if (filters.dateFrom) {
+    if (filters.dateFrom && filters.dateTo) {
+      const fromStr = new Date(filters.dateFrom).toISOString().split('T')[0];
+      const toStr = new Date(filters.dateTo).toISOString().split('T')[0];
+      filename += `_${fromStr}_to_${toStr}`;
+    } else if (filters.dateFrom) {
       const dateStr = new Date(filters.dateFrom).toISOString().split('T')[0];
       filename += `_from_${dateStr}`;
+    } else if (filters.dateTo) {
+      const dateStr = new Date(filters.dateTo).toISOString().split('T')[0];
+      filename += `_until_${dateStr}`;
     }
     if (filters.project && filters.project !== 'all') {
       filename += `_${filters.project}`;
@@ -172,6 +179,19 @@ export function WaMonitorDashboard() {
         filterDate.setHours(0, 0, 0, 0);
 
         if (dropDate < filterDate) {
+          return false;
+        }
+      }
+
+      // Filter by date to (inclusive)
+      if (filters.dateTo) {
+        const dropDate = new Date(drop.createdAt);
+        const filterDate = new Date(filters.dateTo);
+        // Set time to end of day for accurate comparison
+        dropDate.setHours(0, 0, 0, 0);
+        filterDate.setHours(23, 59, 59, 999);
+
+        if (dropDate > filterDate) {
           return false;
         }
       }
@@ -300,9 +320,13 @@ export function WaMonitorDashboard() {
               <Typography variant="h4" component="div">
                 {calculatedSummary.total}
               </Typography>
-              {filters.dateFrom && (
+              {(filters.dateFrom || filters.dateTo) && (
                 <Typography variant="caption" color="textSecondary">
-                  From {new Date(filters.dateFrom).toLocaleDateString()}
+                  {filters.dateFrom && filters.dateTo
+                    ? `${new Date(filters.dateFrom).toLocaleDateString()} - ${new Date(filters.dateTo).toLocaleDateString()}`
+                    : filters.dateFrom
+                    ? `From ${new Date(filters.dateFrom).toLocaleDateString()}`
+                    : `Until ${new Date(filters.dateTo!).toLocaleDateString()}`}
                 </Typography>
               )}
             </CardContent>

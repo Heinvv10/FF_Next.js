@@ -35,6 +35,7 @@ export interface FilterState {
   resubmitted?: 'all' | 'resubmitted' | 'not_resubmitted';
   project?: string;
   dateFrom?: string; // ISO date string (YYYY-MM-DD)
+  dateTo?: string;   // ISO date string (YYYY-MM-DD)
 }
 
 export function WaMonitorFilters({ onFilterChange, totalCount, filteredCount, availableProjects }: WaMonitorFiltersProps) {
@@ -43,30 +44,36 @@ export function WaMonitorFilters({ onFilterChange, totalCount, filteredCount, av
   const [resubmitted, setResubmitted] = useState<'all' | 'resubmitted' | 'not_resubmitted'>('all');
   const [project, setProject] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
 
   const handleStatusChange = (newStatus: DropStatus | 'all') => {
     setStatus(newStatus);
-    onFilterChange({ status: newStatus, searchTerm, resubmitted, project: project !== 'all' ? project : undefined, dateFrom: dateFrom || undefined });
+    onFilterChange({ status: newStatus, searchTerm, resubmitted, project: project !== 'all' ? project : undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined });
   };
 
   const handleSearchChange = (newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
-    onFilterChange({ status, searchTerm: newSearchTerm, resubmitted, project: project !== 'all' ? project : undefined, dateFrom: dateFrom || undefined });
+    onFilterChange({ status, searchTerm: newSearchTerm, resubmitted, project: project !== 'all' ? project : undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined });
   };
 
   const handleResubmittedChange = (newResubmitted: 'all' | 'resubmitted' | 'not_resubmitted') => {
     setResubmitted(newResubmitted);
-    onFilterChange({ status, searchTerm, resubmitted: newResubmitted, project: project !== 'all' ? project : undefined, dateFrom: dateFrom || undefined });
+    onFilterChange({ status, searchTerm, resubmitted: newResubmitted, project: project !== 'all' ? project : undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined });
   };
 
   const handleProjectChange = (newProject: string) => {
     setProject(newProject);
-    onFilterChange({ status, searchTerm, resubmitted, project: newProject !== 'all' ? newProject : undefined, dateFrom: dateFrom || undefined });
+    onFilterChange({ status, searchTerm, resubmitted, project: newProject !== 'all' ? newProject : undefined, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined });
   };
 
   const handleDateFromChange = (newDateFrom: string) => {
     setDateFrom(newDateFrom);
-    onFilterChange({ status, searchTerm, resubmitted, project: project !== 'all' ? project : undefined, dateFrom: newDateFrom || undefined });
+    onFilterChange({ status, searchTerm, resubmitted, project: project !== 'all' ? project : undefined, dateFrom: newDateFrom || undefined, dateTo: dateTo || undefined });
+  };
+
+  const handleDateToChange = (newDateTo: string) => {
+    setDateTo(newDateTo);
+    onFilterChange({ status, searchTerm, resubmitted, project: project !== 'all' ? project : undefined, dateFrom: dateFrom || undefined, dateTo: newDateTo || undefined });
   };
 
   const handleClearFilters = () => {
@@ -75,10 +82,11 @@ export function WaMonitorFilters({ onFilterChange, totalCount, filteredCount, av
     setResubmitted('all');
     setProject('all');
     setDateFrom('');
-    onFilterChange({ status: 'all', searchTerm: '', resubmitted: 'all', project: undefined, dateFrom: undefined });
+    setDateTo('');
+    onFilterChange({ status: 'all', searchTerm: '', resubmitted: 'all', project: undefined, dateFrom: undefined, dateTo: undefined });
   };
 
-  const hasActiveFilters = status !== 'all' || searchTerm !== '' || resubmitted !== 'all' || project !== 'all' || dateFrom !== '';
+  const hasActiveFilters = status !== 'all' || searchTerm !== '' || resubmitted !== 'all' || project !== 'all' || dateFrom !== '' || dateTo !== '';
 
   return (
     <Card sx={{ mb: 3 }}>
@@ -107,6 +115,19 @@ export function WaMonitorFilters({ onFilterChange, totalCount, filteredCount, av
             label="From Date"
             value={dateFrom}
             onChange={(e) => handleDateFromChange(e.target.value)}
+            sx={{ minWidth: 180 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+
+          {/* Filter by Date To */}
+          <TextField
+            size="small"
+            type="date"
+            label="To Date"
+            value={dateTo}
+            onChange={(e) => handleDateToChange(e.target.value)}
             sx={{ minWidth: 180 }}
             InputLabelProps={{
               shrink: true,
