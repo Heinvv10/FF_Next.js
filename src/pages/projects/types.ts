@@ -27,10 +27,12 @@ export interface ProjectSummaryCard {
   value: number;
   icon: LucideIcon;
   color: 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'indigo';
-  trend: {
+  trend?: {
     value: number;
     isPositive: boolean;
+    label?: string;
   };
+  subtitle?: string;
 }
 
 export interface ProjectTableColumn {

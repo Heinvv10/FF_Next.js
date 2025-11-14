@@ -282,6 +282,174 @@ function transformDbRowToDrop(row: any): QaReviewDrop {
 }
 
 /**
+ * Get project stats by time period (real-time calculation)
+ * Returns stats for today, this week, this month, and all-time
+ */
+export async function getProjectStats(projectName: string): Promise<{
+  today: { total: number; complete: number; incomplete: number; completionRate: number };
+  week: { total: number; complete: number; incomplete: number; completionRate: number };
+  month: { total: number; complete: number; incomplete: number; completionRate: number };
+  allTime: { total: number; complete: number; incomplete: number; completionRate: number };
+}> {
+  try {
+    // Get current date in SAST timezone
+    const [dateInfo] = await sql`
+      SELECT
+        CURRENT_DATE AT TIME ZONE 'Africa/Johannesburg' as today,
+        (CURRENT_DATE AT TIME ZONE 'Africa/Johannesburg' - INTERVAL '7 days')::date as week_start,
+        (CURRENT_DATE AT TIME ZONE 'Africa/Johannesburg' - INTERVAL '30 days')::date as month_start
+    `;
+
+    // Today's stats
+    const [todayStats] = await sql`
+      SELECT
+        COUNT(DISTINCT drop_number) as total,
+        COUNT(DISTINCT CASE
+          WHEN step_01_house_photo = true AND step_02_cable_from_pole = true
+            AND step_03_cable_entry_outside = true AND step_04_cable_entry_inside = true
+            AND step_05_wall_for_installation = true AND step_06_ont_back_after_install = true
+            AND step_07_power_meter_reading = true AND step_08_ont_barcode = true
+            AND step_09_ups_serial = true AND step_10_final_installation = true
+            AND step_11_green_lights = true AND step_12_customer_signature = true
+          THEN drop_number
+        END) as complete
+      FROM qa_photo_reviews
+      WHERE project = ${projectName}
+        AND DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') = ${dateInfo.today}::date
+    `;
+
+    // This week's stats
+    const [weekStats] = await sql`
+      SELECT
+        COUNT(DISTINCT drop_number) as total,
+        COUNT(DISTINCT CASE
+          WHEN step_01_house_photo = true AND step_02_cable_from_pole = true
+            AND step_03_cable_entry_outside = true AND step_04_cable_entry_inside = true
+            AND step_05_wall_for_installation = true AND step_06_ont_back_after_install = true
+            AND step_07_power_meter_reading = true AND step_08_ont_barcode = true
+            AND step_09_ups_serial = true AND step_10_final_installation = true
+            AND step_11_green_lights = true AND step_12_customer_signature = true
+          THEN drop_number
+        END) as complete
+      FROM qa_photo_reviews
+      WHERE project = ${projectName}
+        AND DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') >= ${dateInfo.week_start}::date
+    `;
+
+    // This month's stats
+    const [monthStats] = await sql`
+      SELECT
+        COUNT(DISTINCT drop_number) as total,
+        COUNT(DISTINCT CASE
+          WHEN step_01_house_photo = true AND step_02_cable_from_pole = true
+            AND step_03_cable_entry_outside = true AND step_04_cable_entry_inside = true
+            AND step_05_wall_for_installation = true AND step_06_ont_back_after_install = true
+            AND step_07_power_meter_reading = true AND step_08_ont_barcode = true
+            AND step_09_ups_serial = true AND step_10_final_installation = true
+            AND step_11_green_lights = true AND step_12_customer_signature = true
+          THEN drop_number
+        END) as complete
+      FROM qa_photo_reviews
+      WHERE project = ${projectName}
+        AND DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') >= ${dateInfo.month_start}::date
+    `;
+
+    // All-time stats
+    const [allTimeStats] = await sql`
+      SELECT
+        COUNT(DISTINCT drop_number) as total,
+        COUNT(DISTINCT CASE
+          WHEN step_01_house_photo = true AND step_02_cable_from_pole = true
+            AND step_03_cable_entry_outside = true AND step_04_cable_entry_inside = true
+            AND step_05_wall_for_installation = true AND step_06_ont_back_after_install = true
+            AND step_07_power_meter_reading = true AND step_08_ont_barcode = true
+            AND step_09_ups_serial = true AND step_10_final_installation = true
+            AND step_11_green_lights = true AND step_12_customer_signature = true
+          THEN drop_number
+        END) as complete
+      FROM qa_photo_reviews
+      WHERE project = ${projectName}
+    `;
+
+    // Helper to calculate stats
+    const calcStats = (total: number, complete: number) => ({
+      total: parseInt(total as any, 10) || 0,
+      complete: parseInt(complete as any, 10) || 0,
+      incomplete: (parseInt(total as any, 10) || 0) - (parseInt(complete as any, 10) || 0),
+      completionRate: total > 0 ? Math.round((complete / total) * 100) : 0,
+    });
+
+    return {
+      today: calcStats(todayStats.total, todayStats.complete),
+      week: calcStats(weekStats.total, weekStats.complete),
+      month: calcStats(monthStats.total, monthStats.complete),
+      allTime: calcStats(allTimeStats.total, allTimeStats.complete),
+    };
+  } catch (error) {
+    console.error(`Error getting project stats for ${projectName}:`, error);
+    throw new Error('Failed to get project stats');
+  }
+}
+
+/**
+ * Get all projects stats summary (for Projects page overview)
+ * Returns today's stats for all projects combined
+ */
+export async function getAllProjectsStatsSummary(): Promise<{
+  total: number;
+  complete: number;
+  incomplete: number;
+  completionRate: number;
+  byProject: Array<{ project: string; total: number; complete: number; completionRate: number }>;
+}> {
+  try {
+    // Get current date in SAST timezone
+    const [dateInfo] = await sql`
+      SELECT CURRENT_DATE AT TIME ZONE 'Africa/Johannesburg' as today
+    `;
+
+    // Today's stats by project
+    const projectStats = await sql`
+      SELECT
+        COALESCE(project, 'Unknown') as project,
+        COUNT(DISTINCT drop_number) as total,
+        COUNT(DISTINCT CASE
+          WHEN step_01_house_photo = true AND step_02_cable_from_pole = true
+            AND step_03_cable_entry_outside = true AND step_04_cable_entry_inside = true
+            AND step_05_wall_for_installation = true AND step_06_ont_back_after_install = true
+            AND step_07_power_meter_reading = true AND step_08_ont_barcode = true
+            AND step_09_ups_serial = true AND step_10_final_installation = true
+            AND step_11_green_lights = true AND step_12_customer_signature = true
+          THEN drop_number
+        END) as complete
+      FROM qa_photo_reviews
+      WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') = ${dateInfo.today}::date
+      GROUP BY project
+      ORDER BY total DESC
+    `;
+
+    const total = projectStats.reduce((sum, p) => sum + parseInt(p.total as any, 10), 0);
+    const complete = projectStats.reduce((sum, p) => sum + parseInt(p.complete as any, 10), 0);
+
+    return {
+      total,
+      complete,
+      incomplete: total - complete,
+      completionRate: total > 0 ? Math.round((complete / total) * 100) : 0,
+      byProject: projectStats.map(p => ({
+        project: p.project,
+        total: parseInt(p.total as any, 10),
+        complete: parseInt(p.complete as any, 10),
+        completionRate: p.total > 0 ? Math.round((parseInt(p.complete as any, 10) / parseInt(p.total as any, 10)) * 100) : 0,
+      })),
+    };
+  } catch (error) {
+    console.error('Error getting all projects stats summary:', error);
+    throw new Error('Failed to get all projects stats summary');
+  }
+}
+
+/**
  * Validate database connection
  */
 export async function validateConnection(): Promise<boolean> {

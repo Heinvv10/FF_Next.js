@@ -9,6 +9,7 @@ export interface SummaryCardData {
   trend?: {
     value: number;
     isPositive: boolean;
+    label?: string;
   };
   subtitle?: string;
 }
@@ -56,9 +57,11 @@ export function StandardSummaryCards({
                     <span className={`text-sm font-medium ${
                       card.trend.isPositive ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {card.trend.isPositive ? '↑' : '↓'} {Math.abs(card.trend.value)}%
+                      {card.trend.isPositive ? '↑' : '↓'} {Math.abs(card.trend.value)}{card.trend.label || '%'}
                     </span>
-                    <span className="text-xs text-gray-500 ml-2">vs last month</span>
+                    {!card.trend.label && (
+                      <span className="text-xs text-gray-500 ml-2">vs last month</span>
+                    )}
                   </div>
                 )}
               </div>

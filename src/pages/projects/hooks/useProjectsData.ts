@@ -8,18 +8,22 @@ import { ProjectStatus, Priority } from '@/types/project.types';
 import { useProjects, useDeleteProject, useProjectFilters } from '@/hooks/useProjects';
 import { ProjectSummaryCard } from '../types';
 import { ProjectFilter } from '@/types/project/form.types';
-import { Building2, Activity, Clock, AlertCircle } from 'lucide-react';
+import { Building2, Activity, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { useWaMonitorSummary } from '@/modules/wa-monitor/hooks/useWaMonitorStats';
 
 export function useProjectsData(filter?: ProjectFilter) {
-  const { 
-    filter: appliedFilter, 
-    updateFilter, 
-    clearFilter, 
-    hasActiveFilters 
+  const {
+    filter: appliedFilter,
+    updateFilter,
+    clearFilter,
+    hasActiveFilters
   } = useProjectFilters();
-  
+
   const { data: projects = [], isLoading, error } = useProjects(filter || appliedFilter);
   const deleteMutation = useDeleteProject();
+
+  // Fetch WA Monitor stats (real-time)
+  const { data: waStats } = useWaMonitorSummary();
 
   // Calculate summary statistics
   const summaryStats: ProjectSummaryCard[] = useMemo(() => [
@@ -38,6 +42,16 @@ export function useProjectsData(filter?: ProjectFilter) {
       trend: { value: 8, isPositive: true }
     },
     {
+      title: 'QA Drops Today',
+      value: waStats?.total || 0,
+      icon: CheckCircle,
+      color: 'purple' as const,
+      trend: waStats?.completionRate
+        ? { value: waStats.completionRate, label: '% Complete', isPositive: waStats.completionRate >= 80 }
+        : undefined,
+      subtitle: waStats ? `${waStats.complete} Complete • ${waStats.incomplete} Incomplete` : undefined
+    },
+    {
       title: 'On Hold',
       value: projects.filter(p => p.status === ProjectStatus.ON_HOLD).length,
       icon: Clock,
@@ -51,7 +65,7 @@ export function useProjectsData(filter?: ProjectFilter) {
       color: 'red' as const,
       trend: { value: 2, isPositive: false }
     }
-  ], [projects]);
+  ], [projects, waStats]);
 
   // Filter projects by search term
   const getFilteredProjects = (searchTerm: string) => {
