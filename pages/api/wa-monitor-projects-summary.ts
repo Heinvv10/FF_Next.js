@@ -2,8 +2,8 @@
  * WA Monitor Projects Summary API
  * GET /api/wa-monitor-projects-summary
  *
- * Returns today's stats for all projects combined
- * Used for Projects page summary card
+ * Returns today's stats for all projects combined + comprehensive metrics
+ * Used for Projects Dashboard page
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
