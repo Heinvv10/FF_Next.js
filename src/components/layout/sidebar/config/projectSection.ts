@@ -3,7 +3,6 @@
  */
 
 import {
-  FolderOpen,
   CheckCircle,
   BarChart3,
   Camera,
