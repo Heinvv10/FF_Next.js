@@ -3,7 +3,7 @@
 ## Overview
 Automated sync of Fireflies meeting transcripts to Neon database **daily at 8:00 PM SAST** (18:00 UTC).
 
-The sync job sends email notifications to `meetings@velocityfibre.co.za` after each run with success/failure status.
+The sync job sends email notifications to `ai@velocityfibre.co.za` after each run with success/failure status.
 
 ## Prerequisites
 1. VPS server running (72.60.17.245)
@@ -82,7 +82,7 @@ Expected output:
 ✅ Email notification sent (ID: ...)
 ```
 
-An email will be sent to `meetings@velocityfibre.co.za` with the sync results.
+An email will be sent to `ai@velocityfibre.co.za` with the sync results.
 
 ## Monitoring
 
@@ -155,7 +155,7 @@ systemctl restart cron
 
 ## Email Notifications
 
-After each sync, an email is sent to the admin address (`meetings@velocityfibre.co.za`) with:
+After each sync, an email is sent to the admin address (`ai@velocityfibre.co.za`) with:
 
 **Success Email:**
 - ✅ Number of meetings synced

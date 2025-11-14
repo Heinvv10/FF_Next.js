@@ -22,7 +22,7 @@ dotenv.config({ path: '.env.production' });
 const DATABASE_URL = process.env.DATABASE_URL;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FIREFLIES_API_KEY = process.env.FIREFLIES_API_KEY;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'meetings@velocityfibre.co.za';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'ai@velocityfibre.co.za';
 
 if (!DATABASE_URL) {
   console.error('❌ DATABASE_URL not set');
