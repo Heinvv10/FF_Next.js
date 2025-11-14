@@ -45,7 +45,8 @@ export default async function handler(
           ai.tags,
           ai.notes,
           m.title as meeting_title,
-          m.meeting_date
+          m.meeting_date,
+          m.transcript_url
         FROM meeting_action_items ai
         LEFT JOIN meetings m ON ai.meeting_id = m.id
         ORDER BY

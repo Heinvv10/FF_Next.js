@@ -18,7 +18,7 @@ export default async function handler(
   // GET - Fetch single action item
   if (req.method === 'GET') {
     try {
-      const [item] = await sql`
+      const item = await sql`
         SELECT
           ai.*,
           m.title as meeting_title,
@@ -29,11 +29,11 @@ export default async function handler(
         WHERE ai.id = ${id}
       `;
 
-      if (!item) {
+      if (!item || item.length === 0) {
         return apiResponse.notFound(res, 'Action item', id);
       }
 
-      return apiResponse.success(res, item);
+      return apiResponse.success(res, item[0]);
     } catch (error: any) {
       console.error('Error fetching action item:', error);
       return apiResponse.internalError(res, error);
@@ -85,19 +85,59 @@ export default async function handler(
         return apiResponse.validationError(res, { updates: 'No fields to update' });
       }
 
-      // Perform update
-      const [updated] = await sql`
-        UPDATE meeting_action_items
-        SET ${sql(fields)}
-        WHERE id = ${id}
-        RETURNING *
-      `;
+      // Build UPDATE query dynamically
+      // Neon serverless requires tagged templates, so we build the query conditionally
+      let query = 'UPDATE meeting_action_items SET updated_at = NOW()';
+      const values: any[] = [];
 
-      if (!updated) {
+      if (fields.description !== undefined) {
+        values.push(fields.description);
+        query += `, description = $${values.length}`;
+      }
+      if (fields.assignee_name !== undefined) {
+        values.push(fields.assignee_name);
+        query += `, assignee_name = $${values.length}`;
+      }
+      if (fields.assignee_email !== undefined) {
+        values.push(fields.assignee_email);
+        query += `, assignee_email = $${values.length}`;
+      }
+      if (fields.status !== undefined) {
+        values.push(fields.status);
+        query += `, status = $${values.length}`;
+      }
+      if (fields.priority !== undefined) {
+        values.push(fields.priority);
+        query += `, priority = $${values.length}`;
+      }
+      if (fields.due_date !== undefined) {
+        values.push(fields.due_date);
+        query += `, due_date = $${values.length}`;
+      }
+      if (fields.completed_date !== undefined) {
+        values.push(fields.completed_date);
+        query += `, completed_date = $${values.length}`;
+      }
+      if (fields.tags !== undefined) {
+        values.push(fields.tags);
+        query += `, tags = $${values.length}`;
+      }
+      if (fields.notes !== undefined) {
+        values.push(fields.notes);
+        query += `, notes = $${values.length}`;
+      }
+
+      values.push(id);
+      query += ` WHERE id = $${values.length} RETURNING *`;
+
+      // Execute using neon's query method for parameterized queries
+      const result = await sql(query, values);
+
+      if (!result || result.length === 0) {
         return apiResponse.notFound(res, 'Action item', id);
       }
 
-      return apiResponse.success(res, updated, 'Action item updated successfully');
+      return apiResponse.success(res, result[0], 'Action item updated successfully');
     } catch (error: any) {
       console.error('Error updating action item:', error);
       return apiResponse.internalError(res, error);

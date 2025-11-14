@@ -35,6 +35,7 @@ export interface ActionItem {
   // Joined data (from meetings table)
   meeting_title?: string;
   meeting_date?: string;
+  transcript_url?: string;
 }
 
 export interface ActionItemCreateInput {

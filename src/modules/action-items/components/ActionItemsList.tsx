@@ -154,12 +154,14 @@ export function ActionItemsList({ items, onItemUpdated }: ActionItemsListProps) 
               )}
             </div>
 
-            {/* Meeting link */}
-            {item.meeting_id && (
+            {/* Meeting transcript link */}
+            {item.transcript_url && (
               <a
-                href={`/meetings/${item.meeting_id}`}
+                href={item.transcript_url}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-700"
-                title="View meeting"
+                title="View meeting transcript"
               >
                 <ExternalLink className="w-4 h-4" />
               </a>
