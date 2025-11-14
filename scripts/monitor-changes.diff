@@ -1,0 +1,45 @@
+--- /tmp/monitor.py.original	2025-11-14 12:09:12.652525949 +0200
++++ /home/louisdup/VF/Apps/FF_React/scripts/monitor-updated.py	2025-11-14 12:10:13.616529437 +0200
+@@ -13,6 +13,9 @@
+ 
+ logger = logging.getLogger(__name__)
+ 
++# 🚨 GLOBAL KILL SWITCH - Set to 'false' to disable all WhatsApp auto-reply messages
++ENABLE_WHATSAPP_MESSAGES = os.getenv('ENABLE_WHATSAPP_MESSAGES', 'true').lower() == 'true'
++
+ class DropMonitor:
+     """Monitors WhatsApp messages for drop numbers with validation."""
+ 
+@@ -200,6 +203,12 @@
+ 
+     def send_whatsapp_direct_message(self, group_jid: str, recipient_phone: str, message: str) -> bool:
+         """Send direct WhatsApp message with @mention via Sender API (port 8081) with fallback."""
++
++        # 🚨 KILL SWITCH CHECK
++        if not ENABLE_WHATSAPP_MESSAGES:
++            logger.warning(f"🚫 Message NOT sent (kill switch active): {message[:50]}...")
++            return True  # Return True so processing continues
++
+         # Try Sender API first (port 8081 - with @mentions)
+         try:
+             recipient_jid = f"{recipient_phone}@s.whatsapp.net"
+@@ -289,8 +298,8 @@
+ 
+         logger.info(f"📱 Found drop: {drop_number} in {project_name}")
+ 
+-        # ✅ VALIDATION CHECK - MOHADIN & LAWLEY (other projects pass through)
+-        if project_name in ['Mohadin', 'Lawley']:
++        # ✅ VALIDATION CHECK - MOHADIN, LAWLEY & MAMELODI (other projects pass through)
++        if project_name in ['Mohadin', 'Lawley', 'Mamelodi']:
+             if not self.validate_drop_number(drop_number, project_name):
+                 logger.warning(f"❌ INVALID DROP: {drop_number} not in valid list for {project_name}")
+                 self.log_invalid_drop(drop_number, project_name, message['sender'], group_jid)
+@@ -309,7 +318,7 @@
+                 return False
+             logger.info(f"✅ VALIDATED: {drop_number} is valid for {project_name}")
+         else:
+-            logger.debug(f"⏭️  SKIPPED VALIDATION: {drop_number} (Velo Test and Mamelodi pass through)")
++            logger.debug(f"⏭️  SKIPPED VALIDATION: {drop_number} (Velo Test passes through)")
+ 
+         # Resolve sender to actual phone number (handles LIDs from linked devices)
+         resolved_phone = self.resolve_sender_to_phone(message['sender'])

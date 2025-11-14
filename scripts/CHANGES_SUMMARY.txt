@@ -1,0 +1,131 @@
+================================================================================
+MONITOR.PY UPDATE - CHANGES SUMMARY
+================================================================================
+
+Updated File: /home/louisdup/VF/Apps/FF_React/scripts/monitor-updated.py
+Original File: /opt/wa-monitor/prod/modules/monitor.py (VPS)
+Date: November 14, 2025
+
+================================================================================
+CHANGE 1: ADD GLOBAL KILL SWITCH (Lines 16-17)
+================================================================================
+
+Location: After imports, before class definition
+
++ # 🚨 GLOBAL KILL SWITCH - Set to 'false' to disable all WhatsApp auto-reply messages
++ ENABLE_WHATSAPP_MESSAGES = os.getenv('ENABLE_WHATSAPP_MESSAGES', 'true').lower() == 'true'
+
+Purpose: Emergency off-switch for WhatsApp messaging
+Default: Enabled (true)
+Usage: export ENABLE_WHATSAPP_MESSAGES=false
+
+================================================================================
+CHANGE 2: ADD KILL SWITCH CHECK IN send_whatsapp_direct_message() (Lines 206-209)
+================================================================================
+
+Location: Inside send_whatsapp_direct_message() method, before API calls
+
+ def send_whatsapp_direct_message(self, group_jid: str, recipient_phone: str, message: str) -> bool:
+     """Send direct WhatsApp message with @mention via Sender API (port 8081) with fallback."""
++
++    # 🚨 KILL SWITCH CHECK
++    if not ENABLE_WHATSAPP_MESSAGES:
++        logger.warning(f"🚫 Message NOT sent (kill switch active): {message[:50]}...")
++        return True  # Return True so processing continues
++
+     # Try Sender API first (port 8081 - with @mentions)
+     try:
+
+Purpose: Intercept WhatsApp messages before sending
+Behavior: Logs suppressed messages, returns True to continue processing
+
+================================================================================
+CHANGE 3: ADD MAMELODI TO VALIDATION (Line 302)
+================================================================================
+
+Location: In process_message() method, validation check condition
+
+-        # ✅ VALIDATION CHECK - MOHADIN & LAWLEY (other projects pass through)
+-        if project_name in ['Mohadin', 'Lawley']:
++        # ✅ VALIDATION CHECK - MOHADIN, LAWLEY & MAMELODI (other projects pass through)
++        if project_name in ['Mohadin', 'Lawley', 'Mamelodi']:
+             if not self.validate_drop_number(drop_number, project_name):
+
+Purpose: Enable drop validation for Mamelodi project
+Impact: Mamelodi drops will be validated against valid_drop_numbers table
+
+================================================================================
+CHANGE 4: UPDATE SKIP VALIDATION LOG MESSAGE (Line 321)
+================================================================================
+
+Location: In process_message() method, else clause for non-validated projects
+
+         else:
+-            logger.debug(f"⏭️  SKIPPED VALIDATION: {drop_number} (Velo Test and Mamelodi pass through)")
++            logger.debug(f"⏭️  SKIPPED VALIDATION: {drop_number} (Velo Test passes through)")
+
+Purpose: Update log message to reflect Mamelodi is now validated
+Result: Only Velo Test appears in skip message (accurate)
+
+================================================================================
+VALIDATION STATUS BY PROJECT (AFTER UPDATE)
+================================================================================
+
+Project          | Validation | Auto-Reply | Notes
+-----------------|-----------|------------|----------------------------------
+Mohadin          | ✅ Active  | ✅ Yes     | 22,140 valid drops loaded
+Lawley           | ✅ Active  | ✅ Yes     | Needs valid drops loaded
+Mamelodi (NEW)   | ✅ Active  | ✅ Yes     | Needs valid drops loaded
+Velo Test        | ⏭️ Bypass  | N/A        | Testing - all drops accepted
+
+================================================================================
+VERIFICATION COMMANDS
+================================================================================
+
+# 1. Check kill switch is defined
+grep -n "ENABLE_WHATSAPP_MESSAGES" monitor-updated.py
+# Should show: Line 17 (definition) and Line 208 (check)
+
+# 2. Check Mamelodi added to validation
+grep -n "in \['Mohadin" monitor-updated.py
+# Should show: Line 302 with ['Mohadin', 'Lawley', 'Mamelodi']
+
+# 3. Check skip log updated
+grep -n "Velo Test passes through" monitor-updated.py
+# Should show: Line 321 (Mamelodi removed from message)
+
+# 4. Line count (should be same as original)
+wc -l monitor-updated.py
+# Should show: 360 lines
+
+================================================================================
+DEPLOYMENT COMMANDS
+================================================================================
+
+# 1. Upload to VPS
+sshpass -p 'VeloF@2025@@' scp \
+  /home/louisdup/VF/Apps/FF_React/scripts/monitor-updated.py \
+  root@72.60.17.245:/opt/wa-monitor/prod/modules/monitor.py
+
+# 2. Restart monitor (USE SAFE RESTART TO CLEAR CACHE)
+ssh root@72.60.17.245 "/opt/wa-monitor/prod/restart-monitor.sh"
+
+# 3. Verify deployment
+ssh root@72.60.17.245 "tail -50 /opt/wa-monitor/prod/logs/wa-monitor-prod.log"
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Load Mamelodi valid drops to database (sync script)
+2. Deploy updated monitor.py to VPS
+3. Test kill switch in dev environment (optional)
+4. Monitor Mamelodi validation in production logs
+
+================================================================================
+STATUS: ✅ READY FOR DEPLOYMENT
+================================================================================
+
+All 4 changes verified correct.
+Code quality checks passed.
+Documentation complete.
