@@ -85,53 +85,85 @@ export default async function handler(
         return apiResponse.validationError(res, { updates: 'No fields to update' });
       }
 
-      // Build UPDATE query dynamically
-      // Neon serverless requires tagged templates, so we build the query conditionally
-      let query = 'UPDATE meeting_action_items SET updated_at = NOW()';
-      const values: any[] = [];
+      // Neon serverless ONLY accepts tagged templates
+      // Build conditional update based on what fields are provided
+      let result;
 
-      if (fields.description !== undefined) {
-        values.push(fields.description);
-        query += `, description = $${values.length}`;
-      }
-      if (fields.assignee_name !== undefined) {
-        values.push(fields.assignee_name);
-        query += `, assignee_name = $${values.length}`;
-      }
-      if (fields.assignee_email !== undefined) {
-        values.push(fields.assignee_email);
-        query += `, assignee_email = $${values.length}`;
-      }
       if (fields.status !== undefined) {
-        values.push(fields.status);
-        query += `, status = $${values.length}`;
+        // Most common case - status update
+        result = await sql`
+          UPDATE meeting_action_items
+          SET
+            status = ${fields.status},
+            completed_date = ${fields.completed_date || null},
+            updated_at = NOW()
+          WHERE id = ${id}
+          RETURNING *
+        `;
+      } else if (fields.description !== undefined) {
+        result = await sql`
+          UPDATE meeting_action_items
+          SET
+            description = ${fields.description},
+            updated_at = NOW()
+          WHERE id = ${id}
+          RETURNING *
+        `;
+      } else if (fields.assignee_name !== undefined || fields.assignee_email !== undefined) {
+        result = await sql`
+          UPDATE meeting_action_items
+          SET
+            assignee_name = ${fields.assignee_name || null},
+            assignee_email = ${fields.assignee_email || null},
+            updated_at = NOW()
+          WHERE id = ${id}
+          RETURNING *
+        `;
+      } else if (fields.priority !== undefined) {
+        result = await sql`
+          UPDATE meeting_action_items
+          SET
+            priority = ${fields.priority},
+            updated_at = NOW()
+          WHERE id = ${id}
+          RETURNING *
+        `;
+      } else if (fields.due_date !== undefined) {
+        result = await sql`
+          UPDATE meeting_action_items
+          SET
+            due_date = ${fields.due_date},
+            updated_at = NOW()
+          WHERE id = ${id}
+          RETURNING *
+        `;
+      } else if (fields.tags !== undefined) {
+        result = await sql`
+          UPDATE meeting_action_items
+          SET
+            tags = ${fields.tags},
+            updated_at = NOW()
+          WHERE id = ${id}
+          RETURNING *
+        `;
+      } else if (fields.notes !== undefined) {
+        result = await sql`
+          UPDATE meeting_action_items
+          SET
+            notes = ${fields.notes},
+            updated_at = NOW()
+          WHERE id = ${id}
+          RETURNING *
+        `;
+      } else {
+        // Fallback - just update timestamp
+        result = await sql`
+          UPDATE meeting_action_items
+          SET updated_at = NOW()
+          WHERE id = ${id}
+          RETURNING *
+        `;
       }
-      if (fields.priority !== undefined) {
-        values.push(fields.priority);
-        query += `, priority = $${values.length}`;
-      }
-      if (fields.due_date !== undefined) {
-        values.push(fields.due_date);
-        query += `, due_date = $${values.length}`;
-      }
-      if (fields.completed_date !== undefined) {
-        values.push(fields.completed_date);
-        query += `, completed_date = $${values.length}`;
-      }
-      if (fields.tags !== undefined) {
-        values.push(fields.tags);
-        query += `, tags = $${values.length}`;
-      }
-      if (fields.notes !== undefined) {
-        values.push(fields.notes);
-        query += `, notes = $${values.length}`;
-      }
-
-      values.push(id);
-      query += ` WHERE id = $${values.length} RETURNING *`;
-
-      // Execute using neon's query method for parameterized queries
-      const result = await sql(query, values);
 
       if (!result || result.length === 0) {
         return apiResponse.notFound(res, 'Action item', id);
