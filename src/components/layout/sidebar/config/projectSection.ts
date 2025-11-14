@@ -10,7 +10,8 @@ import {
   Cable,
   Droplets,
   FileSignature,
-  Home
+  Home,
+  LayoutDashboard
 } from 'lucide-react';
 import type { NavSection } from './types';
 
@@ -18,8 +19,8 @@ export const projectSection: NavSection = {
   section: 'PROJECT MANAGEMENT',
   items: [
     {
-      to: '/projects',
-      icon: FolderOpen,
+      to: '/projects/dashboard',
+      icon: LayoutDashboard,
       label: 'Projects',
       shortLabel: 'Proj',
       permissions: [],
