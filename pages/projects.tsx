@@ -5,6 +5,8 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { useProjects, useCreateProject, useDeleteProject } from '@/hooks/useProjects';
 import { useStore } from '@/store/useStore';
 import { useForm } from 'react-hook-form';
+import { useWaMonitorSummary } from '@/modules/wa-monitor/hooks/useWaMonitorStats';
+import { CheckCircle } from 'lucide-react';
 
 // Define NewProject type inline
 interface NewProject {
@@ -32,6 +34,9 @@ export default function ProjectsPage() {
   const { data: projects, isLoading, error } = useProjects();
   const createProjectMutation = useCreateProject();
   const deleteProjectMutation = useDeleteProject();
+
+  // WA Monitor stats
+  const { data: waStats } = useWaMonitorSummary();
   
   // React Hook Form
   const { register, handleSubmit, reset, formState: { errors } } = useForm<NewProject>();
@@ -81,6 +86,37 @@ export default function ProjectsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
           <p className="mt-2 text-gray-600">Manage your FibreFlow projects</p>
         </div>
+
+        {/* WA Monitor Stats Card */}
+        {waStats && (
+          <div className="mb-6 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm text-gray-600">QA Drops Today</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">
+                  {waStats.total.toLocaleString()}
+                </p>
+                {waStats.total > 0 && (
+                  <>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {waStats.complete} Complete • {waStats.incomplete} Incomplete
+                    </p>
+                    <div className="flex items-center mt-2">
+                      <span className={`text-sm font-medium ${
+                        waStats.completionRate >= 80 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {waStats.completionRate >= 80 ? '↑' : '↓'} {waStats.completionRate}% Complete
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 ml-4">
+                <CheckCircle className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Filters and Actions */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
