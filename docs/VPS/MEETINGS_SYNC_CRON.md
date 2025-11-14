@@ -1,9 +1,9 @@
 # Meetings Auto-Sync Cron Job Setup
 
 ## Overview
-Automated sync of Fireflies meeting transcripts to Neon database twice daily at:
-- **11:00 AM SAST** (09:00 UTC)
-- **05:00 PM SAST** (15:00 UTC)
+Automated sync of Fireflies meeting transcripts to Neon database **daily at 8:00 PM SAST** (18:00 UTC).
+
+The sync job sends email notifications to `meetings@velocityfibre.co.za` after each run with success/failure status.
 
 ## Prerequisites
 1. VPS server running (72.60.17.245)
@@ -37,23 +37,18 @@ openssl rand -base64 32
 
 ### 2. Install Cron Job
 
-On the VPS server, edit the crontab:
+The cron job is **already installed** on the VPS. To verify or modify:
 
 ```bash
-crontab -e
+crontab -l | grep meetings
 ```
 
-Add these two lines:
+You should see:
 
 ```bash
-# Sync Fireflies meetings at 11am SAST (9am UTC)
-0 9 * * * curl -X POST -H "Authorization: Bearer YOUR_CRON_SECRET" https://app.fibreflow.app/api/meetings-sync-cron >> /var/log/meetings-sync.log 2>&1
-
-# Sync Fireflies meetings at 5pm SAST (3pm UTC)
-0 15 * * * curl -X POST -H "Authorization: Bearer YOUR_CRON_SECRET" https://app.fibreflow.app/api/meetings-sync-cron >> /var/log/meetings-sync.log 2>&1
+# Sync Fireflies meetings at 8pm SAST (18:00 UTC)
+0 18 * * * cd /var/www/fibreflow && /usr/bin/npx tsx scripts/cron/sync-meetings-fireflies.ts >> /var/log/meetings-sync.log 2>&1
 ```
-
-**Replace `YOUR_CRON_SECRET`** with the actual secret from `.env.production`.
 
 ### 3. Verify Cron Job
 
@@ -68,24 +63,26 @@ touch /var/log/meetings-sync.log
 chmod 644 /var/log/meetings-sync.log
 ```
 
-### 4. Test the Endpoint
+### 4. Test the Script
 
 Manual test from VPS:
 ```bash
-curl -X POST \
-  -H "Authorization: Bearer YOUR_CRON_SECRET" \
-  https://app.fibreflow.app/api/meetings-sync-cron
+ssh root@72.60.17.245
+cd /var/www/fibreflow
+npx tsx scripts/cron/sync-meetings-fireflies.ts
 ```
 
-Expected response:
-```json
-{
-  "success": true,
-  "synced": 42,
-  "timestamp": "2025-11-04T09:00:00.000Z",
-  "message": "Synced 42 meetings from Fireflies"
-}
+Expected output:
 ```
+🚀 Starting Fireflies meetings sync cron job...
+📅 Date: 2025-11-14T06:39:32.736Z
+🔄 Syncing meetings from Fireflies...
+✅ Successfully synced 50 meetings
+📧 Sending email notification...
+✅ Email notification sent (ID: ...)
+```
+
+An email will be sent to `meetings@velocityfibre.co.za` with the sync results.
 
 ## Monitoring
 
@@ -150,11 +147,27 @@ systemctl restart cron
 
 ## File Locations
 
-- **Cron Endpoint:** `/pages/api/meetings-sync-cron.ts`
+- **Cron Script:** `/scripts/cron/sync-meetings-fireflies.ts`
 - **Service Logic:** `/src/services/fireflies/firefliesService.ts`
 - **Environment Vars:** `/var/www/fibreflow/.env.production`
 - **Cron Logs:** `/var/log/meetings-sync.log`
-- **PM2 Logs:** `pm2 logs fibreflow`
+- **PM2 Logs:** `pm2 logs fibreflow-prod`
+
+## Email Notifications
+
+After each sync, an email is sent to the admin address (`meetings@velocityfibre.co.za`) with:
+
+**Success Email:**
+- ✅ Number of meetings synced
+- Timestamp of sync
+- Link to meetings dashboard
+
+**Failure Email:**
+- ❌ Error details
+- Troubleshooting steps
+- Link to meetings dashboard
+
+The email sender is `meetings@fibreflow.app` (requires Resend domain verification).
 
 ## Maintenance
 
@@ -166,12 +179,12 @@ npm run build
 pm2 restart fibreflow
 ```
 
-### Change Sync Times
-Edit crontab and change the hour values:
+### Change Sync Time
+Edit crontab and change the hour value:
 ```bash
 crontab -e
-# Change: 0 9 * * * (9am UTC = 11am SAST)
-# Change: 0 15 * * * (3pm UTC = 5pm SAST)
+# Current: 0 18 * * * (6pm UTC = 8pm SAST)
+# For different time: 0 HH * * * (where HH = SAST_hour - 2)
 ```
 
 ### Disable Auto-Sync
