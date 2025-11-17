@@ -140,13 +140,14 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   };
 
   // Get incorrect steps for feedback (in correct display order)
+  // A step is incorrect if it's checked AND has a comment
   const getIncorrectSteps = (): Array<{ step: string; comment: string }> => {
     const incorrect: Array<{ step: string; comment: string }> = [];
     ORDERED_STEP_KEYS.forEach((key, index) => {
-      if (incorrectSteps.includes(key)) {
+      if (steps[key] && incorrectComments[key] && incorrectComments[key].trim().length > 0) {
         incorrect.push({
           step: `${index + 1}. ${QA_STEP_LABELS[key]}`,
-          comment: incorrectComments[key] || 'No comment provided',
+          comment: incorrectComments[key],
         });
       }
     });
@@ -159,19 +160,6 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
       ...prev,
       [stepKey]: !prev[stepKey],
     }));
-  };
-
-  // Handle toggle incorrect flag
-  const handleToggleIncorrect = (stepKey: keyof QaSteps) => {
-    setIncorrectSteps((prev) => {
-      if (prev.includes(stepKey)) {
-        // Remove from incorrect list
-        return prev.filter((key) => key !== stepKey);
-      } else {
-        // Add to incorrect list
-        return [...prev, stepKey];
-      }
-    });
   };
 
   // Handle incorrect comment change
@@ -250,13 +238,18 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     try {
       setSaving(true);
 
+      // Build incorrectSteps array from comments (steps with comments = incorrect)
+      const incorrectStepsArray = ORDERED_STEP_KEYS.filter(
+        key => steps[key] && incorrectComments[key] && incorrectComments[key].trim().length > 0
+      );
+
       // Save changes to database
       await onUpdate(drop.id, {
         ...steps,
         comment,
         incomplete: completedSteps < totalSteps,
         completed: completedSteps === totalSteps,
-        incorrectSteps,
+        incorrectSteps: incorrectStepsArray,
         incorrectComments,
       });
 
@@ -486,54 +479,32 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
         </Typography>
         <Box sx={{ pl: 1 }}>
           {ORDERED_STEP_KEYS.map((stepKey, index) => (
-            <Box key={stepKey} sx={{ mb: 1 }}>
-              <Box display="flex" alignItems="center" gap={1}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={steps[stepKey]}
-                      onChange={() => handleStepChange(stepKey)}
-                      size="small"
-                      disabled={!isEditing}
-                    />
-                  }
-                  label={
-                    <Typography variant="body2" color={steps[stepKey] ? 'success.main' : 'text.secondary'}>
-                      {index + 1}. {QA_STEP_LABELS[stepKey]}
-                    </Typography>
-                  }
-                  sx={{ flex: 1 }}
-                />
-                {steps[stepKey] && (
-                  <Tooltip title={incorrectSteps.includes(stepKey) ? 'Remove incorrect flag' : 'Flag as incorrect'}>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleToggleIncorrect(stepKey)}
-                      disabled={!isEditing}
-                      color={incorrectSteps.includes(stepKey) ? 'warning' : 'default'}
-                      sx={{
-                        border: incorrectSteps.includes(stepKey) ? '1px solid #ff9800' : '1px solid #ccc',
-                        borderRadius: '4px',
-                        padding: '4px',
-                      }}
-                    >
-                      <AlertTriangle size={16} />
-                    </IconButton>
-                  </Tooltip>
-                )}
-              </Box>
-              {incorrectSteps.includes(stepKey) && (
-                <TextField
-                  fullWidth
-                  size="small"
-                  placeholder="Why is this photo incorrect? (e.g., Photo unclear, wrong angle)"
-                  value={incorrectComments[stepKey] || ''}
-                  onChange={(e) => handleIncorrectCommentChange(stepKey, e.target.value)}
-                  disabled={!isEditing}
-                  sx={{ ml: 4, mt: 0.5 }}
-                  variant="outlined"
-                />
-              )}
+            <Box key={stepKey} sx={{ mb: 2 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={steps[stepKey]}
+                    onChange={() => handleStepChange(stepKey)}
+                    size="small"
+                    disabled={!isEditing}
+                  />
+                }
+                label={
+                  <Typography variant="body2" color={steps[stepKey] ? 'success.main' : 'text.secondary'}>
+                    {index + 1}. {QA_STEP_LABELS[stepKey]}
+                  </Typography>
+                }
+              />
+              <TextField
+                fullWidth
+                size="small"
+                placeholder={steps[stepKey] ? "If incorrect, explain why (e.g., Photo unclear, wrong angle)" : "Not uploaded - no comment needed"}
+                value={incorrectComments[stepKey] || ''}
+                onChange={(e) => handleIncorrectCommentChange(stepKey, e.target.value)}
+                disabled={!isEditing || !steps[stepKey]}
+                sx={{ ml: 4, mt: 0.5 }}
+                variant="outlined"
+              />
             </Box>
           ))}
         </Box>
@@ -554,12 +525,12 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
         />
 
         {/* Feedback Section */}
-        {(completedSteps < totalSteps || incorrectSteps.length > 0) && (
+        {(completedSteps < totalSteps || getIncorrectSteps().length > 0) && (
           <Alert severity="warning" icon={<AlertTriangle size={20} />} sx={{ mb: 2 }}>
             <Typography variant="body2" fontWeight="medium">
               {getMissingSteps().length > 0 && `${getMissingSteps().length} items missing`}
-              {getMissingSteps().length > 0 && incorrectSteps.length > 0 && ' • '}
-              {incorrectSteps.length > 0 && `${incorrectSteps.length} items incorrect`}
+              {getMissingSteps().length > 0 && getIncorrectSteps().length > 0 && ' • '}
+              {getIncorrectSteps().length > 0 && `${getIncorrectSteps().length} items incorrect`}
             </Typography>
           </Alert>
         )}
