@@ -287,31 +287,53 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     }
   };
 
-  // Generate auto-feedback based on missing and incorrect steps
+  // Get correct/approved steps (completed and no comment)
+  const getApprovedSteps = (): string[] => {
+    const approved: string[] = [];
+    ORDERED_STEP_KEYS.forEach((key, index) => {
+      // Step is approved if checked AND no comment (or empty comment)
+      if (steps[key] && (!incorrectComments[key] || incorrectComments[key].trim().length === 0)) {
+        approved.push(`${index + 1}. ${QA_STEP_LABELS[key]}`);
+      }
+    });
+    return approved;
+  };
+
+  // Generate auto-feedback based on missing, incorrect, and approved steps
   const handleGenerateAutoFeedback = () => {
     const missing = getMissingSteps();
     const incorrect = getIncorrectSteps();
+    const approved = getApprovedSteps();
 
-    if (missing.length === 0 && incorrect.length === 0) {
-      // All steps complete and correct - generate approval message with drop number
-      setFeedbackMessage(`${editedDropNumber} - All items complete! ✅`);
+    // If all steps complete and correct - show approval message
+    if (missing.length === 0 && incorrect.length === 0 && approved.length === totalSteps) {
+      setFeedbackMessage(`${editedDropNumber}\nAPPROVED\n\n${approved.map(step => `[OK] ${step}`).join('\n')}`);
       return;
     }
 
-    // Build feedback message with drop number
-    let message = `${editedDropNumber}\n\n`;
+    // Build feedback message with drop number and status
+    let message = `${editedDropNumber}\n`;
+    message += incorrect.length > 0 || missing.length > 0 ? 'NEEDS CORRECTION\n\n' : 'IN REVIEW\n\n';
 
+    // Show approved items first
+    if (approved.length > 0) {
+      approved.forEach((item) => {
+        message += `[OK] ${item}\n`;
+      });
+      message += `\n`;
+    }
+
+    // Show missing items
     if (missing.length > 0) {
       message += `Missing items:\n`;
       missing.forEach((item) => {
         message += `• ${item}\n`;
       });
+      message += `\n`;
     }
 
+    // Show incorrect items with comments
     if (incorrect.length > 0) {
-      if (missing.length > 0) {
-        message += `\n`;
-      }
       message += `Incorrect items:\n`;
       incorrect.forEach(({ step, comment }) => {
         message += `• ${step} - ${comment}\n`;

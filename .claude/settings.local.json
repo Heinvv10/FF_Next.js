@@ -57,7 +57,10 @@
       "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"curl -s http://localhost:3006/api/wa-monitor-drops | jq ''.data[0] | {dropNumber, step_01: .step_01_house_photo, incorrectSteps, incorrectComments}''\")",
       "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow-dev && git pull && npm run build 2>&1 | tail -50 && pm2 restart fibreflow-dev\")",
       "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow-dev && git fetch && git reset --hard origin/master && git log --oneline -1 && npm run build 2>&1 | tail -30 && pm2 restart fibreflow-dev\")",
-      "Read(//home/louisdup/**)"
+      "Read(//home/louisdup/**)",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow-dev && git pull && rm -rf .next && npm run build 2>&1 | tail -30 && pm2 restart fibreflow-dev && echo ''✅ Deployed text input approach to dev''\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow-dev && rm -rf .next && npm run build 2>&1 | grep -E ''(Compiled|Route|First Load)'' | tail -20 && pm2 restart fibreflow-dev\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow && git pull && npm ci && npm run build 2>&1 | tail -30 && pm2 restart fibreflow-prod && echo ''✅ Deployed text input approach to PRODUCTION''\")"
     ],
     "deny": [],
     "ask": [],
