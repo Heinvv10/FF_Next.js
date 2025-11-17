@@ -129,10 +129,13 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   const progressPercent = Math.round((completedSteps / totalSteps) * 100);
 
   // Get missing steps for feedback (in correct display order)
+  // A step is missing only if unticked AND has no comment
+  // If it has a comment, it's in the incorrect section instead
   const getMissingSteps = (): string[] => {
     const missing: string[] = [];
     ORDERED_STEP_KEYS.forEach((key, index) => {
-      if (!steps[key]) {
+      const hasComment = incorrectComments[key] && incorrectComments[key].trim().length > 0;
+      if (!steps[key] && !hasComment) {
         missing.push(`${index + 1}. ${QA_STEP_LABELS[key]}`);
       }
     });
@@ -140,11 +143,11 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   };
 
   // Get incorrect steps for feedback (in correct display order)
-  // A step is incorrect if it's checked AND has a comment
+  // A step is incorrect if it has a comment (checkbox state doesn't matter)
   const getIncorrectSteps = (): Array<{ step: string; comment: string }> => {
     const incorrect: Array<{ step: string; comment: string }> = [];
     ORDERED_STEP_KEYS.forEach((key, index) => {
-      if (steps[key] && incorrectComments[key] && incorrectComments[key].trim().length > 0) {
+      if (incorrectComments[key] && incorrectComments[key].trim().length > 0) {
         incorrect.push({
           step: `${index + 1}. ${QA_STEP_LABELS[key]}`,
           comment: incorrectComments[key],
@@ -238,9 +241,10 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     try {
       setSaving(true);
 
-      // Build incorrectSteps array from comments (steps with comments = incorrect)
+      // Build incorrectSteps array from comments (any step with a comment = incorrect)
+      // Checkbox state doesn't matter - text presence determines incorrectness
       const incorrectStepsArray = ORDERED_STEP_KEYS.filter(
-        key => steps[key] && incorrectComments[key] && incorrectComments[key].trim().length > 0
+        key => incorrectComments[key] && incorrectComments[key].trim().length > 0
       );
 
       // Save changes to database
@@ -291,8 +295,10 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   const getApprovedSteps = (): string[] => {
     const approved: string[] = [];
     ORDERED_STEP_KEYS.forEach((key, index) => {
-      // Step is approved if checked AND no comment (or empty comment)
-      if (steps[key] && (!incorrectComments[key] || incorrectComments[key].trim().length === 0)) {
+      // Step is approved if checked AND no comment
+      // If there's a comment, it's incorrect (regardless of checkbox)
+      const hasComment = incorrectComments[key] && incorrectComments[key].trim().length > 0;
+      if (steps[key] && !hasComment) {
         approved.push(`${index + 1}. ${QA_STEP_LABELS[key]}`);
       }
     });
@@ -520,12 +526,13 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
               <TextField
                 fullWidth
                 size="small"
-                placeholder={steps[stepKey] ? "If incorrect, explain why (e.g., Photo unclear, wrong angle)" : "Not uploaded - no comment needed"}
+                placeholder="If incorrect, explain why (e.g., Photo unclear, wrong angle, not uploaded)"
                 value={incorrectComments[stepKey] || ''}
                 onChange={(e) => handleIncorrectCommentChange(stepKey, e.target.value)}
-                disabled={!isEditing || !steps[stepKey]}
+                disabled={!isEditing}
                 sx={{ ml: 4, mt: 0.5 }}
                 variant="outlined"
+                helperText={incorrectComments[stepKey] && incorrectComments[stepKey].trim().length > 0 ? "⚠️ Marked as incorrect" : ""}
               />
             </Box>
           ))}
