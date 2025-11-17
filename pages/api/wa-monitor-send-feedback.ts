@@ -267,8 +267,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(`   Without @mention (no sender info - manually added drop)`);
     }
 
-    // 3. Format feedback message with checklist
-    const feedbackMessage = formatQAChecklist(drop, message || '');
+    // 3. Use the custom message directly (user already generated feedback with Auto-Generate)
+    // Add blank lines at start to separate @mention from content
+    const feedbackMessage = `\n\n${message || ''}`;
 
     // 4. Send to WhatsApp (with or without mention depending on sender info)
     const whatsappResult = await sendWhatsAppMessage(
