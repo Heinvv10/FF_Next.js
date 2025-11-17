@@ -317,17 +317,8 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
       return;
     }
 
-    // Build feedback message with drop number and status
-    let message = `${editedDropNumber}\n`;
-    message += incorrect.length > 0 || missing.length > 0 ? 'NEEDS CORRECTION\n\n' : 'IN REVIEW\n\n';
-
-    // Show approved items first
-    if (approved.length > 0) {
-      approved.forEach((item) => {
-        message += `[OK] ${item}\n`;
-      });
-      message += `\n`;
-    }
+    // Build feedback message - ONLY show what's wrong (missing/incorrect)
+    let message = `${editedDropNumber}\nNEEDS CORRECTION\n\n`;
 
     // Show missing items
     if (missing.length > 0) {
