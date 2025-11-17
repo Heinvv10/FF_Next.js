@@ -33,7 +33,12 @@
   - **Connection**: postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb
   - Uses @neondatabase/serverless client for direct SQL queries
   - No ORM - direct SQL with template literals
-  - **Single source of truth** for all environments (local, VPS prod/dev, WA Monitor)
+  - **⚠️ CRITICAL: This is the ONLY database - ALL environments MUST use this:**
+    - ✅ Local development: ep-dry-night-a9qyh4sj
+    - ✅ VPS Production: ep-dry-night-a9qyh4sj
+    - ✅ VPS Dev: ep-dry-night-a9qyh4sj
+    - ✅ WA Monitor: ep-dry-night-a9qyh4sj
+    - ❌ DO NOT USE: ep-damp-credit-a857vku0 (old/incorrect database)
   - Database configuration and connection setup
 - `scripts/migrations/` - Custom database migration scripts
   - Migration runner and SQL files
