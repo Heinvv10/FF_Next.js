@@ -311,9 +311,9 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     const incorrect = getIncorrectSteps();
     const approved = getApprovedSteps();
 
-    // If all steps complete and correct - show approval message
+    // If all steps complete and correct - show simple approval message
     if (missing.length === 0 && incorrect.length === 0 && approved.length === totalSteps) {
-      setFeedbackMessage(`${editedDropNumber}\nAPPROVED\n\n${approved.map(step => `[OK] ${step}`).join('\n')}`);
+      setFeedbackMessage(`${editedDropNumber}\nAll items complete! ✅`);
       return;
     }
 
