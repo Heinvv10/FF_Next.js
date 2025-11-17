@@ -38,6 +38,8 @@ export async function getAllDrops(): Promise<QaReviewDrop[]> {
         resubmitted,
         locked_by as "lockedBy",
         locked_at as "lockedAt",
+        incorrect_steps as "incorrectSteps",
+        incorrect_comments as "incorrectComments",
         step_01_house_photo as "step_01_house_photo",
         step_02_cable_from_pole as "step_02_cable_from_pole",
         step_03_cable_entry_outside as "step_03_cable_entry_outside",
@@ -265,6 +267,8 @@ function transformDbRowToDrop(row: any): QaReviewDrop {
     resubmitted: row.resubmitted || false,
     lockedBy: row.lockedBy || null,
     lockedAt: row.lockedAt ? new Date(row.lockedAt) : null,
+    incorrectSteps: row.incorrectSteps || [],
+    incorrectComments: row.incorrectComments || {},
     // QA Steps (12 steps from WA Monitor)
     step_01_house_photo: step_01,
     step_02_cable_from_pole: step_02,

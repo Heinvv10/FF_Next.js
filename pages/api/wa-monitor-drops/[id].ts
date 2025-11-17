@@ -59,6 +59,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         setClauses.push(`incomplete = $${paramIndex++}`);
         values.push(updates.incomplete);
       }
+      if (updates.incorrectSteps !== undefined) {
+        setClauses.push(`incorrect_steps = $${paramIndex++}`);
+        values.push(updates.incorrectSteps);
+      }
+      if (updates.incorrectComments !== undefined) {
+        setClauses.push(`incorrect_comments = $${paramIndex++}`);
+        values.push(JSON.stringify(updates.incorrectComments));
+      }
 
       // Always update updated_at
       setClauses.push(`updated_at = NOW()`);

@@ -97,6 +97,8 @@ export interface QaReviewDrop extends QaSteps {
   resubmitted: boolean;
   lockedBy: string | null;
   lockedAt: Date | null;
+  incorrectSteps: string[];
+  incorrectComments: Record<string, string>;
 }
 
 /**

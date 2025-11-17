@@ -244,6 +244,37 @@ export async function unlockDrop(
   }
 }
 
+/**
+ * Update a drop's QA review data
+ * @param dropId - Database ID of the drop
+ * @param updates - Partial drop data to update
+ */
+export async function updateDrop(
+  dropId: string,
+  updates: Partial<QaReviewDrop>
+): Promise<QaReviewDrop> {
+  try {
+    const response = await fetch(`${API_BASE}/${dropId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Request failed' }));
+      throw new Error(error.error?.message || error.message || 'Failed to update drop');
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error updating drop:', error);
+    throw error instanceof Error ? error : new Error('Failed to update drop');
+  }
+}
+
 // ==================== HELPERS ====================
 
 /**

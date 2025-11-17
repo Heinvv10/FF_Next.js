@@ -61,6 +61,10 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
   const [isEditingDropNumber, setIsEditingDropNumber] = useState(false);
   const [editedDropNumber, setEditedDropNumber] = useState(drop.dropNumber);
 
+  // Incorrect photos tracking
+  const [incorrectSteps, setIncorrectSteps] = useState<string[]>(drop.incorrectSteps || []);
+  const [incorrectComments, setIncorrectComments] = useState<Record<string, string>>(drop.incorrectComments || {});
+
   // Locking system state
   const [isEditing, setIsEditing] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
@@ -91,6 +95,8 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     });
     setComment(drop.comment || '');
     setEditedDropNumber(drop.dropNumber);
+    setIncorrectSteps(drop.incorrectSteps || []);
+    setIncorrectComments(drop.incorrectComments || {});
   }, [drop, isEditing]);
 
   // Check if drop is locked by someone else
@@ -133,11 +139,46 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     return missing;
   };
 
+  // Get incorrect steps for feedback (in correct display order)
+  const getIncorrectSteps = (): Array<{ step: string; comment: string }> => {
+    const incorrect: Array<{ step: string; comment: string }> = [];
+    ORDERED_STEP_KEYS.forEach((key, index) => {
+      if (incorrectSteps.includes(key)) {
+        incorrect.push({
+          step: `${index + 1}. ${QA_STEP_LABELS[key]}`,
+          comment: incorrectComments[key] || 'No comment provided',
+        });
+      }
+    });
+    return incorrect;
+  };
+
   // Handle checkbox change
   const handleStepChange = (stepKey: keyof QaSteps) => {
     setSteps((prev) => ({
       ...prev,
       [stepKey]: !prev[stepKey],
+    }));
+  };
+
+  // Handle toggle incorrect flag
+  const handleToggleIncorrect = (stepKey: keyof QaSteps) => {
+    setIncorrectSteps((prev) => {
+      if (prev.includes(stepKey)) {
+        // Remove from incorrect list
+        return prev.filter((key) => key !== stepKey);
+      } else {
+        // Add to incorrect list
+        return [...prev, stepKey];
+      }
+    });
+  };
+
+  // Handle incorrect comment change
+  const handleIncorrectCommentChange = (stepKey: keyof QaSteps, comment: string) => {
+    setIncorrectComments((prev) => ({
+      ...prev,
+      [stepKey]: comment,
     }));
   };
 
@@ -187,6 +228,8 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
         step_12_customer_signature: drop.step_12_customer_signature,
       });
       setComment(drop.comment || '');
+      setIncorrectSteps(drop.incorrectSteps || []);
+      setIncorrectComments(drop.incorrectComments || {});
 
       // Unlock the drop
       await unlockDrop(drop.id, currentUser);
@@ -213,6 +256,8 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
         comment,
         incomplete: completedSteps < totalSteps,
         completed: completedSteps === totalSteps,
+        incorrectSteps,
+        incorrectComments,
       });
 
       // Unlock the drop
@@ -249,18 +294,38 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
     }
   };
 
-  // Generate auto-feedback based on missing steps
+  // Generate auto-feedback based on missing and incorrect steps
   const handleGenerateAutoFeedback = () => {
     const missing = getMissingSteps();
-    if (missing.length === 0) {
-      // All steps complete - generate approval message with drop number
+    const incorrect = getIncorrectSteps();
+
+    if (missing.length === 0 && incorrect.length === 0) {
+      // All steps complete and correct - generate approval message with drop number
       setFeedbackMessage(`${editedDropNumber} - All items complete! ✅`);
       return;
     }
 
-    // Some steps missing - generate feedback with drop number
-    const message = `${editedDropNumber} - Missing: ${missing.join(', ')}`;
-    setFeedbackMessage(message);
+    // Build feedback message with drop number
+    let message = `${editedDropNumber}\n\n`;
+
+    if (missing.length > 0) {
+      message += `Missing items:\n`;
+      missing.forEach((item) => {
+        message += `• ${item}\n`;
+      });
+    }
+
+    if (incorrect.length > 0) {
+      if (missing.length > 0) {
+        message += `\n`;
+      }
+      message += `Incorrect items:\n`;
+      incorrect.forEach(({ step, comment }) => {
+        message += `• ${step} - ${comment}\n`;
+      });
+    }
+
+    setFeedbackMessage(message.trim());
   };
 
   // Handle drop number edit
@@ -419,26 +484,59 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
         <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
           Installation QA Checklist (12 Photos)
         </Typography>
-        <FormGroup sx={{ pl: 1 }}>
+        <Box sx={{ pl: 1 }}>
           {ORDERED_STEP_KEYS.map((stepKey, index) => (
-            <FormControlLabel
-              key={stepKey}
-              control={
-                <Checkbox
-                  checked={steps[stepKey]}
-                  onChange={() => handleStepChange(stepKey)}
-                  size="small"
-                  disabled={!isEditing}
+            <Box key={stepKey} sx={{ mb: 1 }}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={steps[stepKey]}
+                      onChange={() => handleStepChange(stepKey)}
+                      size="small"
+                      disabled={!isEditing}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" color={steps[stepKey] ? 'success.main' : 'text.secondary'}>
+                      {index + 1}. {QA_STEP_LABELS[stepKey]}
+                    </Typography>
+                  }
+                  sx={{ flex: 1 }}
                 />
-              }
-              label={
-                <Typography variant="body2" color={steps[stepKey] ? 'success.main' : 'text.secondary'}>
-                  {index + 1}. {QA_STEP_LABELS[stepKey]}
-                </Typography>
-              }
-            />
+                {steps[stepKey] && (
+                  <Tooltip title={incorrectSteps.includes(stepKey) ? 'Remove incorrect flag' : 'Flag as incorrect'}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleToggleIncorrect(stepKey)}
+                      disabled={!isEditing}
+                      color={incorrectSteps.includes(stepKey) ? 'warning' : 'default'}
+                      sx={{
+                        border: incorrectSteps.includes(stepKey) ? '1px solid #ff9800' : '1px solid #ccc',
+                        borderRadius: '4px',
+                        padding: '4px',
+                      }}
+                    >
+                      <AlertTriangle size={16} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+              {incorrectSteps.includes(stepKey) && (
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Why is this photo incorrect? (e.g., Photo unclear, wrong angle)"
+                  value={incorrectComments[stepKey] || ''}
+                  onChange={(e) => handleIncorrectCommentChange(stepKey, e.target.value)}
+                  disabled={!isEditing}
+                  sx={{ ml: 4, mt: 0.5 }}
+                  variant="outlined"
+                />
+              )}
+            </Box>
           ))}
-        </FormGroup>
+        </Box>
 
         <Divider sx={{ my: 2 }} />
 
@@ -456,10 +554,12 @@ export const QaReviewCard = memo(function QaReviewCard({ drop, onUpdate, onSendF
         />
 
         {/* Feedback Section */}
-        {completedSteps < totalSteps && (
+        {(completedSteps < totalSteps || incorrectSteps.length > 0) && (
           <Alert severity="warning" icon={<AlertTriangle size={20} />} sx={{ mb: 2 }}>
             <Typography variant="body2" fontWeight="medium">
-              {getMissingSteps().length} items missing
+              {getMissingSteps().length > 0 && `${getMissingSteps().length} items missing`}
+              {getMissingSteps().length > 0 && incorrectSteps.length > 0 && ' • '}
+              {incorrectSteps.length > 0 && `${incorrectSteps.length} items incorrect`}
             </Typography>
           </Alert>
         )}
