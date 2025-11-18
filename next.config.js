@@ -45,6 +45,49 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true, // Enable gzip compression
 
+  // Cache headers to prevent stale JavaScript errors during active development
+  async headers() {
+    return [
+      {
+        // HTML pages - always revalidate (prevents stale JS references)
+        source: '/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'accept',
+            value: '.*text/html.*',
+          },
+        ],
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        // Static assets with hashes - cache for 1 year (safe because filename changes)
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // API routes - never cache
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+    ];
+  },
+
   // Fix file watching issues
   webpack: (config, { dev, isServer }) => {
     // Try to fix Watchpack issues with minimal configuration
