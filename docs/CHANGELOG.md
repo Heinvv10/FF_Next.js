@@ -26,6 +26,68 @@ Track daily work, deployments, and major updates.
 
 ---
 
+## 2025-11-18 - [CRITICAL FIX]: Chrome/Mobile Cache Issue - WA Monitor Not Loading
+
+### What Was Done
+**FIXED:** WA Monitor page failed to load on Chrome Desktop/Mobile and Safari after November 17 deployments. Worked fine in Firefox.
+
+**Problem:**
+- Chrome's aggressive caching served stale JavaScript files after deployment
+- Old JS tried to load non-existent modules → blank page
+- Firefox worked (less aggressive caching)
+- Mobile browsers affected (even more aggressive caching)
+
+**3-Part Solution:**
+
+1. **Immediate: Force Cache-Busting Rebuild**
+   ```bash
+   rm -rf .next node_modules/.cache
+   npm run build
+   pm2 restart fibreflow-prod
+   # New BUILD_ID: WtAa9KRF_Yjt5hbqEml9_
+   ```
+
+2. **User Action: Clear Browser Cache**
+   - Chrome Desktop: Ctrl+Shift+R (hard reload)
+   - Chrome Mobile: Clear browsing data → Cached images/files
+   - Safari: Settings → Clear History and Website Data
+
+3. **Long-Term Prevention: Cache Control Headers**
+   Added to `next.config.js`:
+   - HTML pages: `no-cache, must-revalidate` (always check for updates)
+   - Static assets: `max-age=31536000, immutable` (content-hashed, safe to cache)
+   - API routes: `no-store, no-cache` (never cache)
+
+**Why This Works:**
+- HTML pages now force browser to check server for updates
+- Prevents stale JS references after deployments
+- Static assets can cache safely (filenames change with content)
+- Future deployments won't have this issue
+
+### Files Changed
+- `next.config.js:48-89` - Added cache control headers
+- `docs/page-logs/wa-monitor.md` - Created comprehensive page log
+
+### Status
+- ✅ Fix deployed to production
+- ✅ Tested on Chrome Desktop, Chrome Mobile, Safari
+- ✅ Users need to clear cache once (hard reload)
+- ✅ Future deployments won't have this issue
+
+### Lessons Learned
+- Chrome caches JavaScript aggressively even after deployments
+- Mobile browsers cache even more than desktop
+- Firefox served as "canary" (less aggressive caching)
+- Content hashing alone insufficient - HTML must force revalidation
+- After major changes, warn users to hard reload
+
+### Related
+- Git commit: `61b73f6` - Cache headers
+- Page log: `docs/page-logs/wa-monitor.md`
+- Issue: WA Monitor blank on Chrome/mobile after deployments
+
+---
+
 ## 2025-11-13 - [FIX]: SharePoint Sync - Gateway Timeout Fixed
 
 ### What Was Done

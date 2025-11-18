@@ -26,6 +26,7 @@ Each page log follows this format:
 | Staff | `src/pages/Staff.tsx` | [staff.md](./staff.md) | Sep 15, 2025 - 11:30 AM |
 | Contractors | `pages/contractors.tsx` | [contractors.md](./contractors.md) | Oct 21, 2025 - 12:06 PM |
 | Contractors New | `pages/contractors/new.tsx` | [contractors-new.md](./contractors-new.md) | Sep 19, 2025 - 10:30 AM |
+| WA Monitor | `app/wa-monitor/page.tsx` | [wa-monitor.md](./wa-monitor.md) | Nov 18, 2025 - 08:30 AM |
 | Clients | `src/pages/Clients.tsx` | [clients.md](./clients.md) | - |
 | Procurement | `src/pages/Procurement.tsx` | [procurement.md](./procurement.md) | - |
 | SOW Management | `src/pages/SOWManagement.tsx` | [sow-management.md](./sow-management.md) | - |
