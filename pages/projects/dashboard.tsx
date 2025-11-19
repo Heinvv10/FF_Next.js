@@ -8,9 +8,11 @@
  * - Advanced metrics (failures, resubmissions, agent performance)
  * - CSV export functionality
  * - Real-time updates every 30 seconds
+ * - No-cache headers to prevent stale data
  */
 
 import { useState, useMemo } from 'react';
+import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { useProjects } from '@/hooks/useProjects';
 import { useWaMonitorSummary } from '@/modules/wa-monitor/hooks/useWaMonitorStats';
@@ -547,3 +549,21 @@ export default function EnhancedProjectsDashboard() {
     </div>
   );
 }
+
+/**
+ * Server-side props with cache-busting headers
+ * Prevents browser from showing stale dashboard data
+ */
+export const getServerSideProps: GetServerSideProps = async ({ res }) => {
+  // Set aggressive no-cache headers
+  res.setHeader(
+    'Cache-Control',
+    'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+  );
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
+  return {
+    props: {}, // No props needed, just setting headers
+  };
+};
