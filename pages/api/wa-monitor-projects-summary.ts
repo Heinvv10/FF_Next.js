@@ -1,8 +1,9 @@
 /**
  * WA Monitor Projects Summary API
- * GET /api/wa-monitor-projects-summary
+ * GET /api/wa-monitor-projects-summary?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
  *
- * Returns today's stats for all projects combined + comprehensive metrics
+ * Returns stats for all projects combined + comprehensive metrics
+ * Supports date range filtering via query parameters
  * Used for Projects Dashboard page
  */
 
@@ -17,7 +18,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const summary = await getAllProjectsStatsSummary();
+    // Extract date range from query parameters (optional)
+    const { startDate, endDate } = req.query;
+
+    const summary = await getAllProjectsStatsSummary(
+      startDate as string | undefined,
+      endDate as string | undefined
+    );
 
     return apiResponse.success(res, summary);
 

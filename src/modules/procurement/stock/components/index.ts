@@ -1,9 +1,11 @@
-// Stock Management Components - Index Export
-import React from 'react';
+/**
+ * Stock Management Components
+ * Modular components for stock management functionality
+ */
 
-// Placeholder exports - to be implemented in next phase
-export const StockManagementDashboard: React.FC = () => React.createElement('div', null, 'StockManagementDashboard - Coming Soon');
-export const StockDashboard: React.FC = () => React.createElement('div', null, 'StockDashboard - Coming Soon');
-export const GoodsReceipt: React.FC = () => React.createElement('div', null, 'GoodsReceipt - Coming Soon');
-export const StockMovements: React.FC = () => React.createElement('div', null, 'StockMovements - Coming Soon');
-export const DrumTracking: React.FC = () => React.createElement('div', null, 'DrumTracking - Coming Soon');
+export { StatusBadge } from './StatusBadge';
+export { StockStatsCards } from './StockStatsCards';
+export { StockFilters } from './StockFilters';
+export { StockItemCard } from './StockItemCard';
+export { MovementsTab } from './MovementsTab';
+export { TransfersTab } from './TransfersTab';

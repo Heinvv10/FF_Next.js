@@ -397,9 +397,15 @@ export async function getProjectStats(projectName: string): Promise<{
 
 /**
  * Get all projects stats summary (for Projects page overview)
- * Returns today's stats for all projects combined + comprehensive metrics
+ * Returns stats for all projects combined + comprehensive metrics
+ * Supports optional date range filtering
+ * @param startDate - Optional start date (YYYY-MM-DD format), defaults to today
+ * @param endDate - Optional end date (YYYY-MM-DD format), defaults to today
  */
-export async function getAllProjectsStatsSummary(): Promise<{
+export async function getAllProjectsStatsSummary(
+  startDate?: string,
+  endDate?: string
+): Promise<{
   total: number;
   complete: number;
   incomplete: number;
@@ -449,7 +455,11 @@ export async function getAllProjectsStatsSummary(): Promise<{
         (CURRENT_DATE AT TIME ZONE 'Africa/Johannesburg' - INTERVAL '30 days')::date as month_ago
     `;
 
-    // 1. Today's stats by project
+    // Determine date range for main query
+    const queryStartDate = startDate || dateInfo.today;
+    const queryEndDate = endDate || dateInfo.today;
+
+    // 1. Stats by project for the selected date range
     const projectStats = await sql`
       SELECT
         COALESCE(project, 'Unknown') as project,
@@ -464,7 +474,8 @@ export async function getAllProjectsStatsSummary(): Promise<{
           THEN drop_number
         END) as complete
       FROM qa_photo_reviews
-      WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') = ${dateInfo.today}::date
+      WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg')
+        BETWEEN ${queryStartDate}::date AND ${queryEndDate}::date
       GROUP BY project
       ORDER BY total DESC
     `;
@@ -575,7 +586,8 @@ export async function getAllProjectsStatsSummary(): Promise<{
         COUNT(CASE WHEN step_12_customer_signature = false THEN 1 END) as step_12_fails,
         COUNT(*) as total_drops
       FROM qa_photo_reviews
-      WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') = ${dateInfo.today}::date
+      WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg')
+        BETWEEN ${queryStartDate}::date AND ${queryEndDate}::date
     `;
 
     // 8. Feedback stats
@@ -595,10 +607,11 @@ export async function getAllProjectsStatsSummary(): Promise<{
           THEN drop_number
         END) as pending
       FROM qa_photo_reviews
-      WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') = ${dateInfo.today}::date
+      WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg')
+        BETWEEN ${queryStartDate}::date AND ${queryEndDate}::date
     `;
 
-    // 9. Agent performance (today)
+    // 9. Agent performance for the selected date range
     const agentStats = await sql`
       SELECT
         COALESCE(assigned_agent, 'Unassigned') as agent,
@@ -613,7 +626,8 @@ export async function getAllProjectsStatsSummary(): Promise<{
           THEN drop_number
         END) as complete
       FROM qa_photo_reviews
-      WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') = ${dateInfo.today}::date
+      WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg')
+        BETWEEN ${queryStartDate}::date AND ${queryEndDate}::date
         AND assigned_agent IS NOT NULL
       GROUP BY assigned_agent
       ORDER BY complete DESC, drops DESC
