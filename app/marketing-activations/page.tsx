@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout';
 
+// Force dynamic rendering to avoid static generation errors
+export const dynamic = 'force-dynamic';
+
 interface MarketingStats {
   total: number;
   valid: number;
