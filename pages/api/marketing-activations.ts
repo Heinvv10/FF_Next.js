@@ -12,16 +12,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { date } = req.query;
 
     // Get daily stats
-    const statsQuery = date
-      ? `
+    const statsResult = date
+      ? await sql`
         SELECT
           COUNT(*) as total,
           COUNT(*) FILTER (WHERE is_valid = true) as valid,
           COUNT(*) FILTER (WHERE is_valid = false) as invalid
         FROM marketing_activations
-        WHERE DATE(whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = $1
+        WHERE DATE(whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = ${date}
       `
-      : `
+      : await sql`
         SELECT
           COUNT(*) as total,
           COUNT(*) FILTER (WHERE is_valid = true) as valid,
@@ -29,16 +29,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         FROM marketing_activations
         WHERE DATE(whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = CURRENT_DATE
       `;
-
-    const statsResult = date
-      ? await sql(statsQuery, [date])
-      : await sql(statsQuery);
 
     const stats = statsResult[0];
 
     // Get recent submissions
-    const submissionsQuery = date
-      ? `
+    const submissions = date
+      ? await sql`
         SELECT
           drop_number,
           whatsapp_message_date,
@@ -48,10 +44,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           validation_message,
           created_at
         FROM marketing_activations
-        WHERE DATE(whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = $1
+        WHERE DATE(whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = ${date}
         ORDER BY whatsapp_message_date DESC
       `
-      : `
+      : await sql`
         SELECT
           drop_number,
           whatsapp_message_date,
@@ -64,10 +60,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         WHERE DATE(whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = CURRENT_DATE
         ORDER BY whatsapp_message_date DESC
       `;
-
-    const submissions = date
-      ? await sql(submissionsQuery, [date])
-      : await sql(submissionsQuery);
 
     return res.status(200).json({
       success: true,
