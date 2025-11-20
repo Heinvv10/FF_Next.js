@@ -57,6 +57,13 @@ Complete documentation for the WhatsApp Monitor system that tracks QA photo revi
   - Historical reference
 
 ### Integration & Features
+- **[Foto Reviews - 1Map Integration](FOTO_REVIEWS_1MAP_INTEGRATION.md)** ⭐ NEW (Nov 20, 2025)
+  - **API-based automated photo review system** ✅
+  - Queue DR numbers from WhatsApp → Capture from 1map.co.za → AI review → Feedback
+  - Complete integration guide with code examples
+  - Production-ready implementation
+  - Location: `/home/louisdup/Agents/antigravity/`
+
 - **[WhatsApp Architecture & Send Feedback](WHATSAPP_ARCHITECTURE.md)** ⭐ UPDATED (Nov 11, 2025 - 09:42 SAST)
   - **@Mentions FULLY OPERATIONAL** ✅
   - Dual phone number architecture (+27 71 155 8396 for sending)
@@ -184,6 +191,9 @@ tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log | grep "Velo Test"
 ### Understand Data Flow
 → See [Data Flow Report](WA_MONITOR_DATA_FLOW_REPORT.md)
 
+### Automate Photo Reviews
+→ See [Foto Reviews - 1Map Integration](FOTO_REVIEWS_1MAP_INTEGRATION.md)
+
 ---
 
 ## 📂 VPS Directory Structure
@@ -226,6 +236,7 @@ tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log | grep "Velo Test"
 
 | Document | Version | Last Updated | Status |
 |----------|---------|--------------|--------|
+| Foto Reviews Integration | 1.0 | Nov 20, 2025 | ✅ Production-Ready |
 | Architecture | 2.0 | Nov 9, 2025 | ✅ Current |
 | 5-Minute Guide | 2.0 | Nov 9, 2025 | ✅ Current |
 | Dual-Monitoring | 2.0 | Nov 9, 2025 | ✅ Current |

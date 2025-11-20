@@ -92,7 +92,10 @@
       "Bash(npm run type-check:*)",
       "Bash(find:*)",
       "Read(//tmp/**)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(sqlite3:*)",
+      "Bash(python3:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": [],

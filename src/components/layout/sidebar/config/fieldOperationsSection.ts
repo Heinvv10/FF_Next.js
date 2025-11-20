@@ -2,7 +2,7 @@
  * Field Operations section configuration
  */
 
-import { Smartphone, MapPin, Wrench, MessageSquare } from 'lucide-react';
+import { Smartphone, MapPin, Wrench, MessageSquare, Camera, TrendingUp } from 'lucide-react';
 import type { NavSection } from './types';
 
 export const fieldOperationsSection: NavSection = {
@@ -34,6 +34,20 @@ export const fieldOperationsSection: NavSection = {
       icon: MessageSquare,
       label: 'WA Monitor',
       shortLabel: 'WA',
+      permissions: [],
+    },
+    {
+      to: '/marketing-activations',
+      icon: TrendingUp,
+      label: 'Marketing Activations',
+      shortLabel: 'Marketing',
+      permissions: [],
+    },
+    {
+      to: '/foto-reviews',
+      icon: Camera,
+      label: 'Foto Reviews',
+      shortLabel: 'Foto',
       permissions: [],
     },
   ]
