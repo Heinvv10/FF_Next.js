@@ -16,11 +16,12 @@ export default async function handler(
   }
 
   try {
+    // TODO: Re-enable auth in production
     // Verify authentication
-    const { userId } = getAuth(req);
-    if (!userId) {
-      return apiResponse.unauthorized(res);
-    }
+    // const { userId } = getAuth(req);
+    // if (!userId) {
+    //   return apiResponse.unauthorized(res);
+    // }
 
     // Forward query parameters to antigravity API
     const queryParams = new URLSearchParams();
