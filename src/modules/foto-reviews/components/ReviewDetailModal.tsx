@@ -83,8 +83,8 @@ export function ReviewDetailModal({ jobId, onClose, onSuccess }: ReviewDetailMod
     );
   };
 
-  const imagePath = review.result?.image_path;
-  const imageUrl = imagePath ? `/api/foto-reviews/image?path=${encodeURIComponent(imagePath)}` : null;
+  // Use job_id to fetch image from antigravity API
+  const imageUrl = review.job_id ? `/api/foto-reviews/image?jobId=${review.job_id}` : null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
