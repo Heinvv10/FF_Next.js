@@ -1,10 +1,9 @@
-// GET /api/foto-reviews/image?path={image_path}
-// Serve images from 1Map storage
+// GET /api/foto-reviews/image?jobId={jobId}
+// Proxy to antigravity API - Serve property photos
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getAuth } from '@clerk/nextjs/server';
-import fs from 'fs';
-import path from 'path';
+
+const ANTIGRAVITY_API_URL = process.env.ANTIGRAVITY_API_URL || 'http://localhost:8001';
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,54 +14,34 @@ export default async function handler(
   }
 
   try {
-    // Verify authentication
-    // const { userId } = getAuth(req);
-    // // if (!userId) {
-      // return res.status(401).json({ error: 'Unauthorized' });
-    // }
+    const { jobId } = req.query;
 
-    const { path: imagePath } = req.query;
-
-    if (!imagePath || typeof imagePath !== 'string') {
-      return res.status(400).json({ error: 'Image path is required' });
+    if (!jobId || typeof jobId !== 'string') {
+      return res.status(400).json({ error: 'Job ID is required' });
     }
 
-    // Construct full path to image
-    const baseDir = '/home/louisdup/Agents/antigravity';
-    const fullPath = path.join(baseDir, imagePath);
+    // Proxy to antigravity API
+    const url = `${ANTIGRAVITY_API_URL}/api/queue/image/${jobId}`;
+    const response = await fetch(url);
 
-    // Security check: ensure path is within base directory
-    const resolvedPath = path.resolve(fullPath);
-    const resolvedBaseDir = path.resolve(baseDir);
-
-    if (!resolvedPath.startsWith(resolvedBaseDir)) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (!response.ok) {
+      if (response.status === 404) {
+        return res.status(404).json({ error: 'Image not found' });
+      }
+      throw new Error(`Antigravity API error: ${response.statusText}`);
     }
 
-    // Check if file exists
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ error: 'Image not found' });
-    }
+    // Get image buffer
+    const imageBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(imageBuffer);
 
-    // Read file
-    const fileBuffer = fs.readFileSync(fullPath);
+    // Get content type from antigravity response
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
 
-    // Determine content type based on file extension
-    const ext = path.extname(fullPath).toLowerCase();
-    const contentTypeMap: Record<string, string> = {
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.gif': 'image/gif',
-      '.webp': 'image/webp',
-    };
-
-    const contentType = contentTypeMap[ext] || 'application/octet-stream';
-
-    // Set headers and send file
+    // Set headers and send image
     res.setHeader('Content-Type', contentType);
     res.setHeader('Cache-Control', 'public, max-age=31536000');
-    res.send(fileBuffer);
+    res.send(buffer);
   } catch (error) {
     console.error('Error serving image:', error);
     return res.status(500).json({ error: 'Internal server error' });
