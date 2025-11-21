@@ -37,7 +37,7 @@ export default async function handler(
       },
       body: JSON.stringify({
         ...req.body,
-        sent_by: userId,
+        sent_by: 'system', // TODO: Replace with userId when auth is re-enabled
       }),
     });
 

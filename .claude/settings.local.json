@@ -99,7 +99,9 @@
       "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow && git pull && npm ci && npm run build 2>&1 | tail -30 && pm2 restart fibreflow-prod && echo ''✅ Deployed Foto Reviews to PRODUCTION''\")",
       "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"curl -s http://localhost:3005 | head -20 && echo ''✅ Production server responding''\")",
       "Bash(tar:*)",
-      "Bash(antigravity/)"
+      "Bash(antigravity/)",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"pm2 logs fibreflow-prod --lines 30 --nostream | grep -A 5 -B 5 ''foto-reviews''\")",
+      "Bash(scp:*)"
     ],
     "deny": [],
     "ask": [],
