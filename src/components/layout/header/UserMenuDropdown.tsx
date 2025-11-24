@@ -3,16 +3,16 @@
  */
 
 import { User, Settings, HelpCircle, LogOut, Shield } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserMenuDropdownProps } from './HeaderTypes';
 
-export function UserMenuDropdown({ 
-  user, 
-  showUserMenu, 
-  onToggleUserMenu, 
-  userMenuRef, 
-  onLogout 
+export function UserMenuDropdown({
+  user,
+  showUserMenu,
+  onToggleUserMenu,
+  userMenuRef,
+  onLogout
 }: UserMenuDropdownProps) {
   const router = useRouter();
   const { currentUser } = useAuth();

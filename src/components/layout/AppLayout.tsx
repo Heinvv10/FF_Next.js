@@ -1,5 +1,5 @@
 import { useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 // import { useTheme } from '@/contexts/ThemeContext'; // Ready for future use
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -32,7 +32,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     return false;
   });
 
-  const router = useRouter();
+  const pathname = usePathname();
   const { currentUser, loading } = useAuth();
   // Theme hook ready for future use
   // const { theme } = useTheme();
@@ -47,11 +47,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Close mobile sidebar when route changes
   useEffect(() => {
     setSidebarOpen(false);
-  }, [router.pathname]);
+  }, [pathname]);
 
   // Get page metadata based on current route
   const getPageMeta = (): PageMeta => {
-    const path = router.pathname;
+    const path = pathname || '/';
     const segments = path.split('/').filter(Boolean);
 
     // Dashboard
