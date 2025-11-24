@@ -108,7 +108,8 @@
       "Bash(while read file)",
       "Bash(do wc:*)",
       "Bash(done)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(echo $DATABASE_URL)"
     ],
     "deny": [],
     "ask": [],
