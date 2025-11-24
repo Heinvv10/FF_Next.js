@@ -4,7 +4,7 @@
  */
 
 import type { Project, ProjectFilter } from '@/types/project.types';
-import { projectApi } from '@/services/api/projectApi';
+import { projectApi } from '@/services/api/project';
 
 /**
  * Project query and filtering service

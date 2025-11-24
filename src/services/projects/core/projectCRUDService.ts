@@ -4,7 +4,7 @@
  */
 
 import type { ProjectFormData } from '@/types/project.types';
-import { projectApi } from '@/services/api/projectApi';
+import { projectApi } from '@/services/api/project';
 
 /**
  * Project CRUD operations service

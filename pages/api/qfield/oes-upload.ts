@@ -1,0 +1,143 @@
+/**
+ * QField OES Upload API
+ * POST /api/qfield/oes-upload
+ * Uploads OES report file to VPS via SCP
+ */
+
+import type { NextApiRequest, NextApiResponse } from 'next';
+import formidable from 'formidable';
+import fs from 'fs';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+
+// VPS Configuration
+const VPS_HOST = process.env.VPS_HOST || '72.61.166.168';
+const VPS_USER = process.env.VPS_USER || 'root';
+const VPS_OES_PATH = process.env.VPS_OES_PATH || '/root/oes_sync';
+const SSH_KEY_PATH = process.env.VPS_SSH_KEY_PATH || '/home/louisdup/.ssh/id_rsa';
+
+// Disable body parser for multipart form data
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  let tempFilePath: string | undefined;
+
+  try {
+    // Parse multipart form data
+    const { files } = await parseForm(req);
+
+    // Get uploaded file
+    const fileArray = Array.isArray(files.file) ? files.file : [files.file];
+    const file = fileArray[0];
+
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    tempFilePath = file.filepath;
+
+    // Validate file type
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel', // .xls
+      'text/csv',
+      'application/csv'
+    ];
+
+    const isValidExtension = /\.(xlsx|xls|csv)$/i.test(file.originalFilename || '');
+
+    if (!allowedTypes.includes(file.mimetype || '') && !isValidExtension) {
+      return res.status(400).json({
+        error: 'Invalid file type. Please upload Excel (.xlsx, .xls) or CSV file.'
+      });
+    }
+
+    // Validate file size (50MB max)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return res.status(400).json({
+        error: 'File too large. Maximum size: 50MB'
+      });
+    }
+
+    // Determine target filename based on extension
+    const originalExt = file.originalFilename?.split('.').pop()?.toLowerCase() || 'xlsx';
+    const targetFilename = `oes_report_latest.${originalExt}`;
+    const targetPath = `${VPS_OES_PATH}/data/oes_reports/${targetFilename}`;
+
+    console.log(`Uploading file to VPS: ${targetPath}`);
+    console.log(`File size: ${(file.size / 1024).toFixed(2)} KB`);
+
+    // Upload file to VPS via SCP
+    const scpCommand = `scp -i "${SSH_KEY_PATH}" -o StrictHostKeyChecking=no "${tempFilePath}" "${VPS_USER}@${VPS_HOST}:${targetPath}"`;
+
+    try {
+      const { stdout, stderr } = await execAsync(scpCommand);
+
+      if (stderr && !stderr.includes('Warning')) {
+        console.error('SCP stderr:', stderr);
+      }
+
+      console.log('File uploaded successfully');
+
+    } catch (scpError: any) {
+      console.error('SCP error:', scpError);
+      throw new Error(`Failed to upload file to VPS: ${scpError.message}`);
+    }
+
+    // Clean up temp file
+    await fs.promises.unlink(tempFilePath);
+    tempFilePath = undefined;
+
+    return res.status(200).json({
+      success: true,
+      filename: targetFilename,
+      originalName: file.originalFilename,
+      size: file.size,
+      uploadedAt: new Date().toISOString(),
+      vpsPath: targetPath
+    });
+
+  } catch (error: any) {
+    console.error('OES upload error:', error);
+
+    // Clean up temp file on error
+    if (tempFilePath) {
+      try {
+        await fs.promises.unlink(tempFilePath);
+      } catch (e) {
+        console.error('Failed to clean up temp file:', e);
+      }
+    }
+
+    return res.status(500).json({
+      error: 'Failed to upload file',
+      message: error.message
+    });
+  }
+}
+
+// Parse multipart form data
+function parseForm(req: NextApiRequest): Promise<{ fields: formidable.Fields; files: formidable.Files }> {
+  return new Promise((resolve, reject) => {
+    const form = formidable({
+      maxFileSize: 50 * 1024 * 1024, // 50MB
+      keepExtensions: true,
+    });
+
+    form.parse(req, (err, fields, files) => {
+      if (err) reject(err);
+      else resolve({ fields, files });
+    });
+  });
+}

@@ -4,10 +4,11 @@
 
 import type { Metadata } from 'next';
 import '../styles/globals.css';
+import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'FibreFlow - Contractors',
-  description: 'Contractor management system',
+  title: 'FibreFlow',
+  description: 'Fiber network project management system',
 };
 
 export default function RootLayout({
@@ -18,9 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <main className="min-h-screen bg-gray-50">
-          {children}
-        </main>
+        <Providers>
+          <main className="min-h-screen bg-gray-50">
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );

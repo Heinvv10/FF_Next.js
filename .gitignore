@@ -104,3 +104,7 @@ vercel/.deploy-hooks
 
 # Playwright auth state
 tests/e2e/.auth/
+
+# Firebase service account keys (SENSITIVE!)
+*firebase*adminsdk*.json
+serviceAccountKey.json

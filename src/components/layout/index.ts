@@ -4,6 +4,7 @@
  */
 
 export { AppLayout } from './AppLayout';
+export { AppRouterLayout } from './AppRouterLayout';
 export { Header } from './Header';
 export { Sidebar } from './Sidebar';
 export { Footer } from './Footer';
