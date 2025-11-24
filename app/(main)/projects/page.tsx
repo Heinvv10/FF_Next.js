@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+
+// Disable static generation - this page needs client-side data fetching
+export const dynamic = 'force-dynamic';
 import { useRouter } from 'next/navigation';
 import { useProjects, useCreateProject, useDeleteProject } from '@/hooks/useProjects';
 import { useStore } from '@/store/useStore';

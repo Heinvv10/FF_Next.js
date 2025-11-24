@@ -14,6 +14,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+
+// Disable static generation - this page needs client-side data fetching
+export const dynamic = 'force-dynamic';
 import { useRouter } from 'next/navigation';
 import { useProjects } from '@/hooks/useProjects';
 import { useWaMonitorSummary } from '@/modules/wa-monitor/hooks/useWaMonitorStats';
