@@ -18,7 +18,7 @@ export const projectSection: NavSection = {
   section: 'PROJECT MANAGEMENT',
   items: [
     {
-      to: '/projects/dashboard',
+      to: '/projects',
       icon: LayoutDashboard,
       label: 'Projects',
       shortLabel: 'Proj',
@@ -43,6 +43,13 @@ export const projectSection: NavSection = {
       icon: Droplets,
       label: 'Drops Management',
       shortLabel: 'Drops',
+      permissions: [],
+    },
+    {
+      to: '/drops/dashboard',
+      icon: BarChart3,
+      label: 'Drop Dashboard',
+      shortLabel: 'Drop Dash',
       permissions: [],
     },
     {

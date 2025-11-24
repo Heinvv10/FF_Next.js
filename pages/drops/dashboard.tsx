@@ -1,7 +1,8 @@
 /**
- * Enhanced Projects Dashboard Page
- * Route: /projects/dashboard
+ * Drop Dashboard Page
+ * Route: /drops/dashboard
  *
+ * Monitors QA photo review submissions from WhatsApp groups
  * Features:
  * - Date range filtering with quick filters
  * - Visual trend charts (line, bar, donut)
@@ -29,6 +30,7 @@ import {
   Users,
   XCircle,
   BarChart3,
+  ExternalLink,
 } from 'lucide-react';
 import {
   LineChart,
@@ -58,7 +60,7 @@ const COLORS = {
 
 type DateRangePreset = 'today' | 'week' | 'month' | 'custom';
 
-export default function EnhancedProjectsDashboard() {
+export default function DropDashboard() {
   const router = useRouter();
   const { data: projects = [], isLoading: projectsLoading } = useProjects();
 
@@ -98,6 +100,15 @@ export default function EnhancedProjectsDashboard() {
   // Calculate project stats
   const activeProjects = projects.filter(p => p.status === 'active').length;
   const totalProjects = projects.length;
+
+  // Helper to find project ID by name for navigation
+  const findProjectIdByName = (projectName: string): string | null => {
+    const project = projects.find(p =>
+      p.name?.toLowerCase() === projectName.toLowerCase() ||
+      p.projectName?.toLowerCase() === projectName.toLowerCase()
+    );
+    return project?.id || project?.projectId || null;
+  };
 
   // Filter stats by selected project
   const filteredWaStats = useMemo(() => {
@@ -165,7 +176,7 @@ export default function EnhancedProjectsDashboard() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `projects-dashboard-${startDate}-to-${endDate}.csv`;
+    a.download = `drop-dashboard-${startDate}-to-${endDate}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -176,8 +187,8 @@ export default function EnhancedProjectsDashboard() {
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Projects Dashboard</h1>
-            <p className="mt-2 text-gray-600">Comprehensive overview with date range filtering and analytics</p>
+            <h1 className="text-3xl font-bold text-gray-900">Drop Dashboard</h1>
+            <p className="mt-2 text-gray-600">Monitor QA photo review submissions from WhatsApp groups</p>
           </div>
           <div className="flex gap-3">
             <button
@@ -498,11 +509,21 @@ export default function EnhancedProjectsDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {waStats.byProject.map((project) => (
+                  {waStats.byProject.map((project) => {
+                    const projectId = findProjectIdByName(project.project);
+                    return (
                     <tr
                       key={project.project}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => setSelectedProject(project.project)}
+                      className="hover:bg-blue-50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        if (projectId) {
+                          router.push(`/projects/${projectId}`);
+                        } else {
+                          // Fallback: filter dashboard by this project if no ID found
+                          setSelectedProject(project.project);
+                        }
+                      }}
+                      title={projectId ? `View ${project.project} details` : `Filter by ${project.project}`}
                     >
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{project.project}</div>
@@ -529,7 +550,8 @@ export default function EnhancedProjectsDashboard() {
                         {project.overallTotal || 0}
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>
