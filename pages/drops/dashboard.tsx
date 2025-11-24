@@ -15,6 +15,7 @@
 import { useState, useMemo } from 'react';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { useProjects } from '@/hooks/useProjects';
 import { useWaMonitorSummary } from '@/modules/wa-monitor/hooks/useWaMonitorStats';
 import {
@@ -182,8 +183,9 @@ export default function DropDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AppLayout>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div>
@@ -567,8 +569,9 @@ export default function DropDashboard() {
             </div>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
 
