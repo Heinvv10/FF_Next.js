@@ -101,7 +101,14 @@
       "Bash(tar:*)",
       "Bash(antigravity/)",
       "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"pm2 logs fibreflow-prod --lines 30 --nostream | grep -A 5 -B 5 ''foto-reviews''\")",
-      "Bash(scp:*)"
+      "Bash(scp:*)",
+      "Bash(cp:*)",
+      "Bash(npx tsc:*)",
+      "Bash(tree:*)",
+      "Bash(while read file)",
+      "Bash(do wc:*)",
+      "Bash(done)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": [],
