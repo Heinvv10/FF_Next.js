@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 import type { NavSection, SidebarStyles } from './types';
 import type { ThemeConfig } from '@/types/theme.types';
 
@@ -11,7 +11,7 @@ interface NavigationMenuProps {
 }
 
 export function NavigationMenu({ visibleNavItems, isCollapsed, sidebarStyles, themeConfig }: NavigationMenuProps) {
-  const router = useRouter();
+  const pathname = usePathname();
   
   return (
     <>
@@ -27,7 +27,7 @@ export function NavigationMenu({ visibleNavItems, isCollapsed, sidebarStyles, th
           )}
           <div className="space-y-1">
             {section.items.map((item) => {
-              const isActive = router.pathname === item.to;
+              const isActive = pathname === item.to;
               return (
               <Link
                 key={item.to}
