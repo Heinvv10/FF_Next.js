@@ -133,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ${false},
         ${'pending'},
         ${notes || null},
-        ${'system'}
+        ${uploadedBy}
       )
       RETURNING *
     `;
