@@ -8,7 +8,8 @@ const API_BASE = '/api';
 interface DbProject {
   id?: string;
   project_code?: string;
-  project_name: string;
+  project_name?: string;
+  name?: string; // Database returns 'name' field
   client_id?: string;
   project_type?: string;
   status?: string;
@@ -57,11 +58,14 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 function transformDbToProject(dbProject: DbProject): Project {
+  // Database returns 'name' field, but we support both 'name' and 'project_name'
+  const projectName = dbProject.name || dbProject.project_name || '';
+
   return {
     id: dbProject.id,
     projectCode: dbProject.project_code,
-    projectName: dbProject.project_name,
-    name: dbProject.project_name, // Alias for backward compatibility
+    projectName: projectName,
+    name: projectName, // Alias for backward compatibility
     clientId: dbProject.client_id,
     projectType: dbProject.project_type,
     status: dbProject.status,
