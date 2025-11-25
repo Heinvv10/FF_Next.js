@@ -159,7 +159,7 @@ export async function calculateSummary(): Promise<WaMonitorSummary> {
           THEN 1
         END) as incomplete,
         COALESCE(AVG(completed_photos), 0) as "avgCompletedPhotos",
-        COALESCE(SUM(CASE WHEN feedback_sent IS NOT NULL THEN 1 ELSE 0 END), 0) as "totalFeedbackSent"
+        COALESCE(SUM(CASE WHEN completed = true OR incomplete = true THEN 1 ELSE 0 END), 0) as "totalReviewed"
       FROM qa_photo_reviews
     `;
 
@@ -168,7 +168,7 @@ export async function calculateSummary(): Promise<WaMonitorSummary> {
       incomplete: parseInt(stats.incomplete, 10),
       complete: parseInt(stats.complete, 10),
       averageFeedbackCount: parseFloat(stats.avgCompletedPhotos),
-      totalFeedback: parseInt(stats.totalFeedbackSent, 10),
+      totalFeedback: parseInt(stats.totalReviewed, 10),
     };
   } catch (error) {
     console.error('Error calculating summary:', error);
