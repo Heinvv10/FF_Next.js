@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { reportWebVitals } from '@/lib/performance';
 import { initErrorTracking } from '@/lib/errorTracking';
+import { VersionChecker } from '@/components/VersionChecker';
 
 // Export for Next.js Web Vitals
 export { reportWebVitals };
@@ -35,6 +36,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <ErrorBoundary>
+      <VersionChecker />
       <AuthProvider>
         <ThemeProvider>
           <QueryClientProvider client={queryClient}>
