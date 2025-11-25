@@ -53,6 +53,7 @@ export async function getAllDrops(): Promise<QaReviewDrop[]> {
         step_11_green_lights as "step_11_green_lights",
         step_12_customer_signature as "step_12_customer_signature"
       FROM qa_photo_reviews
+      WHERE project != 'Marketing Activations'
       ORDER BY created_at DESC
     `;
 
@@ -161,6 +162,7 @@ export async function calculateSummary(): Promise<WaMonitorSummary> {
         COALESCE(AVG(completed_photos), 0) as "avgCompletedPhotos",
         COALESCE(SUM(CASE WHEN completed = true OR incomplete = true THEN 1 ELSE 0 END), 0) as "totalReviewed"
       FROM qa_photo_reviews
+      WHERE project != 'Marketing Activations'
     `;
 
     return {
@@ -200,6 +202,7 @@ export async function getDailyDropsPerProject(date?: string): Promise<Array<{ da
         COUNT(DISTINCT drop_number) as count
       FROM qa_photo_reviews
       WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg') = ${targetDate}::date
+        AND project != 'Marketing Activations'
       GROUP BY DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg'), project
       ORDER BY project ASC
     `;
@@ -479,6 +482,7 @@ export async function getAllProjectsStatsSummary(
       FROM qa_photo_reviews
       WHERE DATE(COALESCE(whatsapp_message_date, created_at) AT TIME ZONE 'Africa/Johannesburg')
         BETWEEN ${queryStartDate}::date AND ${queryEndDate}::date
+        AND project != 'Marketing Activations'
       GROUP BY project
       ORDER BY total DESC
     `;
@@ -498,6 +502,7 @@ export async function getAllProjectsStatsSummary(
           THEN drop_number
         END) as complete
       FROM qa_photo_reviews
+      WHERE project != 'Marketing Activations'
       GROUP BY project
     `;
 
