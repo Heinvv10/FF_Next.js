@@ -13,9 +13,11 @@ import { getAdminStorage } from '@/config/firebase-admin';
 const sql = neon(process.env.DATABASE_URL || '');
 
 // Disable body parser to handle multipart form data
+// Increase response size limit to allow 10MB file uploads
 export const config = {
   api: {
     bodyParser: false,
+    responseLimit: '10mb',
   },
 };
 
