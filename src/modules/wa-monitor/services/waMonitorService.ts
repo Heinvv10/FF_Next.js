@@ -243,8 +243,11 @@ function transformDbRowToDrop(row: any): QaReviewDrop {
                            step_07 && step_08 && step_09 && step_10 && step_11 && step_12;
 
   const status: 'incomplete' | 'complete' = allStepsComplete ? 'complete' : 'incomplete';
-  const completed = allStepsComplete;
-  const incomplete = !allStepsComplete;
+
+  // Use database values for completed/incomplete (tracks if QA reviewed it)
+  // Don't calculate from steps - that would make all unreviewed drops appear incomplete
+  const completed = row.completed || false;
+  const incomplete = row.incomplete || false;
 
   return {
     id: row.id,
