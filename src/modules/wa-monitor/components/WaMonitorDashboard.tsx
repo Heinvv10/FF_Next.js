@@ -232,7 +232,7 @@ export function WaMonitorDashboard() {
   const calculatedSummary = useMemo<WaMonitorSummary>(() => {
     const total = filteredDrops.length;
     const incomplete = filteredDrops.filter(d => d.incomplete).length;
-    const complete = filteredDrops.filter(d => d.complete).length;
+    const complete = filteredDrops.filter(d => d.completed).length;  // Fixed: was d.complete, should be d.completed
     const totalFeedback = filteredDrops.filter(d => d.feedbackSent !== null).length;
 
     return {
