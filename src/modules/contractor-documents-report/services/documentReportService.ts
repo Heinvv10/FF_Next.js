@@ -240,11 +240,11 @@ export async function generateContractorDocumentReport(
  * Generate summary for all contractors
  */
 export async function generateAllContractorsSummary(): Promise<AllContractorsSummary> {
-  // Fetch all active contractors
+  // Fetch all approved contractors (not suspended or pending)
   const contractors = await sql`
     SELECT id, company_name, status
     FROM contractors
-    WHERE status = 'active'
+    WHERE status = 'approved'
     ORDER BY company_name ASC
   `;
 
