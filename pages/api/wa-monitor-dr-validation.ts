@@ -1,5 +1,5 @@
 /**
- * WA Monitor DR Validation API
+ * WA Monitor DR Validation API (Enhanced for Janice's format)
  * POST /api/wa-monitor-dr-validation - Upload CSV/Excel and validate against database
  * GET /api/wa-monitor-dr-validation?project={project}&date={date} - Get drops for project/date
  * DELETE /api/wa-monitor-dr-validation?id={id} - Delete a drop record
@@ -7,6 +7,7 @@
  *
  * Handles DR number validation and reconciliation for Janice
  * Supports CSV and Excel (.xlsx) file uploads
+ * Enhanced: Handles Excel time decimals + multi-project Excel files
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -131,28 +132,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         parsedData = parseResult.data;
       } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
-        // Parse Excel
+        // Parse Excel (Enhanced for Janice's multi-project format)
         const fileBuffer = fs.readFileSync(uploadedFile.filepath);
         const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-        // Normalize headers
-        parsedData = jsonData.map((row: any) => {
-          const normalizedRow: any = {};
-          Object.keys(row).forEach((key) => {
-            const lower = key.toLowerCase().trim();
-            if (lower === 'date') {
-              normalizedRow.date = row[key];
-            } else if (lower.includes('dr') && lower.includes('nr')) {
-              normalizedRow.dropNumber = row[key];
-            } else if (lower === 'time') {
-              normalizedRow.time = row[key];
-            }
+        // Get raw array data (includes row 0 with project names, row 1 with headers)
+        const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
+
+        // Detect project sections and extract data
+        parsedData = extractProjectDataFromExcel(rawData as any[][], project as string);
+
+        if (parsedData.length === 0) {
+          return apiResponse.validationError(res, {
+            file: `No data found for project "${project}". Available projects might be in different columns.`,
           });
-          return normalizedRow;
-        });
+        }
       } else {
         return apiResponse.validationError(res, {
           file: 'Unsupported file type. Please upload CSV or Excel (.xlsx) file',
@@ -164,7 +160,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .map((row: any) => ({
           date: normalizeDate(row.date, date as string),
           dropNumber: normalizeDropNumber(row.dropNumber),
-          time: row.time || '',
+          time: normalizeTime(row.time),
         }))
         .filter((row) => row.dropNumber); // Remove rows without DR numbers
 
@@ -329,13 +325,103 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 // ==================== HELPER FUNCTIONS ====================
 
 /**
+ * Extract data for a specific project from Janice's Excel format
+ * Format: Row 0 = project names, Row 1 = headers, Row 2+ = data
+ * Projects are in columns (Lawley in A-D, Mamelodi in F-I, etc.)
+ */
+function extractProjectDataFromExcel(rawData: any[][], projectName: string): any[] {
+  if (rawData.length < 3) return []; // Need at least: row 0 (projects), row 1 (headers), row 2 (data)
+
+  const projectRow = rawData[0]; // Row with project names
+  const headerRow = rawData[1];  // Row with "Date", "DR nr", "Time"
+
+  // Find which column group contains this project
+  let projectColumnStart = -1;
+  for (let i = 0; i < projectRow.length; i++) {
+    const cellValue = projectRow[i];
+    if (cellValue && typeof cellValue === 'string') {
+      const normalized = cellValue.trim();
+      // Match project name (case-insensitive, partial match)
+      if (normalized.toLowerCase().includes(projectName.toLowerCase()) ||
+          projectName.toLowerCase().includes(normalized.toLowerCase())) {
+        projectColumnStart = i;
+        break;
+      }
+    }
+  }
+
+  if (projectColumnStart === -1) {
+    return []; // Project not found
+  }
+
+  // Find the columns for Date, DR nr, Time starting from projectColumnStart
+  let dateCol = -1, drCol = -1, timeCol = -1;
+  for (let i = projectColumnStart; i < Math.min(projectColumnStart + 5, headerRow.length); i++) {
+    const header = headerRow[i];
+    if (header && typeof header === 'string') {
+      const lower = header.toLowerCase().trim();
+      if (lower === 'date' && dateCol === -1) dateCol = i;
+      else if (lower.includes('dr') && lower.includes('nr') && drCol === -1) drCol = i;
+      else if (lower === 'time' && timeCol === -1) timeCol = i;
+    }
+  }
+
+  if (dateCol === -1 || drCol === -1) {
+    return []; // Required columns not found
+  }
+
+  // Extract data rows (skip row 0 and 1)
+  const results: any[] = [];
+  for (let i = 2; i < rawData.length; i++) {
+    const row = rawData[i];
+    const dateValue = row[dateCol];
+    const drValue = row[drCol];
+    const timeValue = timeCol !== -1 ? row[timeCol] : null;
+
+    // Only include rows with valid DR number
+    if (drValue) {
+      results.push({
+        date: dateValue,
+        dropNumber: drValue,
+        time: timeValue,
+      });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Convert Excel time value to HH:MM format
+ * Excel stores time as decimal: 0.5 = 12:00, 0.376 = 9:01
+ */
+function normalizeTime(input: any): string {
+  if (!input) return '';
+
+  // If already a string (HH:MM format), return as-is
+  if (typeof input === 'string') {
+    return input;
+  }
+
+  // If it's a number (Excel time decimal), convert it
+  if (typeof input === 'number') {
+    const totalMinutes = Math.round(input * 24 * 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
+
+  return '';
+}
+
+/**
  * Normalize drop number to DR######## format
  * Handles: DR1733545, Dr1733545, dr1733545, 1733545
  */
 function normalizeDropNumber(input: string): string {
   if (!input) return '';
 
-  const cleaned = input.trim().toUpperCase();
+  const cleaned = input.toString().trim().toUpperCase();
 
   // Already in correct format
   if (/^DR\d{7,8}$/.test(cleaned)) {
@@ -355,21 +441,33 @@ function normalizeDropNumber(input: string): string {
 
 /**
  * Normalize date to YYYY-MM-DD format
- * Handles: 25/11/2025, 2025-11-25, etc.
+ * Handles: 25/11/2025, 2025-11-25, Excel date numbers
  */
-function normalizeDate(input: string, fallback: string): string {
+function normalizeDate(input: any, fallback: string): string {
   if (!input) return fallback;
 
+  // Handle Excel date numbers (e.g., 45620 = 2024-11-25)
+  if (typeof input === 'number') {
+    const excelEpoch = new Date(1899, 11, 30); // Excel epoch
+    const date = new Date(excelEpoch.getTime() + input * 86400000);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  const inputStr = input.toString();
+
   // Try DD/MM/YYYY format
-  const ddmmyyyy = input.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const ddmmyyyy = inputStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (ddmmyyyy) {
     const [, day, month, year] = ddmmyyyy;
     return `${year}-${month}-${day}`;
   }
 
   // Already YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
-    return input;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(inputStr)) {
+    return inputStr;
   }
 
   return fallback;
