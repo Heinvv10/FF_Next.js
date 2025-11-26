@@ -11,7 +11,10 @@ import { QA_STEP_LABELS, ORDERED_STEP_KEYS } from '@/modules/wa-monitor/types/wa
 const sql = neon(process.env.DATABASE_URL || '');
 
 // WhatsApp Bridge configuration
-const WHATSAPP_BRIDGE_URL = process.env.WHATSAPP_BRIDGE_URL || 'http://localhost:8080/api';
+// VPS endpoints for production, localhost for development
+const VPS_HOST = process.env.VPS_HOST || '72.60.17.245';
+const WHATSAPP_SENDER_URL = process.env.WHATSAPP_SENDER_URL || `http://${VPS_HOST}:8081`;
+const WHATSAPP_BRIDGE_URL = process.env.WHATSAPP_BRIDGE_URL || `http://${VPS_HOST}:8080/api`;
 
 // Project WhatsApp group mappings
 const PROJECT_GROUPS: Record<string, { jid: string; name: string }> = {
