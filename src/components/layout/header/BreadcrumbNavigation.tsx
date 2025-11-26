@@ -10,32 +10,32 @@ export function BreadcrumbNavigation({ breadcrumbs, title, onMenuClick }: Breadc
   const getBreadcrumbPath = (breadcrumbText: string) => {
     switch (breadcrumbText.toLowerCase()) {
       case 'home':
-        return '/app/dashboard';
+        return '/dashboard';
       case 'dashboard':
-        return '/app/dashboard';
+        return '/dashboard';
       case 'projects':
-        return '/app/projects';
+        return '/projects';
       case 'clients':
-        return '/app/clients';
+        return '/clients';
       case 'staff':
       case 'staff management':
-        return '/app/staff';
+        return '/staff';
       case 'procurement':
-        return '/app/procurement';
+        return '/procurement';
       case 'suppliers':
-        return '/app/suppliers';
+        return '/suppliers';
       case 'contractors':
-        return '/app/contractors';
+        return '/contractors';
       case 'communications':
-        return '/app/communications';
+        return '/communications';
       case 'analytics':
-        return '/app/analytics';
+        return '/analytics';
       case 'settings':
-        return '/app/settings';
+        return '/settings';
       case 'field app':
-        return '/app/field';
+        return '/field';
       case 'daily progress':
-        return '/app/daily-progress';
+        return '/daily-progress';
       default:
         return '#';
     }
