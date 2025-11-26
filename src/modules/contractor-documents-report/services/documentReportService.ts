@@ -30,7 +30,7 @@ const sql = neon(process.env.DATABASE_URL!);
  */
 async function fetchContractorInfo(contractorId: string): Promise<ContractorBasicInfo | null> {
   const result = await sql`
-    SELECT id, contractor_name, status
+    SELECT id, company_name, status
     FROM contractors
     WHERE id = ${contractorId}
     LIMIT 1
@@ -40,7 +40,7 @@ async function fetchContractorInfo(contractorId: string): Promise<ContractorBasi
 
   return {
     id: result[0].id,
-    name: result[0].contractor_name,
+    name: result[0].company_name,
     status: result[0].status,
   };
 }
@@ -242,10 +242,10 @@ export async function generateContractorDocumentReport(
 export async function generateAllContractorsSummary(): Promise<AllContractorsSummary> {
   // Fetch all active contractors
   const contractors = await sql`
-    SELECT id, contractor_name, status
+    SELECT id, company_name, status
     FROM contractors
     WHERE status = 'active'
-    ORDER BY contractor_name ASC
+    ORDER BY company_name ASC
   `;
 
   const contractorSummaries: ContractorSummaryItem[] = [];
@@ -260,7 +260,7 @@ export async function generateAllContractorsSummary(): Promise<AllContractorsSum
 
     contractorSummaries.push({
       id: contractor.id,
-      name: contractor.contractor_name,
+      name: contractor.company_name,
       completionPercentage: report.summary.completionPercentage,
       totalDocuments: report.summary.totalDocuments,
       verified: report.summary.verified,
