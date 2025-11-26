@@ -15,6 +15,8 @@ interface MarketingSubmission {
   userName: string;
   isValid: boolean;
   validationMessage: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface MarketingData {
@@ -59,14 +61,16 @@ export default function MarketingActivationsPage() {
   const exportToCSV = () => {
     if (!data || !data.submissions) return;
 
-    const headers = ['Drop Number', 'Submitted At', 'Submitted By', 'User Name', 'Valid', 'Message'];
+    const headers = ['Drop Number', 'Submitted At', 'Submitted By', 'User Name', 'Valid', 'Message', 'Latitude', 'Longitude'];
     const rows = data.submissions.map(sub => [
       sub.dropNumber,
       new Date(sub.submittedAt).toLocaleString(),
       sub.submittedBy,
       sub.userName || '-',
       sub.isValid ? 'Yes' : 'No',
-      sub.validationMessage
+      sub.validationMessage,
+      sub.latitude?.toString() || '-',
+      sub.longitude?.toString() || '-'
     ]);
 
     const csvContent = [
@@ -194,6 +198,9 @@ export default function MarketingActivationsPage() {
                             Submitted By
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            GPS Location
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
                         </tr>
@@ -209,6 +216,21 @@ export default function MarketingActivationsPage() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {sub.userName || sub.submittedBy || '-'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {sub.latitude && sub.longitude ? (
+                                <a
+                                  href={`https://www.google.com/maps?q=${sub.latitude},${sub.longitude}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                                  title={`${sub.latitude}, ${sub.longitude}`}
+                                >
+                                  📍 View Map
+                                </a>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span

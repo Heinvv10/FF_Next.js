@@ -32,33 +32,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const stats = statsResult[0];
 
-    // Get recent submissions
+    // Get recent submissions with GPS data from sow_drops
     const submissions = date
       ? await sql`
         SELECT
-          drop_number,
-          whatsapp_message_date,
-          submitted_by,
-          user_name,
-          is_valid,
-          validation_message,
-          created_at
-        FROM marketing_activations
-        WHERE DATE(whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = ${date}
-        ORDER BY whatsapp_message_date DESC
+          ma.drop_number,
+          ma.whatsapp_message_date,
+          ma.submitted_by,
+          ma.user_name,
+          ma.is_valid,
+          ma.validation_message,
+          ma.created_at,
+          sd.latitude,
+          sd.longitude
+        FROM marketing_activations ma
+        LEFT JOIN sow_drops sd ON ma.drop_number = sd.drop_number
+        WHERE DATE(ma.whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = ${date}
+        ORDER BY ma.whatsapp_message_date DESC
       `
       : await sql`
         SELECT
-          drop_number,
-          whatsapp_message_date,
-          submitted_by,
-          user_name,
-          is_valid,
-          validation_message,
-          created_at
-        FROM marketing_activations
-        WHERE DATE(whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = CURRENT_DATE
-        ORDER BY whatsapp_message_date DESC
+          ma.drop_number,
+          ma.whatsapp_message_date,
+          ma.submitted_by,
+          ma.user_name,
+          ma.is_valid,
+          ma.validation_message,
+          ma.created_at,
+          sd.latitude,
+          sd.longitude
+        FROM marketing_activations ma
+        LEFT JOIN sow_drops sd ON ma.drop_number = sd.drop_number
+        WHERE DATE(ma.whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = CURRENT_DATE
+        ORDER BY ma.whatsapp_message_date DESC
       `;
 
     return res.status(200).json({
@@ -76,7 +82,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           submittedBy: sub.submitted_by,
           userName: sub.user_name,
           isValid: sub.is_valid,
-          validationMessage: sub.validation_message
+          validationMessage: sub.validation_message,
+          latitude: sub.latitude,
+          longitude: sub.longitude
         }))
       }
     });
