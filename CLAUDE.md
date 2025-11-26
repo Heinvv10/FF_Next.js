@@ -667,6 +667,23 @@ tail -30 /opt/velo-test-monitor/logs/whatsapp-bridge.log
 
 **Full troubleshooting guide:** `src/modules/wa-monitor/TROUBLESHOOTING.md`
 
+### ⚠️ CRITICAL: Do NOT "Fix" localhost in Code
+
+**File:** `pages/api/wa-monitor-send-feedback.ts`
+
+**DANGER:** The code has unused variables (`WHATSAPP_SENDER_URL`, `WHATSAPP_BRIDGE_URL`) but fetch() calls use `localhost:8081` and `localhost:8080`.
+
+**This looks like a bug - BUT IT'S NOT!**
+
+- ✅ App runs ON the VPS where WhatsApp services also run
+- ✅ `localhost:8081` = `72.60.17.245:8081` (same machine)
+- ✅ Faster and more secure than external IP
+- ✅ **The variables are unused intentionally - DO NOT use them in fetch() calls**
+
+**If you change localhost to variables:** You risk breaking working code for no benefit.
+
+**See:** `src/modules/wa-monitor/TROUBLESHOOTING.md` → "CRITICAL WARNING" section
+
 ### Monitored Groups
 - **Lawley**: 120363418298130331@g.us (Lawley Activation 3)
 - **Mohadin**: 120363421532174586@g.us (Mohadin Activations)

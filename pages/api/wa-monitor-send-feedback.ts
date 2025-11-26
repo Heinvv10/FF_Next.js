@@ -11,7 +11,11 @@ import { QA_STEP_LABELS, ORDERED_STEP_KEYS } from '@/modules/wa-monitor/types/wa
 const sql = neon(process.env.DATABASE_URL || '');
 
 // WhatsApp Bridge configuration
-// VPS endpoints for production, localhost for development
+// ⚠️ CRITICAL: DO NOT CHANGE 'localhost' TO VARIABLES IN fetch() CALLS BELOW!
+// WHY: This app runs ON the VPS where WhatsApp services also run.
+//      localhost:8081 = 72.60.17.245:8081 (same machine)
+//      The code below uses 'localhost' and IT WORKS - don't "fix" it!
+// NOTE: These variables exist but are unused. That's intentional and correct.
 const VPS_HOST = process.env.VPS_HOST || '72.60.17.245';
 const WHATSAPP_SENDER_URL = process.env.WHATSAPP_SENDER_URL || `http://${VPS_HOST}:8081`;
 const WHATSAPP_BRIDGE_URL = process.env.WHATSAPP_BRIDGE_URL || `http://${VPS_HOST}:8080/api`;

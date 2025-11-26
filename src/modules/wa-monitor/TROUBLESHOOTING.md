@@ -168,6 +168,43 @@ systemctl status whatsapp-bridge-watchdog
 - **Sender (8081):** Sends WhatsApp messages with @mentions
 - **Both needed:** Sender uses Bridge's connection to WhatsApp
 
+### ⚠️ CRITICAL WARNING: DO NOT "FIX" localhost in Code
+
+**DANGER:** You may be tempted to change `fetch('http://localhost:8081/...')` to use variables.
+
+**DON'T DO IT!** Here's why:
+
+**The code has these variables (lines 19-21):**
+```typescript
+const VPS_HOST = '72.60.17.245';
+const WHATSAPP_SENDER_URL = `http://${VPS_HOST}:8081`;
+const WHATSAPP_BRIDGE_URL = `http://${VPS_HOST}:8080/api`;
+```
+
+**But fetch() calls use `localhost` (lines 97, 126):**
+```typescript
+fetch('http://localhost:8081/send-message', ...)
+fetch('http://localhost:8080/api/send', ...)
+```
+
+**This looks like a bug, but IT'S NOT!**
+
+**Why localhost works:**
+1. The Next.js app runs **ON the VPS** (`/var/www/fibreflow/`)
+2. WhatsApp services **ALSO run on the VPS** (ports 8080, 8081)
+3. From VPS perspective: `localhost:8081` = `72.60.17.245:8081` = **same machine**
+4. `localhost` is faster (no network routing) and more secure (no external exposure)
+
+**The variables exist but are unused** - that's intentional and correct.
+
+**If you change localhost to variables:**
+- ❌ Code still works (same machine)
+- ❌ But you risk breaking it if deployment changes
+- ❌ Unnecessary "fix" for working code
+- ❌ "If it ain't broke, don't fix it!"
+
+**Documented:** Nov 26, 2025 - Almost broke working code trying to "fix" unused variables
+
 ### Files Involved
 
 - **WhatsApp Bridge Service:** `/etc/systemd/system/whatsapp-bridge-prod.service`
