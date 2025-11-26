@@ -88,6 +88,20 @@ const nextConfig = {
     ];
   },
 
+  // Proxy /poles to Poles Sync Module on port 3001
+  async rewrites() {
+    return [
+      {
+        source: '/poles',
+        destination: 'http://localhost:3001/',
+      },
+      {
+        source: '/poles/:path*',
+        destination: 'http://localhost:3001/:path*',
+      },
+    ];
+  },
+
   // Fix file watching issues
   webpack: (config, { dev, isServer }) => {
     // Try to fix Watchpack issues with minimal configuration

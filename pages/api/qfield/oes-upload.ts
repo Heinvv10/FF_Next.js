@@ -16,7 +16,7 @@ const execAsync = promisify(exec);
 const VPS_HOST = process.env.VPS_HOST || '72.61.166.168';
 const VPS_USER = process.env.VPS_USER || 'root';
 const VPS_OES_PATH = process.env.VPS_OES_PATH || '/root/oes_sync';
-const SSH_KEY_PATH = process.env.VPS_SSH_KEY_PATH || '/home/louisdup/.ssh/id_rsa';
+const SSH_KEY_PATH = process.env.VPS_SSH_KEY_PATH || '/home/louisdup/.ssh/qfield_vps';
 
 // Disable body parser for multipart form data
 export const config = {

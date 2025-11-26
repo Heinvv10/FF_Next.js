@@ -7,7 +7,7 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { apiResponse } from '@/lib/apiResponse';
+import { apiResponse } from '@/modules/wa-monitor/lib/apiResponse';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL || '');

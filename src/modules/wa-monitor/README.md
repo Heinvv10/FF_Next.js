@@ -1,6 +1,22 @@
 # WA Monitor Module
 
+**Version:** 2.0.0 (Isolated & Self-Contained)
+**Status:** ✅ Production Ready | 🔒 Fully Isolated
+**Last Updated:** 2025-11-24
+
 WhatsApp QA Drop Monitoring System - Real-time tracking and review of QA photo submissions from field agents.
+
+## 🚨 IMPORTANT: This Module is Isolated
+
+This module is **fully isolated** and operates independently from the main FibreFlow application:
+
+- ✅ No dependencies on main app utilities (`@/lib/*`)
+- ✅ No dependencies on main app services (`@/services/*`)
+- ✅ Frozen API contracts (see `API_CONTRACT.md`)
+- ✅ Independent testing (`npm run test:wa-monitor`)
+- ✅ Can be extracted to microservice if needed
+
+**Before making changes:** Read `ISOLATION_GUIDE.md` for development workflow and branch strategy.
 
 ## Overview
 
@@ -10,6 +26,8 @@ This module provides a live dashboard for monitoring QA photo review drops submi
 
 ```
 src/modules/wa-monitor/
+├── lib/                              # Internal utilities (ISOLATED)
+│   └── apiResponse.ts                # 🔒 Frozen copy - do not modify
 ├── types/
 │   └── wa-monitor.types.ts          # Type definitions
 ├── services/
@@ -23,6 +41,12 @@ src/modules/wa-monitor/
 │   ├── WaMonitorFilters.tsx         # Filter controls
 │   ├── DropStatusBadge.tsx          # Status badge component
 │   └── index.ts                     # Component exports
+├── hooks/
+│   └── useWaMonitorStats.ts         # Custom React hooks
+├── tests/
+│   └── integration.test.ts          # Integration tests
+├── API_CONTRACT.md                   # 🔒 Frozen API contracts
+├── ISOLATION_GUIDE.md                # Development & branch strategy
 └── README.md                         # This file
 ```
 
@@ -377,6 +401,11 @@ tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log
 
 ## Related Documentation
 
+### Module Documentation (Start Here)
+- **`API_CONTRACT.md`** - 🔒 Frozen API specifications and contracts
+- **`ISOLATION_GUIDE.md`** - Development workflow, branch strategy, testing
+
+### Main App Documentation
 - `CLAUDE.md` - Complete WA Monitor system overview
 - `/docs/wa-monitor/WA_MONITOR_ARCHITECTURE_V2.md` - Agent architecture
 - `/docs/wa-monitor/PYTHON_CACHE_ISSUE.md` - VPS Python cache problems

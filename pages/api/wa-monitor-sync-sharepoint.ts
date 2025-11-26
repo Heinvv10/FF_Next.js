@@ -9,7 +9,7 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { apiResponse } from '@/lib/apiResponse';
+import { apiResponse } from '@/modules/wa-monitor/lib/apiResponse';
 import { getDailyDropsPerProject } from '@/modules/wa-monitor/services/waMonitorService';
 import { neon } from '@neondatabase/serverless';
 

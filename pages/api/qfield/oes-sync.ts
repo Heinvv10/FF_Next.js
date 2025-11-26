@@ -11,7 +11,7 @@ import { spawn } from 'child_process';
 const VPS_HOST = process.env.VPS_HOST || '72.61.166.168';
 const VPS_USER = process.env.VPS_USER || 'root';
 const VPS_OES_PATH = process.env.VPS_OES_PATH || '/root/oes_sync';
-const SSH_KEY_PATH = process.env.VPS_SSH_KEY_PATH || '/home/louisdup/.ssh/id_rsa';
+const SSH_KEY_PATH = process.env.VPS_SSH_KEY_PATH || '/home/louisdup/.ssh/qfield_vps';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -19,19 +19,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    console.log('Starting OES sync on VPS...');
+    // Extract projectId from request body
+    const { projectId } = req.body;
+
+    if (!projectId || typeof projectId !== 'string') {
+      return res.status(400).json({ error: 'projectId is required' });
+    }
+
+    console.log('Starting OES sync on VPS for project:', projectId);
 
     // Set headers for Server-Sent Events (SSE)
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    // SSH command to execute sync script
+    // SSH command to execute sync script with project ID
     const sshCommand = [
       '-i', SSH_KEY_PATH,
       '-o', 'StrictHostKeyChecking=no',
       `${VPS_USER}@${VPS_HOST}`,
-      `cd ${VPS_OES_PATH}/scripts && ./run_oes_sync.sh 2>&1`
+      `cd ${VPS_OES_PATH}/scripts && QFIELD_PROJECT_ID=${projectId} ./run_oes_sync.sh 2>&1`
     ];
 
     const ssh = spawn('ssh', sshCommand);

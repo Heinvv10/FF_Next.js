@@ -109,7 +109,9 @@
       "Bash(do wc:*)",
       "Bash(done)",
       "Bash(mv:*)",
-      "Bash(echo $DATABASE_URL)"
+      "Bash(echo $DATABASE_URL)",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow && grep -r \"\"from ''next/router''\"\" src/components/layout/*.tsx 2>&1\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"\necho ''🔍 Checking Nginx configuration...''\nnginx -V 2>&1 | grep -o ''nginx/[0-9.]*''\necho ''''\necho ''📋 Current Nginx file upload limit:''\ngrep -r ''client_max_body_size'' /etc/nginx/ 2>/dev/null || echo ''Not set (default: 1MB)''\necho ''''\necho ''📁 FibreFlow Nginx config:''\ncat /etc/nginx/sites-available/fibreflow 2>/dev/null || cat /etc/nginx/conf.d/fibreflow.conf 2>/dev/null || echo ''Config not found in standard locations''\n\")"
     ],
     "deny": [],
     "ask": [],

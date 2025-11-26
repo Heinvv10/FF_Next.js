@@ -1,7 +1,11 @@
 /**
- * QField OES Sync Page
+ * QField OES Sync Page - v5 with Project Selection
  * /admin/qfield-sync
  * Upload OES reports and trigger automated sync to QFieldCloud
+ *
+ * Version: 5.0
+ * Date: 2025-11-25
+ * Features: Project selection, create new projects, auto-layer config, real-time logs
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -21,8 +25,22 @@ interface LogEntry {
   };
 }
 
+interface Project {
+  id: string;
+  name: string;
+  owner?: string;
+}
+
 export default function QFieldSyncPage() {
   // State
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectDesc, setNewProjectDesc] = useState('');
+  const [creatingProject, setCreatingProject] = useState(false);
+
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -41,6 +59,66 @@ export default function QFieldSyncPage() {
       logViewerRef.current.scrollTop = logViewerRef.current.scrollHeight;
     }
   }, [logs]);
+
+  // Load projects on mount
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    try {
+      setLoadingProjects(true);
+      const response = await fetch('/api/qfield/projects');
+      const data = await response.json();
+
+      if (data.success && data.projects) {
+        setProjects(data.projects);
+      } else {
+        setError('Failed to load projects');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoadingProjects(false);
+    }
+  };
+
+  const handleCreateProject = async () => {
+    if (!newProjectName.trim()) {
+      alert('Project name is required');
+      return;
+    }
+
+    setCreatingProject(true);
+    try {
+      const response = await fetch('/api/qfield/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newProjectName.trim(),
+          description: newProjectDesc.trim() || `OES Sync - ${newProjectName.trim()}`
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create project');
+      }
+
+      // Reload projects and select the new one
+      await loadProjects();
+      setSelectedProjectId(data.project.id);
+      setShowCreateForm(false);
+      setNewProjectName('');
+      setNewProjectDesc('');
+      alert(`✅ Project "${newProjectName}" created successfully!`);
+    } catch (err: any) {
+      alert(`❌ Failed to create project: ${err.message}`);
+    } finally {
+      setCreatingProject(false);
+    }
+  };
 
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,6 +181,11 @@ export default function QFieldSyncPage() {
 
   // Run OES sync
   const handleSync = async () => {
+    if (!selectedProjectId) {
+      alert('Please select a destination project first');
+      return;
+    }
+
     setSyncing(true);
     setLogs([]);
     setStats(null);
@@ -111,6 +194,8 @@ export default function QFieldSyncPage() {
     try {
       const response = await fetch('/api/qfield/oes-sync', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: selectedProjectId }),
       });
 
       if (!response.ok) {
@@ -125,29 +210,36 @@ export default function QFieldSyncPage() {
         throw new Error('No response body');
       }
 
+      let buffer = '';
+
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data = JSON.parse(line.slice(6));
+            try {
+              const data = JSON.parse(line.slice(6));
 
-            setLogs((prev) => [...prev, data]);
+              setLogs((prev) => [...prev, data]);
 
-            if (data.type === 'complete') {
-              if (data.stats) {
-                setStats(data.stats);
+              if (data.type === 'complete') {
+                if (data.stats) {
+                  setStats(data.stats);
+                }
+                if (data.success) {
+                  setLastSync(new Date().toISOString());
+                } else {
+                  setError(data.error || 'Sync failed');
+                }
               }
-              if (data.success) {
-                setLastSync(new Date().toISOString());
-              } else {
-                setError(data.error || 'Sync failed');
-              }
+            } catch (e) {
+              console.error('Failed to parse log:', e);
             }
           }
         }
@@ -169,14 +261,14 @@ export default function QFieldSyncPage() {
   return (
     <>
       <Head>
-        <title>QField OES Sync | FibreFlow</title>
+        <title>QField OES Sync v5 | FibreFlow</title>
       </Head>
 
       <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">QField OES Sync</h1>
+            <h1 className="text-3xl font-bold text-gray-900">QField OES Sync v5</h1>
             <p className="mt-2 text-gray-600">
               Upload daily OES reports and sync to QFieldCloud automatically
             </p>
@@ -184,8 +276,89 @@ export default function QFieldSyncPage() {
 
           {/* Main Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Upload & Sync */}
+            {/* Left Column - Project, Upload & Sync */}
             <div className="lg:col-span-1 space-y-6">
+              {/* Project Selection Card */}
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-lg font-semibold mb-4">🎯 QFieldCloud Project</h2>
+
+                {/* Project Dropdown */}
+                <select
+                  value={selectedProjectId}
+                  onChange={(e) => setSelectedProjectId(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg mb-2"
+                  disabled={loadingProjects}
+                >
+                  <option value="">
+                    {loadingProjects ? 'Loading projects...' : 'Select a project...'}
+                  </option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name} {project.owner ? `(${project.owner})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mb-3">
+                  {projects.length} projects available
+                </p>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={loadProjects}
+                    disabled={loadingProjects}
+                    className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 disabled:bg-gray-300"
+                  >
+                    🔄 Refresh
+                  </button>
+                  <button
+                    onClick={() => setShowCreateForm(!showCreateForm)}
+                    className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-blue-700"
+                  >
+                    ➕ New Project
+                  </button>
+                </div>
+
+                {/* Create Project Form */}
+                {showCreateForm && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <input
+                      type="text"
+                      placeholder="Project Name (e.g., OES_2025_01)"
+                      value={newProjectName}
+                      onChange={(e) => setNewProjectName(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded mb-2 text-sm"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Description (optional)"
+                      value={newProjectDesc}
+                      onChange={(e) => setNewProjectDesc(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded mb-3 text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCreateProject}
+                        disabled={creatingProject}
+                        className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 disabled:bg-gray-300"
+                      >
+                        {creatingProject ? 'Creating...' : 'Create'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowCreateForm(false);
+                          setNewProjectName('');
+                          setNewProjectDesc('');
+                        }}
+                        className="flex-1 bg-gray-300 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-400"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* File Upload Card */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-lg font-semibold mb-4">📂 Upload OES Report</h2>
@@ -253,7 +426,7 @@ export default function QFieldSyncPage() {
 
                 <button
                   onClick={handleSync}
-                  disabled={syncing}
+                  disabled={syncing || !selectedProjectId}
                   className="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition font-medium"
                 >
                   {syncing ? '⏳ Syncing...' : '🚀 Run OES Sync Now'}
@@ -262,6 +435,12 @@ export default function QFieldSyncPage() {
                 {syncing && (
                   <p className="text-xs text-gray-500 mt-2 text-center">
                     This may take 2-3 minutes...
+                  </p>
+                )}
+
+                {!selectedProjectId && (
+                  <p className="text-xs text-yellow-600 mt-2 text-center">
+                    ⚠️ Select a project first
                   </p>
                 )}
               </div>
