@@ -644,28 +644,28 @@ Key columns:
 3. **VPS Updates**: Changes to drop monitor require VPS SSH access and service restart
 4. **Documentation**: See `docs/WA_MONITOR_DATA_FLOW_REPORT.md` for complete investigation
 
-### 🚨 Common Issue: "Failed to send WhatsApp message"
+### 🚨 Common Issue: "Send Feedback" Button Not Working
 
-**If feedback sending fails with "Not connected to WhatsApp":**
+**PROBLEM:** Users click **"Send Feedback" button** on WA Monitor drop cards but get error
+
+**Symptoms:**
+- Click "Send Feedback" button → Error appears
+- Message: "Failed to send feedback: Failed to send WhatsApp message"
+- Error details: "Not connected to WhatsApp"
+- Browser console: 500 error on `/api/wa-monitor-send-feedback`
+
+**Quick Fix (5 minutes):**
 
 ```bash
-# Quick fix (5 minutes):
 ssh root@72.60.17.245
 systemctl restart whatsapp-bridge-prod
 tail -30 /opt/velo-test-monitor/logs/whatsapp-bridge.log
 # Look for: "✓ Connected to WhatsApp!"
 ```
 
+**Root Cause:** WhatsApp Bridge service disconnected from WhatsApp servers
+
 **Full troubleshooting guide:** `src/modules/wa-monitor/TROUBLESHOOTING.md`
-
-**Symptoms:**
-- Feedback button fails with 500 error
-- Error: "Failed to send WhatsApp message"
-- Details: "Not connected to WhatsApp"
-
-**Cause:** WhatsApp Bridge service disconnected from WhatsApp servers
-
-**Solution:** Restart `whatsapp-bridge-prod` service (see troubleshooting doc)
 
 ### Monitored Groups
 - **Lawley**: 120363418298130331@g.us (Lawley Activation 3)

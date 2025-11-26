@@ -1,10 +1,24 @@
 # WA Monitor Troubleshooting Guide
 
-## 🔴 CRITICAL: "Failed to send WhatsApp message - Not connected to WhatsApp"
+## 🔴 CRITICAL: "Send Feedback" Button Fails - "Not connected to WhatsApp"
+
+**ERROR LOCATION:** WA Monitor page (`/wa-monitor`) → Click drop card → Click **"Send Feedback" button** → Error appears
 
 **Last Occurred:** November 26, 2025
 **Time to Fix:** ~2 hours of debugging
-**Severity:** HIGH - Completely breaks feedback sending feature
+**Severity:** HIGH - Users CANNOT send QA feedback to WhatsApp groups
+
+---
+
+### 📌 Quick Summary
+
+**Problem:** The **"Send Feedback" button** on drop cards doesn't work
+**User Action:** Clicks "Send Feedback" after generating feedback text
+**Error:** "Failed to send feedback: Failed to send WhatsApp message"
+**Cause:** WhatsApp Bridge service disconnected from WhatsApp servers
+**Fix:** Restart WhatsApp Bridge service (5 minutes)
+
+---
 
 ### Symptoms
 
@@ -182,9 +196,14 @@ sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245
 ### Keywords for Search
 
 Search these terms to find this doc quickly:
+- **"Send Feedback button not working"**
+- **"Send Feedback button fails"**
+- **"Cannot send feedback to WhatsApp"**
 - "Not connected to WhatsApp"
 - "Failed to send WhatsApp message"
 - "WhatsApp Bridge disconnected"
 - "Feedback sending fails"
 - "500 error send feedback"
 - "wa-monitor-send-feedback 500"
+- "QA feedback not sending"
+- "Drop feedback error"
