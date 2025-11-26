@@ -18,6 +18,12 @@ This module is **fully isolated** and operates independently from the main Fibre
 
 **Before making changes:** Read `ISOLATION_GUIDE.md` for development workflow and branch strategy.
 
+## 🚨 Quick Troubleshooting
+
+**If feedback sending fails:**
+- See **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** for common issues and fixes
+- Most common: WhatsApp Bridge disconnected → Quick fix: `systemctl restart whatsapp-bridge-prod`
+
 ## Overview
 
 This module provides a live dashboard for monitoring QA photo review drops submitted via WhatsApp groups. Field agents submit installation photos, which are captured by the VPS monitor, stored in Neon PostgreSQL, and displayed in an interactive dashboard for QA review and feedback.

@@ -636,12 +636,36 @@ Key columns:
 - **GET** `/api/wa-monitor-drops` - Get all drops with summary
 - **GET** `/api/wa-monitor-daily-drops` - Get today's submissions by project
 - **POST** `/api/wa-monitor-sync-sharepoint` - Sync to SharePoint
+- **POST** `/api/wa-monitor-send-feedback` - Send QA feedback to WhatsApp groups
 
 ### Important Notes
 1. **Data Source**: VPS-hosted WhatsApp bridge (`/opt/velo-test-monitor/`)
 2. **Accurate Counting**: Uses `whatsapp_message_date` to avoid historical batch processing inflation
 3. **VPS Updates**: Changes to drop monitor require VPS SSH access and service restart
 4. **Documentation**: See `docs/WA_MONITOR_DATA_FLOW_REPORT.md` for complete investigation
+
+### 🚨 Common Issue: "Failed to send WhatsApp message"
+
+**If feedback sending fails with "Not connected to WhatsApp":**
+
+```bash
+# Quick fix (5 minutes):
+ssh root@72.60.17.245
+systemctl restart whatsapp-bridge-prod
+tail -30 /opt/velo-test-monitor/logs/whatsapp-bridge.log
+# Look for: "✓ Connected to WhatsApp!"
+```
+
+**Full troubleshooting guide:** `src/modules/wa-monitor/TROUBLESHOOTING.md`
+
+**Symptoms:**
+- Feedback button fails with 500 error
+- Error: "Failed to send WhatsApp message"
+- Details: "Not connected to WhatsApp"
+
+**Cause:** WhatsApp Bridge service disconnected from WhatsApp servers
+
+**Solution:** Restart `whatsapp-bridge-prod` service (see troubleshooting doc)
 
 ### Monitored Groups
 - **Lawley**: 120363418298130331@g.us (Lawley Activation 3)
