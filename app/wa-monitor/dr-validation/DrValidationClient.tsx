@@ -62,7 +62,7 @@ export function DrValidationClient() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       // Validate file type
@@ -73,6 +73,54 @@ export function DrValidationClient() {
       }
       setFile(selectedFile);
       setError('');
+
+      // Auto-detect date from file and update date picker
+      await extractAndSetDateFromFile(selectedFile);
+    }
+  };
+
+  const extractAndSetDateFromFile = async (file: File) => {
+    try {
+      // Send file to server for date extraction
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('project', selectedProject || 'Lawley'); // Use selected or default
+      formData.append('date', '2000-01-01'); // Dummy date for extraction
+
+      const response = await fetch('/api/wa-monitor-dr-validation', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data.inCsvNotInDb && data.data.inCsvNotInDb.length > 0) {
+        // Extract dates from CSV data
+        const dates = data.data.inCsvNotInDb.map((row: CsvRow) => row.date);
+        const uniqueDates = [...new Set(dates)];
+
+        if (uniqueDates.length === 1) {
+          // Single date found - auto-set it
+          setSelectedDate(uniqueDates[0]);
+          console.log('📅 Auto-detected date from file:', uniqueDates[0]);
+        } else if (uniqueDates.length > 1) {
+          // Multiple dates found - use the most common one
+          const dateCounts = dates.reduce((acc: any, date: string) => {
+            acc[date] = (acc[date] || 0) + 1;
+            return acc;
+          }, {});
+          const mostCommonDate = Object.keys(dateCounts).reduce((a, b) =>
+            dateCounts[a] > dateCounts[b] ? a : b
+          );
+          setSelectedDate(mostCommonDate);
+          setError(
+            `⚠️ File contains multiple dates. Auto-selected most common: ${mostCommonDate}`
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Failed to extract date from file:', err);
+      // Don't show error to user - just keep default date
     }
   };
 
@@ -106,6 +154,23 @@ export function DrValidationClient() {
 
       if (!response.ok) {
         throw new Error(data.error?.message || 'Validation failed');
+      }
+
+      // Check for date mismatch after validation
+      if (data.data.csvTotal > 0 && data.data.inCsvAndDb.length === 0) {
+        // No matches but CSV has data - likely date mismatch
+        const csvDates = [
+          ...data.data.inCsvNotInDb.map((r: CsvRow) => r.date),
+          ...data.data.inCsvAndDb.map((r: CsvRow) => r.date),
+        ];
+        const uniqueCsvDates = [...new Set(csvDates)];
+
+        if (uniqueCsvDates.length > 0 && !uniqueCsvDates.includes(selectedDate)) {
+          setError(
+            `⚠️ DATE MISMATCH! Your file contains data for ${uniqueCsvDates.join(', ')} but you selected ${selectedDate}. This is why there are 0 matches. The date picker has been updated to match your file.`
+          );
+          setSelectedDate(uniqueCsvDates[0]); // Auto-correct
+        }
       }
 
       setResults(data.data);
@@ -230,6 +295,11 @@ export function DrValidationClient() {
                   onChange={(e) => setSelectedDate(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
+                {file && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ✓ Auto-detected from file
+                  </p>
+                )}
               </div>
 
               {/* File Upload */}
