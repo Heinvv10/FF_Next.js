@@ -57,13 +57,13 @@ async function fetchCompanyDocuments(contractorId: string): Promise<Map<string, 
       file_url,
       verification_status,
       expiry_date,
-      uploaded_at,
+      created_at,
       verified_at,
       verified_by,
       rejection_reason
     FROM contractor_documents
     WHERE contractor_id = ${contractorId}
-    ORDER BY uploaded_at DESC
+    ORDER BY created_at DESC
   `;
 
   // Create a map of document type -> document data (most recent)
@@ -82,76 +82,32 @@ async function fetchCompanyDocuments(contractorId: string): Promise<Map<string, 
 
 /**
  * Fetch team members and their ID documents
+ * NOTE: Team member documents table doesn't exist yet, so all IDs will show as "missing"
  */
 async function fetchTeamMemberDocuments(contractorId: string): Promise<TeamMemberDocuments[]> {
-  // First, get all team members
+  // Get all team members from team_members table
   const members = await sql`
-    SELECT id, member_name, role
-    FROM contractor_teams
+    SELECT id, first_name, last_name, role
+    FROM team_members
     WHERE contractor_id = ${contractorId}
-    ORDER BY member_name ASC
+      AND is_active = true
+    ORDER BY first_name, last_name ASC
   `;
 
   if (members.length === 0) return [];
 
-  // Then, get their ID documents
-  const memberIds = members.map((m) => m.id);
-  const documents = await sql`
-    SELECT
-      team_member_id,
-      file_name,
-      file_url,
-      verification_status,
-      uploaded_at,
-      verified_at,
-      verified_by,
-      rejection_reason
-    FROM contractor_team_documents
-    WHERE team_member_id = ANY(${memberIds})
-      AND document_type = 'ID Document'
-  `;
-
-  // Create map of member ID -> document
-  const docMap = new Map<string, any>();
-  documents.forEach((doc) => {
-    docMap.set(doc.team_member_id, doc);
-  });
-
   // Build team member documents array
+  // Note: contractor_team_documents table doesn't exist yet, so all documents are "missing"
   const teamDocuments: TeamMemberDocuments[] = members.map((member) => {
-    const doc = docMap.get(member.id);
+    const fullName = `${member.first_name} ${member.last_name}`;
 
-    let idDocument: DocumentInfo | undefined;
-    let displayStatus: any = 'missing';
-
-    if (doc) {
-      const verificationStatus: DocumentVerificationStatus = doc.verification_status || 'pending';
-      const urgencyLevel = calculateUrgencyLevel(null, 'ID Document'); // IDs don't expire
-
-      displayStatus = calculateDisplayStatus(verificationStatus, urgencyLevel);
-
-      idDocument = {
-        id: member.id, // Use member ID as doc ID
-        type: 'ID Document',
-        category: 'team_member',
-        verificationStatus,
-        fileName: doc.file_name,
-        fileUrl: doc.file_url,
-        urgencyLevel,
-        displayStatus,
-        uploadedAt: doc.uploaded_at,
-        verifiedAt: doc.verified_at,
-        verifiedBy: doc.verified_by,
-        rejectionReason: doc.rejection_reason,
-      };
-    }
-
+    // All team member IDs are marked as missing since storage doesn't exist yet
     return {
       teamMemberId: member.id,
-      memberName: member.member_name,
-      role: member.role,
-      idDocument,
-      displayStatus,
+      memberName: fullName,
+      role: member.role || 'Team Member',
+      idDocument: undefined, // No documents stored yet
+      displayStatus: 'missing', // All marked as missing
     };
   });
 
@@ -191,7 +147,7 @@ function buildDocumentInfo(docType: string, dbRow: any | null): DocumentInfo {
     daysUntilExpiry: daysUntilExpiry || undefined,
     urgencyLevel,
     displayStatus,
-    uploadedAt: dbRow.uploaded_at,
+    uploadedAt: dbRow.created_at,
     verifiedAt: dbRow.verified_at,
     verifiedBy: dbRow.verified_by,
     rejectionReason: dbRow.rejection_reason,
