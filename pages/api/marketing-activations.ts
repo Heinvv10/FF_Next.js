@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const stats = statsResult[0];
 
-    // Get recent submissions with GPS data from sow_drops
+    // Get recent submissions with GPS data from onemap_properties
     const submissions = date
       ? await sql`
         SELECT
@@ -43,10 +43,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ma.is_valid,
           ma.validation_message,
           ma.created_at,
-          sd.latitude,
-          sd.longitude
+          op.latitude,
+          op.longitude
         FROM marketing_activations ma
-        LEFT JOIN sow_drops sd ON ma.drop_number = sd.drop_number
+        LEFT JOIN onemap_properties op ON ma.drop_number = op.drop_number
         WHERE DATE(ma.whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = ${date}
         ORDER BY ma.whatsapp_message_date DESC
       `
@@ -59,10 +59,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ma.is_valid,
           ma.validation_message,
           ma.created_at,
-          sd.latitude,
-          sd.longitude
+          op.latitude,
+          op.longitude
         FROM marketing_activations ma
-        LEFT JOIN sow_drops sd ON ma.drop_number = sd.drop_number
+        LEFT JOIN onemap_properties op ON ma.drop_number = op.drop_number
         WHERE DATE(ma.whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = CURRENT_DATE
         ORDER BY ma.whatsapp_message_date DESC
       `;
