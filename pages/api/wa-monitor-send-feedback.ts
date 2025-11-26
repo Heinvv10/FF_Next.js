@@ -100,6 +100,7 @@ async function sendWhatsAppMessage(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(60000), // 60 second timeout for slow connections
       });
 
       if (!response.ok) {
@@ -128,6 +129,7 @@ async function sendWhatsAppMessage(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(60000), // 60 second timeout for slow connections
       });
 
       if (!response.ok) {
@@ -187,6 +189,17 @@ function formatQAChecklist(review: QAReview, customMessage: string): string {
 
   return message;
 }
+
+/**
+ * Next.js API config - extend timeout for slow connections
+ */
+export const config = {
+  api: {
+    responseLimit: false,
+    externalResolver: true,
+  },
+  maxDuration: 60, // 60 seconds max execution time
+};
 
 /**
  * Update feedback_sent timestamp in database
