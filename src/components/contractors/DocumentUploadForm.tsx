@@ -34,10 +34,18 @@ export function DocumentUploadForm({ contractorId, onSuccess, onCancel, defaultD
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
-    // Validate file type
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    // Validate file type - Allow PDF, images, Word, and Excel
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'application/msword',                                                      // .doc
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+      'application/vnd.ms-excel',                                                // .xls
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',      // .xlsx
+    ];
     if (!allowedTypes.includes(selectedFile.type)) {
-      setError('Invalid file type. Please upload PDF, JPG, or PNG files only.');
+      setError('Invalid file type. Please upload PDF, JPG, PNG, Word (DOC/DOCX), or Excel (XLS/XLSX) files only.');
       setFile(null);
       return;
     }
@@ -148,12 +156,12 @@ export function DocumentUploadForm({ contractorId, onSuccess, onCancel, defaultD
           {/* File Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              File * <span className="text-gray-500 font-normal">(PDF, JPG, PNG - Max 10MB)</span>
+              File * <span className="text-gray-500 font-normal">(PDF, JPG, PNG, Word, Excel - Max 10MB)</span>
             </label>
             <div className="relative">
               <input
                 type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
                 onChange={handleFileChange}
                 className="hidden"
                 id="file-upload"

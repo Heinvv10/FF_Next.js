@@ -55,11 +55,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Validate file type
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    // Validate file type - Allow PDF, images, Word, and Excel
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'application/msword',                                                      // .doc
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+      'application/vnd.ms-excel',                                                // .xls
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',      // .xlsx
+    ];
     if (!allowedTypes.includes(file.mimetype || '')) {
       return res.status(400).json({
-        error: `Invalid file type. Allowed: ${allowedTypes.join(', ')}`
+        error: `Invalid file type. Allowed: PDF, JPG, PNG, Word (DOC/DOCX), Excel (XLS/XLSX)`
       });
     }
 
