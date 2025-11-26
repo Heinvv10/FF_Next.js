@@ -2,6 +2,15 @@
  * WA Monitor Backend Service
  * Database operations for QA review drops
  * Uses Neon PostgreSQL serverless client
+ *
+ * ⚠️ CRITICAL: This service queries the `qa_photo_reviews` table
+ * DO NOT confuse with the `drops` table (used for SOW imports)
+ *
+ * Table: qa_photo_reviews
+ * Source: WhatsApp messages via realtime_drop_monitor.py
+ * Projects: Lawley, Velo Test, Mohadin
+ *
+ * See: docs/DATABASE_TABLES.md for full reference
  */
 
 import { neon } from '@neondatabase/serverless';

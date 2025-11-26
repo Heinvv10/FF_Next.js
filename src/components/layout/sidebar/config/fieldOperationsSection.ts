@@ -2,7 +2,7 @@
  * Field Operations section configuration
  */
 
-import { Smartphone, MapPin, Wrench, MessageSquare, Camera, TrendingUp } from 'lucide-react';
+import { Smartphone, MapPin, Wrench, MessageSquare, Camera, TrendingUp, FileCheck } from 'lucide-react';
 import type { NavSection } from './types';
 
 export const fieldOperationsSection: NavSection = {
@@ -34,6 +34,13 @@ export const fieldOperationsSection: NavSection = {
       icon: MessageSquare,
       label: 'WA Monitor',
       shortLabel: 'WA',
+      permissions: [],
+    },
+    {
+      to: '/wa-monitor/dr-validation',
+      icon: FileCheck,
+      label: 'DR Validation',
+      shortLabel: 'DR Valid',
       permissions: [],
     },
     {

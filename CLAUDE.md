@@ -44,6 +44,66 @@
   - Migration runner and SQL files
   - Database setup and seeding utilities
 
+## 🚨 CRITICAL: Database Tables - DO NOT CONFUSE!
+
+**FibreFlow uses TWO SEPARATE drop tables for different purposes:**
+
+### 1. `drops` Table - SOW Import Data
+**Purpose:** Stores drops imported from SOW Excel/CSV files
+**Used by:** SOW import scripts, Fiber Stringing page, SOW List page
+**API:** `/api/sow/drops`, `/api/sow/fibre`
+**Projects:** All projects (Lawley, Mohadin, etc.)
+**Import scripts:** `/scripts/sow-import/`
+**Example drop:** DR1734268 (imported from Excel)
+
+**Key columns:**
+- `drop_number` (VARCHAR)
+- `pole_number` (VARCHAR)
+- `project_id` (UUID)
+- `installation_date` (DATE)
+- `address` (TEXT)
+- `customer_name` (VARCHAR)
+
+### 2. `qa_photo_reviews` Table - WA Monitor WhatsApp Data
+**Purpose:** Stores drops from WhatsApp QA photo review process
+**Used by:** WA Monitor dashboard, WhatsApp feedback system
+**API:** `/api/wa-monitor-drops`, `/api/wa-monitor-daily-drops`
+**Projects:** Lawley, Velo Test, Mohadin
+**Source:** WhatsApp groups via `realtime_drop_monitor.py`
+**Example drop:** DR1752169 (from WhatsApp message)
+
+**Key columns:**
+- `drop_number` (VARCHAR)
+- `review_date` (TIMESTAMP)
+- `user_name` (VARCHAR)
+- `completed_photos` (INTEGER)
+- `outstanding_photos` (INTEGER)
+- `project` (VARCHAR)
+- `assigned_agent` (VARCHAR)
+- `completed` (BOOLEAN)
+- `incomplete` (BOOLEAN)
+- `feedback_sent` (TIMESTAMP)
+- 12 QA photo step columns (`step_01_house_photo`, etc.)
+
+### ⚠️ When Querying Drop Data:
+
+**For SOW/Project Drops:**
+```sql
+SELECT * FROM drops WHERE project_id = '...'
+```
+
+**For WA Monitor/WhatsApp QA Drops:**
+```sql
+SELECT * FROM qa_photo_reviews WHERE project = 'Lawley'
+```
+
+**NEVER mix these tables!** They have different schemas, purposes, and data sources.
+
+**📚 REQUIRED READING:**
+- **Database Tables Reference:** `docs/DATABASE_TABLES.md` ⭐ **READ THIS FIRST**
+- WA Monitor module docs: `src/modules/wa-monitor/README.md`
+- SOW import docs: `SOW/docs/importlog.md`
+
 ### Development & Testing
 - `tests/` - Test suites and e2e tests
 - `docs/` - Documentation
