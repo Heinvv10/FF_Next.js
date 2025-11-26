@@ -20,6 +20,8 @@ export function DocumentUploadForm({ contractorId, onSuccess, onCancel, defaultD
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     documentType: defaultDocumentType || ('insurance_liability' as DocumentType),
@@ -60,6 +62,18 @@ export function DocumentUploadForm({ contractorId, onSuccess, onCancel, defaultD
 
     setFile(selectedFile);
     setError(null);
+    setUploadProgress(0);
+
+    // Generate preview for images
+    if (selectedFile.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFilePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
+    } else {
+      setFilePreview(null);
+    }
 
     // Auto-populate document name from filename if empty
     if (!formData.documentName) {
@@ -83,39 +97,74 @@ export function DocumentUploadForm({ contractorId, onSuccess, onCancel, defaultD
     }
 
     setIsSubmitting(true);
+    setUploadProgress(0);
 
-    try {
-      // Create FormData for file upload
-      const uploadData = new FormData();
-      uploadData.append('contractorId', contractorId);
-      uploadData.append('documentType', formData.documentType);
-      uploadData.append('documentName', formData.documentName);
-      uploadData.append('documentNumber', formData.documentNumber);
-      uploadData.append('issueDate', formData.issueDate);
-      uploadData.append('expiryDate', formData.expiryDate);
-      uploadData.append('notes', formData.notes);
-      uploadData.append('uploadedBy', 'current-user@fibreflow.com'); // TODO: Get from auth
-      uploadData.append('file', file);
+    // Create FormData for file upload
+    const uploadData = new FormData();
+    uploadData.append('contractorId', contractorId);
+    uploadData.append('documentType', formData.documentType);
+    uploadData.append('documentName', formData.documentName);
+    uploadData.append('documentNumber', formData.documentNumber);
+    uploadData.append('issueDate', formData.issueDate);
+    uploadData.append('expiryDate', formData.expiryDate);
+    uploadData.append('notes', formData.notes);
+    uploadData.append('uploadedBy', 'current-user@fibreflow.com'); // TODO: Get from auth
+    uploadData.append('file', file);
 
-      const response = await fetch('/api/contractors-documents-upload', {
-        method: 'POST',
-        body: uploadData,
+    // Use XMLHttpRequest for progress tracking
+    const xhr = new XMLHttpRequest();
+
+    return new Promise<void>((resolve, reject) => {
+      // Progress tracking
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percentComplete = Math.round((e.loaded / e.total) * 100);
+          setUploadProgress(percentComplete);
+        }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload document');
-      }
+      // Success handler
+      xhr.addEventListener('load', () => {
+        setIsSubmitting(false);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          setUploadProgress(100);
+          onSuccess();
+          resolve();
+        } else {
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            setError(errorData.error || 'Failed to upload document');
+          } catch {
+            setError(`Upload failed with status ${xhr.status}`);
+          }
+          setUploadProgress(0);
+          reject(new Error('Upload failed'));
+        }
+      });
 
-      // Success!
-      onSuccess();
+      // Error handler
+      xhr.addEventListener('error', () => {
+        setIsSubmitting(false);
+        setUploadProgress(0);
+        setError('Network error occurred during upload');
+        reject(new Error('Network error'));
+      });
 
-    } catch (err: any) {
+      // Timeout handler (30 seconds)
+      xhr.addEventListener('timeout', () => {
+        setIsSubmitting(false);
+        setUploadProgress(0);
+        setError('Upload timed out. Please try again.');
+        reject(new Error('Timeout'));
+      });
+
+      // Configure and send request
+      xhr.open('POST', '/api/contractors-documents-upload');
+      xhr.timeout = 30000; // 30 second timeout
+      xhr.send(uploadData);
+    }).catch((err) => {
       console.error('Upload error:', err);
-      setError(err.message || 'Failed to upload document');
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   return (
@@ -196,6 +245,33 @@ export function DocumentUploadForm({ contractorId, onSuccess, onCancel, defaultD
                 )}
               </label>
             </div>
+
+            {/* Image Preview */}
+            {filePreview && (
+              <div className="mt-4">
+                <img
+                  src={filePreview}
+                  alt="Preview"
+                  className="max-h-48 rounded-lg border border-gray-200 mx-auto"
+                />
+              </div>
+            )}
+
+            {/* Upload Progress */}
+            {isSubmitting && uploadProgress > 0 && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-sm text-gray-700 mb-2">
+                  <span>Uploading...</span>
+                  <span className="font-medium">{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-blue-600 h-2 transition-all duration-300 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Document Type */}

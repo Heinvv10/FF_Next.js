@@ -14,7 +14,10 @@
       "Bash(sshpass:*)",
       "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"ps aux | grep whatsapp-bridge | grep -v grep\")",
       "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /opt/velo-test-monitor/services/whatsapp-bridge && nohup ./whatsapp-bridge > /opt/velo-test-monitor/logs/whatsapp-bridge.log 2>&1 & echo ''✅ WhatsApp bridge started in background''\")",
-      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"tail -50 /opt/velo-test-monitor/logs/whatsapp-bridge.log | grep -E ''(DeleteForMe|🗑️|started|Connected)'' || tail -20 /opt/velo-test-monitor/logs/whatsapp-bridge.log\")"
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"tail -50 /opt/velo-test-monitor/logs/whatsapp-bridge.log | grep -E ''(DeleteForMe|🗑️|started|Connected)'' || tail -20 /opt/velo-test-monitor/logs/whatsapp-bridge.log\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"grep -A 5 ''SELECT id, sender, content, timestamp'' /opt/wa-monitor/prod/modules/monitor.py\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"echo ''📋 Current setup:'' && echo && echo ''1. Bridge is running:'' && ps aux | grep whatsapp-bridge | grep -v grep | head -1 && echo && echo ''2. Monitor is running:'' && systemctl is-active wa-monitor-prod && echo && echo ''3. Velo Test group JID: 120363421664266245@g.us'' && echo && echo ''✅ Ready to test!''\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"tail -50 /opt/wa-monitor/prod/logs/wa-monitor-prod.log | grep -i ''DR999006''\")"
     ],
     "deny": [],
     "ask": [],

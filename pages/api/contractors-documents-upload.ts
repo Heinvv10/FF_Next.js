@@ -26,6 +26,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  let tempFilePath: string | null = null;
+  let uploadedToFirebase = false;
+  let firebaseFilePath: string | null = null;
+
   try {
     // Parse multipart form data
     const { fields, files } = await parseForm(req);
@@ -54,6 +58,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
+
+    // Store temp file path for cleanup
+    tempFilePath = file.filepath;
 
     // Validate file type - Allow PDF, images, Word, and Excel
     const allowedTypes = [
@@ -84,6 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const sanitizedFileName = sanitizeFileName(file.originalFilename || 'document');
     const fileName = `${timestamp}_${sanitizedFileName}`;
     const storagePath = `contractors/${contractorId}/documents/${fileName}`;
+    firebaseFilePath = storagePath;
 
     // Read file buffer
     const fileBuffer = await fs.promises.readFile(file.filepath);
@@ -103,6 +111,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       },
     });
+
+    uploadedToFirebase = true;
 
     // Make file publicly readable
     await fileRef.makePublic();
@@ -149,7 +159,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     `;
 
     // Clean up temp file
-    await fs.promises.unlink(file.filepath);
+    if (tempFilePath) {
+      await fs.promises.unlink(tempFilePath).catch(() => {
+        // Ignore cleanup errors
+      });
+    }
 
     return res.status(201).json({
       success: true,
@@ -158,6 +172,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   } catch (error: any) {
     console.error('Document upload error:', error);
+
+    // Cleanup: Remove uploaded file from Firebase if DB insert failed
+    if (uploadedToFirebase && firebaseFilePath) {
+      try {
+        const bucket = getAdminStorage();
+        await bucket.file(firebaseFilePath).delete();
+        console.log('Cleaned up Firebase file after error:', firebaseFilePath);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup Firebase file:', cleanupError);
+      }
+    }
+
+    // Cleanup: Remove temp file
+    if (tempFilePath) {
+      await fs.promises.unlink(tempFilePath).catch(() => {
+        // Ignore cleanup errors
+      });
+    }
+
     return res.status(500).json({
       error: 'Failed to upload document',
       message: error.message
