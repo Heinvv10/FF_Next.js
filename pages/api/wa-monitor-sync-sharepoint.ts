@@ -67,20 +67,35 @@ async function getAccessToken(config: SharePointConfig): Promise<string> {
     grant_type: 'client_credentials',
   });
 
-  const response = await fetch(tokenUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: params.toString(),
-  });
+  // Add timeout for OAuth request (30s - critical for SA network latency)
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
 
-  if (!response.ok) {
-    throw new Error(`Failed to get access token: ${response.statusText}`);
+  try {
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString(),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      throw new Error(`Failed to get access token: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.access_token;
+  } catch (error: any) {
+    clearTimeout(timeout);
+    if (error.name === 'AbortError') {
+      throw new Error('OAuth token request timed out after 30 seconds');
+    }
+    throw error;
   }
-
-  const data = await response.json();
-  return data.access_token;
 }
 
 /**
