@@ -13,8 +13,14 @@ import { apiResponse } from '@/modules/wa-monitor/lib/apiResponse';
 import { getDailyDropsPerProject } from '@/modules/wa-monitor/services/waMonitorService';
 import { neon } from '@neondatabase/serverless';
 
-// Database connection
-const sql = neon(process.env.DATABASE_URL || '');
+// Database connection - initialized lazily at runtime
+function getDbConnection() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+  return neon(databaseUrl);
+}
 
 // Microsoft Graph API configuration
 const GRAPH_API_BASE = 'https://graph.microsoft.com/v1.0';
@@ -82,6 +88,7 @@ async function getAccessToken(config: SharePointConfig): Promise<string> {
  * Eliminates need to query large Excel file (which times out)
  */
 async function getNextRow(config: SharePointConfig): Promise<number> {
+  const sql = getDbConnection();
   try {
     const [row] = await sql`
       SELECT last_row_written
@@ -109,6 +116,7 @@ async function getNextRow(config: SharePointConfig): Promise<number> {
  * Update the last row written to database
  */
 async function updateLastRow(worksheetName: string, lastRow: number, syncDate: string): Promise<void> {
+  const sql = getDbConnection();
   try {
     await sql`
       UPDATE sharepoint_sync_state

@@ -10,7 +10,14 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { apiResponse } from '@/modules/wa-monitor/lib/apiResponse';
 import { neon } from '@neondatabase/serverless';
 
-const sql = neon(process.env.DATABASE_URL || '');
+// Database connection - initialized lazily at runtime
+function getDbConnection() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+  return neon(databaseUrl);
+}
 
 // Microsoft Graph API configuration
 const GRAPH_API_BASE = 'https://graph.microsoft.com/v1.0';
@@ -77,6 +84,7 @@ async function getAccessToken(config: SharePointConfig): Promise<string> {
  * Get daily drops for a specific date
  */
 async function getDailyDropsForDate(date: string): Promise<Array<{ date: string; project: string; count: number }>> {
+  const sql = getDbConnection();
   try {
     const rows = await sql`
       SELECT

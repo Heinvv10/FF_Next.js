@@ -22,7 +22,15 @@
       "Bash(git checkout:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(timeout 60 git push origin master)",
+      "Bash(git merge-base:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git restore:*)",
+      "Bash(ssh:*)",
+      "Bash(git log:*)",
+      "Bash(chmod:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": [],

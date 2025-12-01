@@ -16,7 +16,14 @@
 import { neon } from '@neondatabase/serverless';
 import type { QaReviewDrop, WaMonitorSummary } from '../types/wa-monitor.types';
 
-const sql = neon(process.env.DATABASE_URL || '');
+// Database connection - initialized lazily at runtime
+function getDbConnection() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+  return neon(databaseUrl);
+}
 
 // ==================== FETCH OPERATIONS ====================
 
@@ -26,6 +33,7 @@ const sql = neon(process.env.DATABASE_URL || '');
  */
 export async function getAllDrops(): Promise<QaReviewDrop[]> {
   try {
+    const sql = getDbConnection();
     const rows = await sql`
       SELECT
         id,
@@ -78,6 +86,7 @@ export async function getAllDrops(): Promise<QaReviewDrop[]> {
  */
 export async function getDropById(id: string): Promise<QaReviewDrop | null> {
   try {
+    const sql = getDbConnection();
     const [row] = await sql`
       SELECT
         id,
@@ -104,6 +113,7 @@ export async function getDropById(id: string): Promise<QaReviewDrop | null> {
  */
 export async function getDropsByStatus(status: 'incomplete' | 'complete'): Promise<QaReviewDrop[]> {
   try {
+    const sql = getDbConnection();
     const rows = await sql`
       SELECT
         id,
@@ -135,6 +145,7 @@ export async function getDropsByStatus(status: 'incomplete' | 'complete'): Promi
  */
 export async function calculateSummary(): Promise<WaMonitorSummary> {
   try {
+    const sql = getDbConnection();
     const [stats] = await sql`
       SELECT
         COUNT(*) as total,
@@ -193,6 +204,7 @@ export async function calculateSummary(): Promise<WaMonitorSummary> {
  * Uses whatsapp_message_date to reflect actual submission date, not database insert date
  */
 export async function getDailyDropsPerProject(date?: string): Promise<Array<{ date: string; project: string; count: number }>> {
+  const sql = getDbConnection();
   try {
     // If date provided, use it; otherwise use current date in SAST
     let targetDate: string;
@@ -310,6 +322,7 @@ export async function getProjectStats(projectName: string): Promise<{
   month: { total: number; complete: number; incomplete: number; completionRate: number };
   allTime: { total: number; complete: number; incomplete: number; completionRate: number };
 }> {
+  const sql = getDbConnection();
   try {
     // Get current date in SAST timezone
     const [dateInfo] = await sql`
@@ -461,6 +474,7 @@ export async function getAllProjectsStatsSummary(
   };
   agentPerformance: Array<{ agent: string; drops: number; completionRate: number }>;
 }> {
+  const sql = getDbConnection();
   try {
     // Get current date in SAST timezone
     const [dateInfo] = await sql`
@@ -771,6 +785,7 @@ export async function getAllProjectsStatsSummary(
  */
 export async function validateConnection(): Promise<boolean> {
   try {
+    const sql = getDbConnection();
     await sql`SELECT 1`;
     return true;
   } catch (error) {
