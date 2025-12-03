@@ -33,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const stats = statsResult[0];
 
     // Get recent submissions with GPS data from onemap_properties
+    // Use subquery to get only one GPS coordinate per drop (the earliest one)
     const submissions = date
       ? await sql`
         SELECT
@@ -43,10 +44,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ma.is_valid,
           ma.validation_message,
           ma.created_at,
-          op.latitude,
-          op.longitude
+          (
+            SELECT latitude
+            FROM onemap_properties
+            WHERE drop_number = ma.drop_number
+            ORDER BY created_at ASC
+            LIMIT 1
+          ) as latitude,
+          (
+            SELECT longitude
+            FROM onemap_properties
+            WHERE drop_number = ma.drop_number
+            ORDER BY created_at ASC
+            LIMIT 1
+          ) as longitude
         FROM marketing_activations ma
-        LEFT JOIN onemap_properties op ON ma.drop_number = op.drop_number
         WHERE DATE(ma.whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = ${date}
         ORDER BY ma.whatsapp_message_date DESC
       `
@@ -59,10 +71,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ma.is_valid,
           ma.validation_message,
           ma.created_at,
-          op.latitude,
-          op.longitude
+          (
+            SELECT latitude
+            FROM onemap_properties
+            WHERE drop_number = ma.drop_number
+            ORDER BY created_at ASC
+            LIMIT 1
+          ) as latitude,
+          (
+            SELECT longitude
+            FROM onemap_properties
+            WHERE drop_number = ma.drop_number
+            ORDER BY created_at ASC
+            LIMIT 1
+          ) as longitude
         FROM marketing_activations ma
-        LEFT JOIN onemap_properties op ON ma.drop_number = op.drop_number
         WHERE DATE(ma.whatsapp_message_date AT TIME ZONE 'Africa/Johannesburg') = CURRENT_DATE
         ORDER BY ma.whatsapp_message_date DESC
       `;
