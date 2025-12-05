@@ -1,11 +1,18 @@
 #!/usr/bin/env node
 const https = require('https');
+require('dotenv').config({ path: '.env.local' });
 
-const CLIENT_SECRET = 'Vm98Q~OmmJ0bZ8~_ZVKKo5OHjCSKPi3vD0MyfcRW';
-const TENANT_ID = 'f22e6344-a35d-43b0-ad8c-a247f513c1ee';
-const CLIENT_ID = 'f7bd2f4f-405b-472a-90ca-f6b7ebfc6c56';
-const DRIVE_ID = 'b!54aBz82X_0qdf-Qc8hPv-PQzZQ4Q2eFGrzwQ6nSz79cVH1Quyz5vQavmQwdsBGRy';
+const CLIENT_SECRET = process.env.SHAREPOINT_CLIENT_SECRET;
+const TENANT_ID = process.env.SHAREPOINT_TENANT_ID;
+const CLIENT_ID = process.env.SHAREPOINT_CLIENT_ID;
+const DRIVE_ID = process.env.SHAREPOINT_DRIVE_ID;
 const FOLDER_ID = '01XUF54KEPCLGTTTLKPNB36ECBZD5HIDBE'; // Velocity_Tracker_Projects
+
+if (!CLIENT_SECRET || !TENANT_ID || !CLIENT_ID || !DRIVE_ID) {
+  console.error('❌ Missing SharePoint credentials in .env.local');
+  console.error('Required: SHAREPOINT_CLIENT_SECRET, SHAREPOINT_TENANT_ID, SHAREPOINT_CLIENT_ID, SHAREPOINT_DRIVE_ID');
+  process.exit(1);
+}
 
 async function getAccessToken() {
   return new Promise((resolve) => {
