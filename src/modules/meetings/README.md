@@ -169,6 +169,32 @@ query {
 
 ## Troubleshooting
 
+### "FIREFLIES_API_KEY not configured" Error ⚠️ COMMON ISSUE
+
+**Symptoms**: Sync button shows error: `✗ Sync failed: FIREFLIES_API_KEY not configured`
+
+**Root Cause**: API key is in `.env.local` but missing from VPS `.env.production`
+
+**Fix**:
+```bash
+# 1. SSH into VPS and add API key
+ssh root@72.60.17.245
+nano /var/www/fibreflow/.env.production
+
+# 2. Add this line:
+FIREFLIES_API_KEY=894886b5-b232-4319-95c7-1296782e9ea6
+
+# 3. Save and restart app
+pm2 restart fibreflow-prod
+
+# 4. Verify it works
+curl -s "https://app.fibreflow.app/api/meetings?action=sync" -X POST
+```
+
+**Prevention**: Always ensure local `.env.local` and VPS `.env.production` have matching keys.
+
+**Reference**: `docs/page-logs/meetings.md` - December 5, 2025 entry
+
 ### No meetings syncing
 1. Verify `FIREFLIES_API_KEY` is valid
 2. Check Fireflies account has recent meetings

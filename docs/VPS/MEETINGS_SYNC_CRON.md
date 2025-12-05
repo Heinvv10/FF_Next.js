@@ -7,8 +7,12 @@ The sync job sends email notifications to `ai@velocityfibre.co.za` after each ru
 
 ## Prerequisites
 1. VPS server running (72.60.17.245)
-2. `CRON_SECRET` environment variable configured in `.env.production`
-3. `FIREFLIES_API_KEY` environment variable configured
+2. `CRON_SECRET` environment variable configured in `/var/www/fibreflow/.env.production`
+3. `FIREFLIES_API_KEY` environment variable configured in `/var/www/fibreflow/.env.production`
+
+**⚠️ IMPORTANT**: `.env.production` on VPS is separate from `.env.local` in repo!
+- Local development uses: `.env.local` (in repo, not committed)
+- VPS production uses: `/var/www/fibreflow/.env.production` (on server, must be manually configured)
 
 ## Setup Instructions
 
@@ -117,10 +121,29 @@ systemctl restart cron
   pm2 restart fibreflow
   ```
 
-### 500 Server Error
-- Check `FIREFLIES_API_KEY` is configured
-- Review PM2 logs: `pm2 logs fibreflow`
+### 500 Server Error - "FIREFLIES_API_KEY not configured"
+**Most Common Issue**: API key exists in `.env.local` but missing from VPS `.env.production`
+
+**Fix**:
+```bash
+# SSH and add missing API key
+ssh root@72.60.17.245
+nano /var/www/fibreflow/.env.production
+
+# Add:
+FIREFLIES_API_KEY=894886b5-b232-4319-95c7-1296782e9ea6
+
+# Restart
+pm2 restart fibreflow-prod
+
+# Verify
+curl -s "https://app.fibreflow.app/api/meetings?action=sync" -X POST
+```
+
+**Other Checks**:
+- Review PM2 logs: `pm2 logs fibreflow-prod`
 - Check Neon database connection
+- Verify API key is valid on Fireflies.ai
 
 ### No meetings synced
 - Verify Fireflies API key is valid

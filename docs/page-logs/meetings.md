@@ -1,5 +1,65 @@
 # Meetings Page Log
 
+## December 5, 2025 - 02:45 PM
+
+### Status: ✅ FIXED - Fireflies API Key Missing in Production
+
+**Problem**: "Sync from Fireflies" button failing with error:
+```
+✗ Sync failed: FIREFLIES_API_KEY not configured
+```
+
+**Root Cause**:
+- `FIREFLIES_API_KEY` was configured in `.env.local` (local development)
+- But **MISSING** from `.env.production` (VPS production environment)
+- Production app on VPS couldn't access the API key
+
+**Solution Applied**:
+1. ✅ Added `FIREFLIES_API_KEY=894886b5-b232-4319-95c7-1296782e9ea6` to VPS `/var/www/fibreflow/.env.production`
+2. ✅ Added `CRON_SECRET` for automated nightly sync endpoint protection
+3. ✅ Restarted production app: `pm2 restart fibreflow-prod`
+4. ✅ Verified sync works: Successfully synced 50 meetings
+
+**VPS Command Used**:
+```bash
+# Add Fireflies config to production environment
+ssh root@72.60.17.245 "echo '
+# Fireflies Integration
+FIREFLIES_API_KEY=894886b5-b232-4319-95c7-1296782e9ea6
+FIREFLIES_WEBHOOK_SECRET=your_webhook_secret_here
+
+# Cron Job Secret
+CRON_SECRET=ff_cron_secret_$(openssl rand -hex 16)' >> /var/www/fibreflow/.env.production"
+
+# Restart app to load new env vars
+ssh root@72.60.17.245 "pm2 restart fibreflow-prod"
+```
+
+**Verification**:
+```bash
+# Test sync endpoint
+curl -s "https://app.fibreflow.app/api/meetings?action=sync" -X POST
+# Result: {"success":true,"synced":50,"message":"Synced 50 meetings from Fireflies"}
+```
+
+**Now Working**:
+- ✓ Manual sync via dashboard button (`/meetings`)
+- ✓ Automated nightly sync at 8:00 PM SAST
+- ✓ API endpoint: `POST /api/meetings?action=sync`
+
+**Files Involved**:
+- VPS: `/var/www/fibreflow/.env.production` (updated with API key)
+- API: `pages/api/meetings.ts:40-43` (checks for FIREFLIES_API_KEY)
+- Dashboard: `src/modules/meetings/MeetingsDashboard.tsx:63-87` (sync button handler)
+
+**Important Notes**:
+- `.env.production` is in `.gitignore` - DO NOT commit to git
+- Environment variables must be added directly to VPS
+- Always restart PM2 after env changes: `pm2 restart fibreflow-prod`
+- Local `.env.local` and VPS `.env.production` must have matching keys
+
+---
+
 ## October 22, 2025 - 11:00 AM
 
 ### Status: ✅ Fireflies Integration Complete
