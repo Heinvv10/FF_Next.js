@@ -424,7 +424,7 @@
       "Verify all DRs returned",
       "Verify invalid project returns empty array or error"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -436,7 +436,7 @@
       "Verify timezone handling is proper",
       "Test edge cases (same day, null dates)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
