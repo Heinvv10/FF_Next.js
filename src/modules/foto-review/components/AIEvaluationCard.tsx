@@ -8,8 +8,9 @@
 
 import { CheckCircle, XCircle, Sparkles } from 'lucide-react';
 import type { AIEvaluationCardProps } from '../types';
+import { FeedbackButton } from './FeedbackButton';
 
-export function AIEvaluationCard({ evaluation, isEvaluating, onEvaluate, onSendFeedback, isSendingFeedback }: AIEvaluationCardProps) {
+export function AIEvaluationCard({ dr_number, evaluation, isEvaluating, onEvaluate, onSendFeedback, isSendingFeedback }: AIEvaluationCardProps) {
   const getStatusColor = (status: 'PASS' | 'FAIL') => {
     return status === 'PASS' ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50';
   };
@@ -117,32 +118,13 @@ export function AIEvaluationCard({ evaluation, isEvaluating, onEvaluate, onSendF
             </button>
 
             {/* Feedback Button */}
-            {evaluation.feedback_sent ? (
-              <div className="text-center py-2">
-                <p className="text-sm text-green-600 font-medium">✓ Feedback sent</p>
-                {evaluation.feedback_sent_at && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(evaluation.feedback_sent_at).toLocaleString()}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={onSendFeedback}
-                disabled={isSendingFeedback}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isSendingFeedback ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Sending...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Send WhatsApp Feedback</span>
-                  </>
-                )}
-              </button>
+            {dr_number && onSendFeedback && (
+              <FeedbackButton
+                dr_number={dr_number}
+                evaluation={evaluation}
+                onSendFeedback={onSendFeedback}
+                isSending={isSendingFeedback}
+              />
             )}
           </div>
         </div>

@@ -233,6 +233,7 @@ export default function FotoReviewPage() {
 
                   {/* Evaluation Card */}
                   <AIEvaluationCard
+                    dr_number={selectedDR.dr_number}
                     evaluation={evaluation}
                     isEvaluating={isEvaluating}
                     onEvaluate={handleEvaluate}

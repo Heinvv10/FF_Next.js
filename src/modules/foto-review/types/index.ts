@@ -240,12 +240,18 @@ export interface PhotoGalleryProps {
  * Props for AIEvaluationCard component
  */
 export interface AIEvaluationCardProps {
-  /** Evaluation result to display */
-  evaluation: EvaluationResult;
+  /** DR number being evaluated */
+  dr_number?: string;
+  /** Evaluation result to display (null if not yet evaluated) */
+  evaluation: EvaluationResult | null;
+  /** Whether evaluation is in progress */
+  isEvaluating?: boolean;
+  /** Callback when Evaluate button is clicked */
+  onEvaluate?: () => void;
   /** Callback when Send Feedback button is clicked */
   onSendFeedback?: () => void;
   /** Whether feedback is currently being sent */
-  sendingFeedback?: boolean;
+  isSendingFeedback?: boolean;
   /** Custom class name for styling */
   className?: string;
 }
@@ -267,15 +273,15 @@ export interface EvaluationResultsProps {
  */
 export interface FeedbackButtonProps {
   /** DR number to send feedback for */
-  drNumber: string;
-  /** Whether feedback has already been sent */
-  feedbackSent: boolean;
-  /** Timestamp when feedback was sent */
-  feedbackSentAt?: Date;
-  /** Callback when feedback is successfully sent */
-  onFeedbackSent?: () => void;
-  /** Custom class name for styling */
-  className?: string;
+  dr_number: string;
+  /** Evaluation results to include in feedback message */
+  evaluation: EvaluationResult | null;
+  /** Callback to send feedback */
+  onSendFeedback: (dr_number: string) => Promise<void>;
+  /** Whether feedback is currently being sent */
+  isSending?: boolean;
+  /** Whether the button is disabled */
+  disabled?: boolean;
 }
 
 /**
