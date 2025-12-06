@@ -140,20 +140,20 @@ export default function FotoReviewPage() {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
-              <Camera className="w-8 h-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Photo Review</h1>
+              <Camera className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Photo Review</h1>
             </div>
-            <p className="text-gray-600">AI-powered installation photo evaluation</p>
+            <p className="text-gray-600 dark:text-gray-400">AI-powered installation photo evaluation</p>
           </div>
 
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Sidebar - DR List */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="p-4 border-b bg-gray-50">
-                  <h2 className="text-lg font-semibold text-gray-900">Drop Records</h2>
-                  <p className="text-sm text-gray-600 mt-1">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                <div className="p-4 border-b bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Drop Records</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {filteredPhotos.length} of {photos.length} DRs
                   </p>
                 </div>
@@ -168,24 +168,24 @@ export default function FotoReviewPage() {
 
                 {isLoading ? (
                   <div className="p-8 text-center">
-                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                    <p className="text-gray-600">Loading drops...</p>
+                    <div className="w-8 h-8 border-4 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                    <p className="text-gray-600 dark:text-gray-400">Loading drops...</p>
                   </div>
                 ) : error ? (
                   <div className="p-8 text-center">
-                    <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-                    <p className="text-red-600 mb-4">{error}</p>
+                    <AlertTriangle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-3" />
+                    <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
                     <button
                       onClick={refresh}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
                     >
                       Retry
                     </button>
                   </div>
                 ) : filteredPhotos.length === 0 ? (
                   <div className="p-8 text-center">
-                    <Camera className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-500">
+                    <Camera className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                    <p className="text-gray-500 dark:text-gray-400">
                       {photos.length === 0
                         ? 'No DRs with photos found'
                         : 'No DRs match the selected filters'}
@@ -193,34 +193,34 @@ export default function FotoReviewPage() {
                     {photos.length > 0 && (
                       <button
                         onClick={handleClearFilters}
-                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors text-sm"
                       >
                         Clear Filters
                       </button>
                     )}
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto scroll-smooth">
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700 max-h-[600px] overflow-y-auto scroll-smooth">
                     {filteredPhotos.map((dr) => (
                       <button
                         key={dr.dr_number}
                         onClick={() => handleSelectDR(dr)}
-                        className={`w-full text-left p-4 transition-all duration-200 hover:bg-gray-50 ${
+                        className={`w-full text-left p-4 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 ${
                           selectedDR?.dr_number === dr.dr_number
-                            ? 'bg-blue-50 border-l-4 border-blue-600 shadow-sm'
-                            : 'hover:border-l-4 hover:border-gray-300'
+                            ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600 dark:border-blue-400 shadow-sm'
+                            : 'hover:border-l-4 hover:border-gray-300 dark:hover:border-gray-600'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-gray-900">{dr.dr_number}</span>
+                          <span className="font-semibold text-gray-900 dark:text-gray-100">{dr.dr_number}</span>
                           {dr.evaluated && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                            <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-full font-medium">
                               Evaluated
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 font-medium mb-1">{dr.project}</p>
-                        <p className="text-xs text-gray-500">{dr.photos.length} photo{dr.photos.length !== 1 ? 's' : ''}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">{dr.project}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500">{dr.photos.length} photo{dr.photos.length !== 1 ? 's' : ''}</p>
                       </button>
                     ))}
                   </div>
@@ -233,8 +233,8 @@ export default function FotoReviewPage() {
               {selectedDR ? (
                 <>
                   {/* Photo Gallery */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                       Photos - {selectedDR.dr_number}
                     </h3>
                     <PhotoGallery photos={selectedDR.photos} dr_number={selectedDR.dr_number} />
@@ -252,14 +252,14 @@ export default function FotoReviewPage() {
 
                   {/* Error Messages */}
                   {evalError && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="text-red-700 text-sm font-medium">{evalError}</p>
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                      <p className="text-red-700 dark:text-red-400 text-sm font-medium">{evalError}</p>
                     </div>
                   )}
 
                   {feedbackError && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="text-red-700 text-sm font-medium">{feedbackError}</p>
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                      <p className="text-red-700 dark:text-red-400 text-sm font-medium">{feedbackError}</p>
                     </div>
                   )}
 
@@ -267,10 +267,10 @@ export default function FotoReviewPage() {
                   {evaluation && <EvaluationResults evaluation={evaluation} />}
                 </>
               ) : (
-                <div className="bg-white rounded-lg shadow-md p-12 text-center">
-                  <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">Select a Drop Record</h3>
-                  <p className="text-gray-500">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                  <Camera className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Select a Drop Record</h3>
+                  <p className="text-gray-500 dark:text-gray-400">
                     Choose a DR from the list to view photos and run AI evaluation
                   </p>
                 </div>

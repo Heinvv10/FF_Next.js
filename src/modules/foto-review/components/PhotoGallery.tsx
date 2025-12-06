@@ -42,10 +42,10 @@ export function PhotoGallery({ photos, dr_number }: PhotoGalleryProps) {
 
   if (photos.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+      <div className="flex items-center justify-center h-64 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
         <div className="text-center">
-          <p className="text-gray-500 text-lg">No photos available for {dr_number}</p>
-          <p className="text-gray-400 text-sm mt-2">Photos will appear here once uploaded</p>
+          <p className="text-gray-500 dark:text-gray-400 text-lg">No photos available for {dr_number}</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Photos will appear here once uploaded</p>
         </div>
       </div>
     );
@@ -58,7 +58,7 @@ export function PhotoGallery({ photos, dr_number }: PhotoGalleryProps) {
         {photos.map((photo, index) => (
           <div
             key={photo.id}
-            className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all group"
+            className="relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 dark:hover:ring-blue-400 transition-all group"
             onClick={() => openLightbox(index)}
             title={`${photo.stepLabel}\n${photo.filename}\n${photo.timestamp ? new Date(photo.timestamp).toLocaleString() : 'No timestamp'}`}
           >

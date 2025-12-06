@@ -945,7 +945,7 @@
       "Toggle back to light mode",
       "Verify page still works"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
