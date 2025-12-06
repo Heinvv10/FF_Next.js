@@ -95,8 +95,28 @@ export function AIEvaluationCard({ evaluation, isEvaluating, onEvaluate, onSendF
             </div>
           </div>
 
-          {/* Feedback Button */}
-          <div className="pt-4 border-t">
+          {/* Action Buttons */}
+          <div className="pt-4 border-t space-y-3">
+            {/* Re-evaluate Button */}
+            <button
+              onClick={onEvaluate}
+              disabled={isEvaluating}
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isEvaluating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin" />
+                  <span>Re-evaluating...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Re-evaluate</span>
+                </>
+              )}
+            </button>
+
+            {/* Feedback Button */}
             {evaluation.feedback_sent ? (
               <div className="text-center py-2">
                 <p className="text-sm text-green-600 font-medium">✓ Feedback sent</p>

@@ -234,7 +234,7 @@
       "Verify results are displayed",
       "Verify button is disabled after evaluation"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
