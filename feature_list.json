@@ -1072,7 +1072,7 @@
       "Verify toasts auto-dismiss after 3-5 seconds",
       "Verify toasts can be manually dismissed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -1112,7 +1112,7 @@
       "Verify selected filter values are visible",
       "Verify clear/reset button exists"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -1139,7 +1139,7 @@
       "Verify X for FAIL",
       "Verify icons are same size/style family"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -1152,7 +1152,7 @@
       "Verify font weights are used meaningfully",
       "Verify text color has sufficient contrast (WCAG AA)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

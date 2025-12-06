@@ -5,6 +5,7 @@
 
 import { useState, useMemo } from 'react';
 import Head from 'next/head';
+import toast from 'react-hot-toast';
 import { AppLayout } from '@/components/layout';
 import { Camera, AlertTriangle } from 'lucide-react';
 import {
@@ -106,7 +107,13 @@ export default function FotoReviewPage() {
   // Handle AI evaluation
   const handleEvaluate = async () => {
     if (!selectedDR) return;
-    await evaluate(selectedDR.dr_number);
+
+    try {
+      await evaluate(selectedDR.dr_number);
+      toast.success('AI evaluation completed successfully! 🤖');
+    } catch (err) {
+      toast.error(`Evaluation failed: ${evalError || 'Unknown error'}`);
+    }
   };
 
   // Handle send feedback
@@ -115,9 +122,9 @@ export default function FotoReviewPage() {
 
     try {
       await sendFeedback(selectedDR.dr_number);
-      alert('Feedback sent successfully!');
+      toast.success('Feedback sent successfully via WhatsApp! 📲');
     } catch (err) {
-      alert(`Failed to send feedback: ${feedbackError || 'Unknown error'}`);
+      toast.error(`Failed to send feedback: ${feedbackError || 'Unknown error'}`);
     }
   };
 
