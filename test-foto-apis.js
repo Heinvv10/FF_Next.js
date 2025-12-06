@@ -3,7 +3,9 @@
  * Tests that all APIs work correctly with database integration
  */
 
-const testDR = `DR${Date.now()}`;
+// Generate a valid DR number (DR + 7-10 digits)
+// Use last 8 digits of timestamp to stay within valid range
+const testDR = `DR${Date.now().toString().slice(-8)}`;
 
 async function testEvaluateAPI() {
   console.log('\n=== Testing POST /api/foto/evaluate ===');
