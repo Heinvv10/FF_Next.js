@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { FotoReview } from '../types/fotoReviews.types';
 import { ReviewDetailModal } from './ReviewDetailModal';
 

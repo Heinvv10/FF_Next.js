@@ -8,10 +8,8 @@ import type {
   DropRecord,
   EvaluationResult,
   EvaluateRequest,
-  EvaluateResponse,
   SendFeedbackRequest,
   FeedbackResponse,
-  PhotosResponse,
   PhotoFilters,
 } from '../types';
 

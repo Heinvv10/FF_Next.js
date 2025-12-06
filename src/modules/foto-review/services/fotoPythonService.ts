@@ -5,6 +5,7 @@
 
 import { spawn } from 'child_process';
 import { EvaluationResult } from '../types';
+import { log } from '@/lib/logger';
 
 interface PythonEvaluationResponse {
   status: 'success' | 'error';
@@ -43,7 +44,7 @@ export async function executePythonEvaluation(
   const pythonPath = process.env.PYTHON_PATH || 'python3';
 
   return new Promise((resolve, reject) => {
-    console.log(`[Python] Executing: ${pythonPath} ${pythonScriptPath} ${drNumber}`);
+    log.info('PythonService', `Executing: ${pythonPath} ${pythonScriptPath} ${drNumber}`);
 
     const pythonProcess = spawn(pythonPath, [pythonScriptPath, drNumber], {
       env: {
@@ -66,7 +67,7 @@ export async function executePythonEvaluation(
     pythonProcess.stdout.on('data', (data) => {
       const output = data.toString();
       stdout += output;
-      console.log(`[Python stdout]: ${output.trim()}`);
+      log.debug('PythonService', `stdout: ${output.trim()}`);
 
       // Try to parse JSON from stdout
       try {
@@ -88,7 +89,7 @@ export async function executePythonEvaluation(
     });
 
     pythonProcess.on('close', (code) => {
-      console.log(`[Python] Process exited with code ${code}`);
+      log.info('PythonService', `Process exited with code ${code}`);
 
       if (code !== 0) {
         reject(

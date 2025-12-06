@@ -40,7 +40,7 @@ export function EvaluationResults({ evaluation }: EvaluationResultsProps) {
 
       {/* Step Results */}
       <div className="divide-y">
-        {evaluation.step_results.map((step, index) => (
+        {evaluation.step_results.map((step) => (
           <div key={step.step_number} className="p-6 hover:bg-gray-50 transition-colors">
             {/* Step Header */}
             <div className="flex items-start justify-between mb-3">

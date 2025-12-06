@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useReviewDetails, useApprovalHistory, useReviewActions } from '../hooks/useFotoReviews';
 import { FeedbackEditor } from './FeedbackEditor';
 import { ApprovalControls } from './ApprovalControls';

@@ -1,8 +1,6 @@
 // Review history component showing audit trail
 
 'use client';
-
-import React from 'react';
 import type { ApprovalHistoryEntry } from '../types/fotoReviews.types';
 
 interface ReviewHistoryProps {

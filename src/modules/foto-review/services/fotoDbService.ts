@@ -75,8 +75,7 @@ export async function getAllEvaluations(filters?: {
     const sql = getDbConnection();
 
     // Build WHERE clause dynamically
-    let whereConditions: string[] = [];
-    const params: any[] = [];
+    const whereConditions: string[] = [];
 
     if (filters?.status) {
       whereConditions.push(`overall_status = '${filters.status}'`);

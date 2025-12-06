@@ -2,8 +2,6 @@
 
 'use client';
 
-import React from 'react';
-
 interface ApprovalControlsProps {
   onApprove: () => void;
   onEdit: () => void;
