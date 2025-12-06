@@ -58,8 +58,9 @@ export function PhotoGallery({ photos, dr_number }: PhotoGalleryProps) {
         {photos.map((photo, index) => (
           <div
             key={photo.id}
-            className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+            className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all group"
             onClick={() => openLightbox(index)}
+            title={`${photo.stepLabel}\n${photo.filename}\n${photo.timestamp ? new Date(photo.timestamp).toLocaleString() : 'No timestamp'}`}
           >
             <Image
               src={photo.url}
@@ -70,6 +71,19 @@ export function PhotoGallery({ photos, dr_number }: PhotoGalleryProps) {
             />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
               <p className="text-white text-xs font-medium truncate">{photo.stepLabel}</p>
+            </div>
+
+            {/* Hover Tooltip */}
+            <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center p-4 pointer-events-none">
+              <div className="text-white text-center space-y-1">
+                <p className="text-sm font-semibold">{photo.stepLabel}</p>
+                <p className="text-xs text-gray-300 break-all">{photo.filename}</p>
+                {photo.timestamp && (
+                  <p className="text-xs text-gray-400">
+                    {new Date(photo.timestamp).toLocaleString()}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         ))}

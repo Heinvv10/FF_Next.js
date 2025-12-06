@@ -220,7 +220,7 @@
       "Verify photo timestamp is shown",
       "Verify photo step label is shown (e.g., 'House Photo')"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
