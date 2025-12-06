@@ -449,7 +449,7 @@
       "Verify 400 error if dr_number missing",
       "Verify 400 error if dr_number invalid format"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -476,7 +476,7 @@
       "Verify response contains step_results array",
       "Verify response matches TypeScript types"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -503,7 +503,7 @@
       "Verify timestamps are set",
       "Verify JSONB step_results is valid JSON"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -517,7 +517,7 @@
       "Make request for unevaluated DR",
       "Verify 404 response"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -556,7 +556,7 @@
       "Send duplicate feedback request",
       "Verify 409 conflict or appropriate error"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

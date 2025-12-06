@@ -19,6 +19,8 @@ export default async function handler(
   try {
     const { dr_number } = req.body;
 
+    console.log('[evaluate API] Received request for DR:', dr_number);
+
     if (!dr_number) {
       return res.status(400).json({ error: 'DR number is required' });
     }
@@ -74,7 +76,9 @@ export default async function handler(
     };
 
     // Save to database
+    console.log('[evaluate API] Saving evaluation for DR:', dr_number);
     const savedEvaluation = await saveEvaluation(mockEvaluation);
+    console.log('[evaluate API] Saved successfully:', savedEvaluation.dr_number);
 
     return res.status(200).json({
       success: true,
