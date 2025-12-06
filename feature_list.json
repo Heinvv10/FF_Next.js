@@ -1264,7 +1264,7 @@
       "Click forward button",
       "Verify page state is restored"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1318,7 +1318,7 @@
       "Verify all status information has text labels",
       "Verify graphs/charts have patterns or labels"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
