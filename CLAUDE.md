@@ -205,6 +205,7 @@ npm run antihall    # Run anti-hallucination validator
 - **Framework**: Next.js 14+ with App Router
 - **Frontend**: React 18, TypeScript, TailwindCSS
 - **Authentication**: Clerk (complete integration)
+- **Security**: Arcjet (bot protection, rate limiting, attack detection)
 - **Database**: Neon PostgreSQL (serverless client, direct SQL)
 - **File Storage**: Firebase Storage (for PDFs, images - see `docs/ARCHITECTURE_STORAGE.md`)
 - **API**: Next.js API Routes (App Router)
@@ -878,6 +879,51 @@ psql $DATABASE_URL -c "
 - Nov 12: DR470114, DR1857292, DR1734207, DR1734242, DR1857265
 - Nov 13: DR1111113, DR1734381, DR1857337
 
+### ✅ RESOLVED: UNIQUE Constraint Blocked Cross-Table Independence (Dec 3, 2025)
+
+**Status:** ✅ FIXED - Schema changed, affected drops restored
+
+**Problem:** Drops posted to BOTH Marketing group AND Lawley group only appeared in one table (`marketing_activations`), missing from `qa_photo_reviews`.
+
+**Root Cause:** Database had a UNIQUE constraint on `drop_number` alone in `qa_photo_reviews` table, preventing same drop from existing twice (even for different purposes: Marketing activation vs QA review).
+
+**Error in Logs:**
+```
+ERROR: duplicate key value violates unique constraint "qa_photo_reviews_drop_number_key"
+DETAIL:  Key (drop_number)=(DR1733755) already exists.
+```
+
+**Resolution (Dec 3, 2025):**
+1. **Dropped problematic constraint:**
+   ```sql
+   ALTER TABLE qa_photo_reviews DROP CONSTRAINT qa_photo_reviews_drop_number_key;
+   ```
+2. **Manually inserted 4 affected drops:**
+   - DR1752104 (Nov 26) - Marketing 12:47, Lawley 13:42
+   - DR1733787 (Dec 1) - Marketing 14:26, Lawley 15:28
+   - DR1733755 (Dec 2) - Marketing 11:23, Lawley 11:28
+   - DR1733714 (Dec 2) - Marketing 13:03, Lawley 13:24
+
+**Why This Happened:**
+- Marketing groups are new (added recently)
+- Drops rarely posted to both group types
+- Monitor code was already fixed Dec 1 for project-aware logic
+- But database schema constraint blocked the fix from working!
+
+**Business Logic:**
+- `marketing_activations` and `qa_photo_reviews` are INDEPENDENT tables
+- A drop CAN and SHOULD exist in both if posted to both group types
+- Marketing tracks field activations, QA tracks photo reviews
+- These are separate workflows for the same installation
+
+**Remaining Constraint (Correct):**
+```sql
+CONSTRAINT qa_photo_reviews_drop_number_review_date_key UNIQUE (drop_number, review_date)
+```
+This prevents true duplicates (same drop on same day) while allowing cross-table independence.
+
+**Full Details:** See `docs/wa-monitor/DATABASE_SCHEMA_FIX_DEC2025.md`
+
 ### 🚨 CRITICAL: Database Configuration
 
 **THE APP AND DROP MONITOR MUST USE THE SAME DATABASE**
@@ -941,6 +987,85 @@ ssh root@72.60.17.245 "psql 'postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-n
 ```
 
 **Common Issue:** If dashboard shows different data than drop monitor logs, they're using different databases. Check all 4 configuration files above.
+
+## Arcjet Security
+
+### Overview
+
+FibreFlow uses **Arcjet** for API security, bot protection, and rate limiting. Arcjet provides developer-first security that ships with your code.
+
+**Features Implemented:**
+- ✅ AI-powered bot detection (local inference)
+- ✅ Distributed rate limiting (no Redis infrastructure needed)
+- ✅ Attack protection (SQL injection, XSS, etc.)
+- ✅ Native Next.js integration
+
+**Why Arcjet:**
+- Solves in-memory rate limiting issues across dual VPS instances (prod + dev)
+- No bot protection existed before
+- Open-source SDK (Apache 2.0 license)
+- Free tier sufficient for current usage
+
+### Configuration
+
+**Location:** `src/lib/arcjet.ts`
+
+**Protection Levels:**
+1. **ajStrict** (30 req/min) - Sensitive endpoints (contractors, auth)
+2. **aj** (100 req/min) - Standard endpoints (default)
+3. **ajGenerous** (300 req/min) - Public endpoints (health checks)
+4. **ajWaMonitor** (60 req/min) - WhatsApp integration endpoints
+
+### Protected Endpoints
+
+**Strict Protection:**
+- `/api/contractors/[contractorId]` - Contractor CRUD
+
+**WA Monitor Protection:**
+- `/api/wa-monitor-daily-drops` - Dashboard data
+
+**Standard Protection:**
+- `/api/sow/drops` - SOW drops data
+
+### Setup
+
+**Environment Variable:**
+```bash
+ARCJET_KEY=ajkey_your_key_here
+```
+
+**Protect New Endpoint:**
+```typescript
+import { withArcjetProtection, aj } from '@/lib/arcjet';
+
+async function handler(req, res) {
+  // Your API logic
+}
+
+export default withArcjetProtection(handler, aj);
+```
+
+**Full Documentation:** `docs/ARCJET_SETUP.md`
+
+**Dashboard:** https://arcjet.com (login to view analytics)
+
+**Model:** Open Core (SDK open source, backend service proprietary)
+
+### VPS Deployment
+
+Add to both production and dev environments:
+
+```bash
+# Production
+nano /var/www/fibreflow/.env.production
+# Add: ARCJET_KEY=ajkey_...
+
+# Development
+nano /var/www/fibreflow-dev/.env.production
+# Add: ARCJET_KEY=ajkey_...
+```
+
+Graceful degradation: If `ARCJET_KEY` not set, protection is skipped with a warning.
 
 ## Deployment Architecture
 

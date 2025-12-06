@@ -2,6 +2,11 @@
  * Contractors Documents Upload API - Flat Endpoint
  * POST /api/contractors-documents-upload
  * Handles file upload to Firebase Storage + metadata to Neon
+ *
+ * Protected by Arcjet:
+ * - Bot detection
+ * - Rate limiting (30 req/min)
+ * - Attack protection
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -9,6 +14,7 @@ import { neon } from '@neondatabase/serverless';
 import formidable from 'formidable';
 import fs from 'fs';
 import { getAdminStorage } from '@/config/firebase-admin';
+import { withArcjetProtection, ajStrict } from '@/lib/arcjet';
 
 const sql = neon(process.env.DATABASE_URL || '');
 
@@ -21,7 +27,7 @@ export const config = {
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -197,6 +203,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, ajStrict);
 
 // Parse multipart form data
 function parseForm(req: NextApiRequest): Promise<{ fields: formidable.Fields; files: formidable.Files }> {

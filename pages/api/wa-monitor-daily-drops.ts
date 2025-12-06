@@ -4,13 +4,19 @@
  *
  * Returns daily drops count per project for today
  * Used for dashboard and SharePoint sync
+ *
+ * Protected by Arcjet:
+ * - Bot detection
+ * - Rate limiting (60 req/min)
+ * - Attack protection
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { apiResponse } from '@/modules/wa-monitor/lib/apiResponse';
 import { getDailyDropsPerProject } from '@/modules/wa-monitor/services/waMonitorService';
+import { withArcjetProtection, ajWaMonitor } from '@/lib/arcjet';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Only allow GET requests
   if (req.method !== 'GET') {
     return apiResponse.methodNotAllowed(res, req.method || 'UNKNOWN', ['GET']);
@@ -33,3 +39,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return apiResponse.internalError(res, error, 'Failed to fetch daily drops');
   }
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, ajWaMonitor);

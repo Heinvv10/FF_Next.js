@@ -1,14 +1,20 @@
 /**
  * Contractors API - Single Contractor (Pages Router)
  * Workaround for Vercel App Router dynamic route issues
+ *
+ * Protected by Arcjet:
+ * - Bot detection
+ * - Rate limiting (30 req/min)
+ * - Attack protection
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { neon } from '@neondatabase/serverless';
+import { withArcjetProtection, ajStrict } from '@/lib/arcjet';
 
 const sql = neon(process.env.DATABASE_URL || '');
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Destructure with rename - keeps internal code using 'id'
   const { contractorId: id } = req.query;
 
@@ -104,6 +110,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Method not allowed
   return res.status(405).json({ error: 'Method not allowed' });
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, ajStrict);
 
 // Helper function to map database row to Contractor interface
 function mapDbToContractor(row: any) {

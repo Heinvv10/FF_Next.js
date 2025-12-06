@@ -1,6 +1,17 @@
+/**
+ * SOW Drops API
+ * GET/POST /api/sow/drops
+ *
+ * Protected by Arcjet:
+ * - Bot detection
+ * - Rate limiting (100 req/min)
+ * - Attack protection
+ */
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getAuth } from '../../../lib/auth-mock';
 import { neon } from '@neondatabase/serverless';
+import { withArcjetProtection, aj } from '@/lib/arcjet';
 
 const getSql = () => neon(process.env.DATABASE_URL!);
 
@@ -13,7 +24,7 @@ export const config = {
   },
 };
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -189,3 +200,6 @@ export default async function handler(
   // Method not allowed
   return res.status(405).json({ error: 'Method not allowed' });
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, aj);

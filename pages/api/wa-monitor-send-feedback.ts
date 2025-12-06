@@ -2,11 +2,17 @@
  * WA Monitor Send Feedback API
  * Sends QA feedback to WhatsApp groups via WhatsApp Bridge
  * Updates feedback_sent timestamp in database
+ *
+ * Protected by Arcjet:
+ * - Bot detection
+ * - Rate limiting (60 req/min)
+ * - Attack protection
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { neon } from '@neondatabase/serverless';
 import { QA_STEP_LABELS, ORDERED_STEP_KEYS } from '@/modules/wa-monitor/types/wa-monitor.types';
+import { withArcjetProtection, ajWaMonitor } from '@/lib/arcjet';
 
 const sql = neon(process.env.DATABASE_URL || '');
 
@@ -218,7 +224,7 @@ async function updateFeedbackSentTimestamp(dropId: string): Promise<void> {
   `;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({
       success: false,
@@ -336,3 +342,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, ajWaMonitor);

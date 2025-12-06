@@ -1,3 +1,11 @@
+/**
+ * Projects API
+ * Protected by Arcjet:
+ * - Bot detection
+ * - Rate limiting (100 req/min)
+ * - Attack protection
+ */
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 // import { getAuth } from '@clerk/nextjs/server';
 import { getAuth } from '../../../lib/auth-mock';
@@ -5,11 +13,12 @@ import { neon } from '@neondatabase/serverless';
 import { safeArrayQuery, safeObjectQuery, safeMutation } from '../../../lib/safe-query';
 import { apiResponse, ErrorCode } from '../../../lib/apiResponse';
 import { logCreate, logUpdate, logDelete } from '../../../lib/db-logger';
+import { withArcjetProtection, aj } from '@/lib/arcjet';
 
 // Create a new connection for each request to avoid connection pooling issues
 const getSql = () => neon(process.env.DATABASE_URL!);
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -234,3 +243,6 @@ export default async function handler(
     return apiResponse.internalError(res, error);
   }
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, aj);

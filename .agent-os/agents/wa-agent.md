@@ -98,6 +98,52 @@ Rejection log:
 - Sync script: scripts/sync-mohadin-valid-drops.js
 - Documentation: docs/wa-monitor/DROP_VALIDATION_SYSTEM.md
 
+## Quick Reference
+
+### Quick Diagnostics
+
+| Issue | Quick Check Command | Expected Result |
+|-------|---------------------|-----------------|
+| **Drop missing** | `psql $DATABASE_URL -c "SELECT * FROM qa_photo_reviews WHERE drop_number = 'DR123456';"` | Should return 1 row if exists |
+| **Drop rejected?** | `psql $DATABASE_URL -c "SELECT * FROM invalid_drop_submissions WHERE drop_number = 'DR123456';"` | Shows rejection reason if rejected |
+| **Services running?** | `ssh root@72.60.17.245 "systemctl is-active wa-monitor-prod wa-monitor-dev whatsapp-bridge"` | Should show: active, active, active |
+| **Today's drop counts** | `psql $DATABASE_URL -c "SELECT project, COUNT(*) FROM qa_photo_reviews WHERE DATE(whatsapp_message_date) = CURRENT_DATE GROUP BY project;"` | Shows counts by project |
+| **Check for LIDs** | `psql $DATABASE_URL -c "SELECT drop_number, submitted_by FROM qa_photo_reviews WHERE LENGTH(submitted_by) > 11 LIMIT 10;"` | Should return 0 rows (no LIDs) |
+
+### Most Common Tasks
+
+| Task | Time | Command/Steps |
+|------|------|---------------|
+| **Add new WhatsApp group** | 5 min | 1. Edit `/opt/wa-monitor/dev/config/projects.yaml`<br>2. Restart dev: `systemctl restart wa-monitor-dev`<br>3. Test, then repeat for prod with `/opt/wa-monitor/prod/restart-monitor.sh` |
+| **Investigate missing drop** | 2-5 min | 1. Check `qa_photo_reviews` table<br>2. Check `invalid_drop_submissions`<br>3. Check WhatsApp bridge logs<br>4. Check monitor logs |
+| **Fix LID issue** | 3-5 min | 1. Find LID in database<br>2. Look up LID in WhatsApp DB on VPS<br>3. Update qa_photo_reviews with phone number<br>4. Restart monitor with safe script |
+| **Sync Mohadin valid drops** | 2-3 min | Run: `node scripts/sync-mohadin-valid-drops.js` |
+| **Check service health** | 1 min | `systemctl is-active wa-monitor-prod wa-monitor-dev whatsapp-bridge` |
+
+### Quick Troubleshooting
+
+| Problem | Most Likely Cause | Quick Fix |
+|---------|-------------------|-----------|
+| **Drop not showing in dashboard** | Not in database yet OR rejected by validation | Check database → Check rejection log → Check monitor logs |
+| **All drops missing today** | Monitor service crashed OR WhatsApp bridge down | Check service status → Check logs → Restart services |
+| **Validation rejecting valid drops** | Validation list outdated | Sync valid drops: `node scripts/sync-mohadin-valid-drops.js` |
+| **LID showing instead of phone number** | Python cache issue OR resubmission handler bug | Restart monitor with safe script: `/opt/wa-monitor/prod/restart-monitor.sh` |
+| **Send Feedback button not working** | WhatsApp bridge disconnected | Restart whatsapp-bridge: `systemctl restart whatsapp-bridge-prod` |
+
+### Critical Warnings ⚠️
+
+1. **ALWAYS use safe restart script for PRODUCTION**:
+   ```bash
+   /opt/wa-monitor/prod/restart-monitor.sh  # ✅ Clears Python cache
+   systemctl restart wa-monitor-prod         # ❌ Keeps stale .pyc cache
+   ```
+
+2. **Validation is ONLY active for Mohadin** - Other projects accept all drops
+
+3. **Velo Test is dual-monitored** - Appears in both prod and dev logs
+
+4. **Database connection**: All services use SAME database (ep-dry-night-a9qyh4sj)
+
 ## Critical Commands
 
 ### VPS Service Management

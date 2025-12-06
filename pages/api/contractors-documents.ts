@@ -2,14 +2,20 @@
  * Contractors Documents List API - Flat Endpoint
  * GET /api/contractors-documents?contractorId=xxx
  * Lists all documents for a contractor
+ *
+ * Protected by Arcjet:
+ * - Bot detection
+ * - Rate limiting (30 req/min)
+ * - Attack protection
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { neon } from '@neondatabase/serverless';
+import { withArcjetProtection, ajStrict } from '@/lib/arcjet';
 
 const sql = neon(process.env.DATABASE_URL || '');
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -75,6 +81,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 }
+
+// Export with Arcjet protection
+export default withArcjetProtection(handler, ajStrict);
 
 // Map database row to ContractorDocument interface
 function mapDbToDocument(row: any) {
