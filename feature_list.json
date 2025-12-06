@@ -996,7 +996,7 @@
       "Verify passed steps look distinct from failed",
       "Verify spacing guides the eye logically"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
