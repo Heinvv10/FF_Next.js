@@ -822,7 +822,7 @@
       "Check for connection pool errors",
       "Verify connections are released"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -836,7 +836,7 @@
       "Verify indexes are created",
       "Verify constraints are in place"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -848,7 +848,7 @@
       "Test with SQL injection attempts",
       "Verify queries are safe"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -861,7 +861,7 @@
       "Verify timeout is handled",
       "Verify app remains stable"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -876,7 +876,7 @@
       "Re-evaluate same DR",
       "Verify row is updated (not duplicated)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -889,7 +889,7 @@
       "Verify accent colors match",
       "Verify background colors match"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
