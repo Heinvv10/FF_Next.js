@@ -1046,7 +1046,7 @@
       "Test all buttons on page",
       "Verify states are consistent"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -1058,7 +1058,7 @@
       "Verify button cannot be clicked",
       "Verify tooltip explains why disabled"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
