@@ -915,7 +915,7 @@
       "Verify Toast component used",
       "Verify components are themed consistently"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
