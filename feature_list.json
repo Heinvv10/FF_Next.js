@@ -1086,7 +1086,7 @@
       "Verify action buttons are clear",
       "Verify dialog can be closed with X or Cancel"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -1125,7 +1125,7 @@
       "Verify breadcrumbs or back button if applicable",
       "Verify header doesn't scroll with content"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
