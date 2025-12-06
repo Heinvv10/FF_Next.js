@@ -146,26 +146,30 @@ export function PhotoGallery({ photos, dr_number }: PhotoGalleryProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative w-full h-full">
-              <Image
-                src={photos[selectedPhotoIndex].url}
-                alt={photos[selectedPhotoIndex].stepLabel}
-                fill
-                className="object-contain"
-                sizes="100vw"
-                priority
-              />
+              {photos[selectedPhotoIndex] && (
+                <Image
+                  src={photos[selectedPhotoIndex].url}
+                  alt={photos[selectedPhotoIndex].stepLabel}
+                  fill
+                  className="object-contain"
+                  sizes="100vw"
+                  priority
+                />
+              )}
             </div>
 
             {/* Photo Info */}
-            <div className="mt-4 text-center text-white">
-              <p className="text-lg font-semibold">{photos[selectedPhotoIndex].stepLabel}</p>
-              <p className="text-sm text-gray-300 mt-1">
-                {selectedPhotoIndex + 1} of {photos.length}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                {photos[selectedPhotoIndex].filename}
-              </p>
-            </div>
+            {photos[selectedPhotoIndex] && (
+              <div className="mt-4 text-center text-white">
+                <p className="text-lg font-semibold">{photos[selectedPhotoIndex].stepLabel}</p>
+                <p className="text-sm text-gray-300 mt-1">
+                  {selectedPhotoIndex + 1} of {photos.length}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {photos[selectedPhotoIndex].filename}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -742,7 +742,7 @@
       "Run type check: npm run type-check",
       "Verify no errors related to navigation"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

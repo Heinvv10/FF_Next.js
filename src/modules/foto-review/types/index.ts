@@ -255,7 +255,7 @@ export interface AIEvaluationCardProps {
   /** Callback when Evaluate button is clicked */
   onEvaluate?: () => void;
   /** Callback when Send Feedback button is clicked */
-  onSendFeedback?: () => void;
+  onSendFeedback?: (dr_number: string) => Promise<void>;
   /** Whether feedback is currently being sent */
   isSendingFeedback?: boolean;
   /** Custom class name for styling */
