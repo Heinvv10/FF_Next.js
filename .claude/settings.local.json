@@ -45,7 +45,12 @@
       "Bash(awk:*)",
       "Bash(sort:*)",
       "Bash(git reset:*)",
-      "Bash(curl -s \"https://app.fibreflow.app/api/meetings?action=sync\" -X POST)"
+      "Bash(curl -s \"https://app.fibreflow.app/api/meetings?action=sync\" -X POST)",
+      "Bash(npm test:*)",
+      "Read(//home/louisdup/claude-quickstarts/autonomous-coding/**)",
+      "Bash(tee:*)",
+      "Bash(source:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": [],

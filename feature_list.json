@@ -1278,7 +1278,7 @@
       "Verify focus indicators are visible",
       "Verify no keyboard traps"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1292,7 +1292,7 @@
       "Verify form fields are labeled",
       "Verify status updates are announced (aria-live)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1306,7 +1306,7 @@
       "Run axe DevTools accessibility audit",
       "Verify no critical issues"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

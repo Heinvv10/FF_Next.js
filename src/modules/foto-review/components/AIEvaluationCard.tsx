@@ -37,22 +37,28 @@ export function AIEvaluationCard({ dr_number, evaluation, isEvaluating, onEvalua
     <GlassCard variant="strong" elevation={3} rounded="lg" padding="lg" className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">AI Evaluation</h3>
-        {evaluation && getStatusIcon(evaluation.overall_status)}
+        <h3 id="evaluation-heading" className="text-lg font-semibold text-white">AI Evaluation</h3>
+        {evaluation && (
+          <div role="img" aria-label={`Overall status: ${evaluation.overall_status}`}>
+            {getStatusIcon(evaluation.overall_status)}
+          </div>
+        )}
       </div>
 
       {/* Evaluation Results */}
       {evaluation ? (
         <div className="space-y-4">
           {/* Overall Status */}
-          <div className="flex items-center justify-between p-4 rounded-lg border-2 border-white/20 bg-white/5">
+          <div className="flex items-center justify-between p-4 rounded-lg border-2 border-white/20 bg-white/5" role="region" aria-label="Evaluation summary">
             <div>
-              <p className="text-sm text-gray-300">Overall Status</p>
+              <p className="text-sm text-gray-300" id="status-label">Overall Status</p>
               <div className="flex items-center gap-2 mt-1">
                 <span
                   className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
                     evaluation.overall_status
                   )}`}
+                  role="status"
+                  aria-labelledby="status-label"
                 >
                   {evaluation.overall_status}
                 </span>
@@ -61,36 +67,43 @@ export function AIEvaluationCard({ dr_number, evaluation, isEvaluating, onEvalua
 
             {/* Score */}
             <div className="text-right">
-              <p className="text-sm text-gray-300">Score</p>
-              <p className={`text-3xl font-bold ${getScoreColor(evaluation.average_score)}`}>
+              <p className="text-sm text-gray-300" id="score-label">Score</p>
+              <p className={`text-3xl font-bold ${getScoreColor(evaluation.average_score)}`} aria-labelledby="score-label">
                 {evaluation.average_score.toFixed(1)}/10
               </p>
             </div>
           </div>
 
           {/* Step Counts */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4" role="region" aria-label="Step results">
             <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-              <p className="text-sm text-gray-300">Steps Passed</p>
-              <p className="text-2xl font-bold text-green-600">{evaluation.passed_steps}</p>
+              <p className="text-sm text-gray-300" id="steps-passed-label">Steps Passed</p>
+              <p className="text-2xl font-bold text-green-600" aria-labelledby="steps-passed-label">{evaluation.passed_steps}</p>
             </div>
             <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-              <p className="text-sm text-gray-300">Steps Failed</p>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-sm text-gray-300" id="steps-failed-label">Steps Failed</p>
+              <p className="text-2xl font-bold text-red-600" aria-labelledby="steps-failed-label">
                 {evaluation.total_steps - evaluation.passed_steps}
               </p>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="space-y-2">
+          <div className="space-y-2" role="region" aria-label="Evaluation progress">
             <div className="flex justify-between text-sm text-gray-300">
-              <span>Progress</span>
-              <span>
+              <span id="progress-label">Progress</span>
+              <span aria-labelledby="progress-label">
                 {evaluation.passed_steps}/{evaluation.total_steps} steps
               </span>
             </div>
-            <div className="w-full bg-white/10 rounded-full h-3 border border-white/20">
+            <div
+              className="w-full bg-white/10 rounded-full h-3 border border-white/20"
+              role="progressbar"
+              aria-valuenow={(evaluation.passed_steps / evaluation.total_steps) * 100}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Evaluation progress: ${evaluation.passed_steps} of ${evaluation.total_steps} steps completed`}
+            >
               <div
                 className={`h-3 rounded-full transition-all ${
                   evaluation.overall_status === 'PASS' ? 'bg-green-500' : 'bg-red-500'
@@ -129,8 +142,8 @@ export function AIEvaluationCard({ dr_number, evaluation, isEvaluating, onEvalua
       ) : (
         /* No Evaluation Yet */
         <div className="space-y-4">
-          <div className="text-center py-8">
-            <Sparkles className="w-12 h-12 text-blue-400 mx-auto mb-3" />
+          <div className="text-center py-8" role="status">
+            <Sparkles className="w-12 h-12 text-blue-400 mx-auto mb-3" aria-hidden="true" />
             <p className="text-gray-200 mb-2">No evaluation yet</p>
             <p className="text-sm text-gray-400">Run AI evaluation to see results</p>
           </div>
@@ -142,8 +155,9 @@ export function AIEvaluationCard({ dr_number, evaluation, isEvaluating, onEvalua
             size="lg"
             className="w-full"
             loading={isEvaluating}
+            aria-label={isEvaluating ? 'Evaluating photos with AI' : 'Evaluate photos with AI'}
           >
-            <Sparkles className="w-5 h-5 mr-2" />
+            <Sparkles className="w-5 h-5 mr-2" aria-hidden="true" />
             {isEvaluating ? 'Evaluating...' : 'Evaluate with AI'}
           </VelocityButton>
         </div>
