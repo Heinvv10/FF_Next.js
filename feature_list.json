@@ -901,7 +901,7 @@
       "Verify responsive classes used (sm:, md:, lg:)",
       "Run build and verify no Tailwind purge warnings"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -930,7 +930,7 @@
       "Test on 320px width (iPhone SE)",
       "Test on 768px width (tablet)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -958,7 +958,7 @@
       "Verify aspect ratios maintained",
       "Verify no awkward gaps or overlaps"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
