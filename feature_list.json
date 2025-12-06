@@ -358,7 +358,7 @@
       "Verify message includes key failure points",
       "Verify message is professionally formatted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -387,7 +387,7 @@
       "Reload page",
       "Verify 'Send Feedback' button shows 'Sent' state"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -399,7 +399,7 @@
       "Verify button shows 'Feedback Sent' text",
       "Verify timestamp of when feedback was sent is shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
