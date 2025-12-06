@@ -462,7 +462,7 @@
       "Verify script runs with correct arguments",
       "Verify script output is captured"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -489,7 +489,7 @@
       "Verify error is caught and returned",
       "Verify no uncaught exceptions"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
