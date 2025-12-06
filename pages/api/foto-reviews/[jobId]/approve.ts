@@ -12,7 +12,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
-    return apiResponse.methodNotAllowed(res);
+    return apiResponse.methodNotAllowed(res, req.method || '', ['POST']);
   }
 
   try {

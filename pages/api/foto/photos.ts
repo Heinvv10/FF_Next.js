@@ -132,6 +132,7 @@ export default async function handler(
       }
 
       filteredPhotos = filteredPhotos.filter((dr) => {
+        if (!dr.installation_date) return false;
         const drDate = new Date(dr.installation_date);
         if (start && drDate < start) return false;
         if (end && drDate > end) return false;

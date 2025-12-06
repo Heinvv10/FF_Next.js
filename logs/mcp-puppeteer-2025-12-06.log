@@ -117,3 +117,8 @@
 {"level":"info","message":"Puppeteer MCP Server closing","service":"mcp-puppeteer","timestamp":"2025-12-06 22:36:51.011"}
 {"arguments":{"url":"http://localhost:3005/foto-review"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-12-06 22:38:06.283","tool":"puppeteer_navigate"}
 {"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-12-06 22:38:06.284"}
+{"level":"info","message":"Puppeteer MCP Server closing","service":"mcp-puppeteer","timestamp":"2025-12-06 22:50:16.462"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-12-06 22:50:23.304"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-12-06 22:50:23.305"}
+{"arguments":{"url":"http://localhost:3005"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-12-06 22:54:56.540","tool":"puppeteer_navigate"}
+{"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-12-06 22:54:56.541"}
