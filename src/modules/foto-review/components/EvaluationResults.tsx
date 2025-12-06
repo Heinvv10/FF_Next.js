@@ -25,9 +25,9 @@ export function EvaluationResults({ evaluation }: EvaluationResultsProps) {
   };
 
   const getScoreTextColor = (score: number) => {
-    if (score >= 8) return 'text-green-700';
-    if (score >= 6) return 'text-yellow-700';
-    return 'text-red-700';
+    if (score >= 8) return 'text-green-600';
+    if (score >= 6) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   return (

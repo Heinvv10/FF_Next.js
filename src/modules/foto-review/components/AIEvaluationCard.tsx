@@ -72,11 +72,11 @@ export function AIEvaluationCard({ dr_number, evaluation, isEvaluating, onEvalua
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white/5 rounded-lg p-4 border border-white/10">
               <p className="text-sm text-gray-300">Steps Passed</p>
-              <p className="text-2xl font-bold text-green-400">{evaluation.passed_steps}</p>
+              <p className="text-2xl font-bold text-green-600">{evaluation.passed_steps}</p>
             </div>
             <div className="bg-white/5 rounded-lg p-4 border border-white/10">
               <p className="text-sm text-gray-300">Steps Failed</p>
-              <p className="text-2xl font-bold text-red-400">
+              <p className="text-2xl font-bold text-red-600">
                 {evaluation.total_steps - evaluation.passed_steps}
               </p>
             </div>

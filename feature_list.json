@@ -1008,7 +1008,7 @@
       "Verify green shade is consistent throughout",
       "Verify green is accessible (sufficient contrast)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -1020,7 +1020,7 @@
       "Verify red shade is consistent",
       "Verify red is accessible (sufficient contrast)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",

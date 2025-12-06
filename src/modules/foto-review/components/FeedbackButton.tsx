@@ -56,7 +56,7 @@ export function FeedbackButton({
   if (evaluation.feedback_sent) {
     return (
       <div className="text-center py-2 text-sm">
-        <span className="text-green-400 font-medium">✓ Feedback sent</span>
+        <span className="text-green-600 font-medium">✓ Feedback sent</span>
         {evaluation.feedback_sent_at && (
           <p className="text-xs text-gray-400 mt-1">
             {new Date(evaluation.feedback_sent_at).toLocaleString()}
