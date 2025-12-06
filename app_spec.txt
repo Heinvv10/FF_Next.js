@@ -1,0 +1,385 @@
+<project_specification>
+  <project_name>FibreFlow - DR Photo AI Review Integration</project_name>
+
+  <overview>
+    Integrate AI-powered photo evaluation into the existing FibreFlow React application.
+    Add a new "/foto-review" page similar to "/wa-monitor" that displays DR photos,
+    runs AI evaluations, and sends WhatsApp feedback to field agents.
+
+    **Current Status:** Python evaluation backend complete - needs React frontend integration
+    **Immediate Goal:** Add foto-review module to FibreFlow with Next.js API integration
+  </overview>
+
+  <existing_codebase>
+    <location>/home/louisdup/VF/Apps/FF_React</location>
+    <frontend>
+      Path: /home/louisdup/VF/Apps/FF_React/src
+      Framework: Next.js 14 + React + TypeScript
+      Status: Production app with wa-monitor module
+      URL: https://app.fibreflow.app
+    </frontend>
+    <backend>
+      Path: /home/louisdup/VF/agents/foto/foto-evaluator-ach
+      Framework: Python + OpenAI GPT-4 Vision
+      Status: Complete and tested
+      Files:
+        - evaluate_dr.py (AI evaluation engine)
+        - foto_verifier.py (OpenAI integration)
+        - foto_prompts.py (12-step prompts)
+    </backend>
+    <existing_modules>
+      - wa-monitor (WhatsApp monitoring) ✅ Reference this for structure
+      - monitoring (Dashboard page)
+      - projects (Project management)
+    </existing_modules>
+  </existing_codebase>
+
+  <technology_stack>
+    <frontend>
+      <framework>Next.js 14 with App Router</framework>
+      <language>TypeScript</language>
+      <styling>Tailwind CSS</styling>
+      <state>React hooks + Context API</state>
+      <ui_library>shadcn/ui components</ui_library>
+    </frontend>
+    <backend_api>
+      <location>pages/api/foto/</location>
+      <runtime>Node.js (Next.js API routes)</runtime>
+      <python_integration>Child process to call evaluate_dr.py</python_integration>
+    </backend_api>
+    <database>
+      <type>Neon PostgreSQL</type>
+      <host>ep-damp-credit-a857vku0-pooler.eastus2.azure.neon.tech</host>
+      <table>foto_ai_reviews</table>
+    </database>
+  </technology_stack>
+
+  <implementation_tasks>
+    <task priority="1" status="PENDING">
+      <name>Create foto-review Module</name>
+      <description>Add new module following wa-monitor structure</description>
+      <location>src/modules/foto-review/</location>
+      <structure>
+        src/modules/foto-review/
+        ├── components/
+        │   ├── PhotoGallery.tsx       # Display DR photos in grid
+        │   ├── AIEvaluationCard.tsx   # Show AI results
+        │   ├── EvaluationResults.tsx  # Detailed step breakdown
+        │   └── FeedbackButton.tsx     # Send WhatsApp feedback
+        ├── services/
+        │   └── fotoEvaluationService.ts  # API calls to backend
+        ├── hooks/
+        │   ├── useFotoEvaluation.ts   # Evaluation state management
+        │   └── usePhotos.ts           # Photo fetching
+        ├── types/
+        │   └── index.ts               # TypeScript types
+        └── README.md
+      </structure>
+      <acceptance_criteria>
+        - Module follows wa-monitor pattern
+        - All components use TypeScript
+        - Uses Tailwind CSS for styling
+        - Integrates with shadcn/ui components
+      </acceptance_criteria>
+    </task>
+
+    <task priority="2" status="PENDING">
+      <name>Create /foto-review Page</name>
+      <description>Add new page route for photo review interface</description>
+      <location>src/pages/foto-review/index.tsx</location>
+      <requirements>
+        - Similar layout to /monitoring page
+        - Left sidebar: List of DRs with photos
+        - Main area: Photo gallery + AI results
+        - Top bar: Filters and actions
+        - Responsive design for mobile
+      </requirements>
+      <features>
+        1. DR List View
+           - Show all DRs with photos
+           - Filter by project, date, status
+           - Show evaluation status (pending/evaluated)
+
+        2. Photo Gallery
+           - Grid view of all photos for selected DR
+           - Click to enlarge
+           - Show photo metadata
+
+        3. AI Evaluation Panel
+           - "Evaluate with AI" button
+           - Loading state during evaluation
+           - Results display: PASS/FAIL status
+           - Overall score (e.g., 7.5/10)
+           - Detailed step breakdown
+
+        4. Feedback Section
+           - "Send Feedback" button
+           - Preview message before sending
+           - WhatsApp integration
+           - Confirmation after sent
+      </features>
+      <acceptance_criteria>
+        - Page accessible at /foto-review
+        - Navigation integrated into app menu
+        - All features working end-to-end
+        - Mobile responsive
+      </acceptance_criteria>
+    </task>
+
+    <task priority="3" status="PENDING">
+      <name>Create Next.js API Routes</name>
+      <description>Backend API endpoints that call Python evaluation script</description>
+      <location>pages/api/foto/</location>
+      <endpoints>
+        1. GET /api/foto/photos
+           - Fetch photos from BOSS VPS
+           - Returns: List of DRs with photo URLs
+
+        2. POST /api/foto/evaluate
+           - Body: { dr_number: string }
+           - Calls Python evaluate_dr.py via child_process
+           - Returns: Evaluation results
+
+        3. GET /api/foto/evaluation/:dr_number
+           - Fetch existing evaluation from database
+           - Returns: Cached results if available
+
+        4. POST /api/foto/feedback
+           - Body: { dr_number: string }
+           - Sends WhatsApp message via wa-monitor service
+           - Updates feedback_sent flag in database
+           - Returns: Success confirmation
+      </endpoints>
+      <implementation>
+        - Use Node.js child_process.spawn() to run Python
+        - Pass environment variables to Python script
+        - Handle Python script output (JSON)
+        - Error handling and logging
+        - TypeScript types for all responses
+      </implementation>
+      <acceptance_criteria>
+        - All endpoints tested with Postman/curl
+        - Python integration working
+        - Database queries successful
+        - Proper error handling
+      </acceptance_criteria>
+    </task>
+
+    <task priority="4" status="PENDING">
+      <name>Integrate WhatsApp Feedback</name>
+      <description>Use existing wa-monitor service to send feedback</description>
+      <integration_points>
+        - Use wa-monitor's sendMessage service
+        - Format evaluation results as WhatsApp message
+        - Track feedback_sent status
+      </integration_points>
+      <message_format>
+        ✅ Installation Photo Review: DR1733592
+
+        Overall Status: FAIL
+        Score: 3.7/10
+        Steps Passed: 1/12
+
+        ❌ House Photo: Not clearly visible
+        ❌ Cable Span: Full span not shown
+        ✅ ONT Barcode: Readable
+
+        Please retake photos following installation guidelines.
+      </message_format>
+      <acceptance_criteria>
+        - WhatsApp messages sent successfully
+        - Messages formatted professionally
+        - Feedback tracked in database
+      </acceptance_criteria>
+    </task>
+
+    <task priority="5" status="PENDING">
+      <name>Add Navigation and Menu Items</name>
+      <description>Integrate foto-review into app navigation</description>
+      <changes>
+        - Add "Photo Review" to main menu
+        - Add icon (camera or photo icon)
+        - Update navigation types
+        - Add route protection (authentication)
+      </changes>
+      <acceptance_criteria>
+        - Menu item visible in navigation
+        - Clicking navigates to /foto-review
+        - Authentication required
+      </acceptance_criteria>
+    </task>
+  </implementation_tasks>
+
+  <file_structure>
+    FF_React/
+    ├── src/
+    │   ├── modules/
+    │   │   ├── wa-monitor/          # Reference implementation
+    │   │   └── foto-review/         # NEW MODULE
+    │   │       ├── components/
+    │   │       │   ├── PhotoGallery.tsx
+    │   │       │   ├── AIEvaluationCard.tsx
+    │   │       │   ├── EvaluationResults.tsx
+    │   │       │   └── FeedbackButton.tsx
+    │   │       ├── services/
+    │   │       │   └── fotoEvaluationService.ts
+    │   │       ├── hooks/
+    │   │       │   ├── useFotoEvaluation.ts
+    │   │       │   └── usePhotos.ts
+    │   │       ├── types/
+    │   │       │   └── index.ts
+    │   │       └── README.md
+    │   └── pages/
+    │       └── foto-review/
+    │           └── index.tsx         # Main page component
+    └── pages/
+        └── api/
+            └── foto/
+                ├── photos.ts
+                ├── evaluate.ts
+                ├── evaluation/
+                │   └── [dr_number].ts
+                └── feedback.ts
+  </file_structure>
+
+  <python_backend_location>
+    Location: /home/louisdup/VF/agents/foto/foto-evaluator-ach
+    Files to keep:
+    - evaluate_dr.py
+    - foto_verifier.py
+    - foto_prompts.py
+    - foto_config.py
+    - .env (environment variables)
+
+    Deploy to: /opt/foto-evaluator on Hostinger VPS
+    Called via: Node.js child_process from Next.js API routes
+  </python_backend_location>
+
+  <database_schema>
+    Table: foto_ai_reviews
+    Columns:
+    - dr_number (VARCHAR PRIMARY KEY)
+    - overall_status (VARCHAR) - 'PASS' or 'FAIL'
+    - average_score (DECIMAL)
+    - total_steps (INTEGER)
+    - passed_steps (INTEGER)
+    - step_results (JSONB) - Detailed results
+    - markdown_report (TEXT)
+    - feedback_sent (BOOLEAN)
+    - evaluation_date (TIMESTAMP)
+    - created_at (TIMESTAMP)
+    - updated_at (TIMESTAMP)
+  </database_schema>
+
+  <reference_implementation>
+    Model after wa-monitor module structure:
+
+    Location: src/modules/wa-monitor/
+    Files to reference:
+    - components/ (for component structure)
+    - services/ (for API service pattern)
+    - hooks/ (for React hooks pattern)
+    - types/ (for TypeScript types)
+
+    Page: src/pages/monitoring/
+    - Layout structure
+    - Responsive design
+    - Loading states
+    - Error handling
+  </reference_implementation>
+
+  <styling_guidelines>
+    - Use Tailwind CSS classes
+    - Follow existing FibreFlow color scheme
+    - Use shadcn/ui components:
+      * Button
+      * Card
+      * Badge
+      * Tabs
+      * Dialog
+      * Toast
+    - Responsive: Mobile-first design
+    - Dark mode support
+  </styling_guidelines>
+
+  <testing_requirements>
+    1. Component Tests
+       - PhotoGallery renders correctly
+       - AIEvaluationCard shows results
+       - FeedbackButton handles clicks
+
+    2. Integration Tests
+       - API routes return correct data
+       - Python script executes successfully
+       - Database queries work
+
+    3. E2E Tests
+       - Navigate to /foto-review
+       - Select a DR
+       - Run evaluation
+       - Send feedback
+       - Verify WhatsApp message
+  </testing_requirements>
+
+  <deployment_steps>
+    1. Build Python backend on VPS
+       - Deploy to /opt/foto-evaluator
+       - Setup Python venv
+       - Install dependencies
+
+    2. Update FibreFlow app
+       - Add foto-review module
+       - Add API routes
+       - Update navigation
+
+    3. Deploy to Vercel
+       - Push to main branch
+       - Vercel auto-deploys
+       - Verify at https://app.fibreflow.app/foto-review
+
+    4. Test production
+       - Real DR evaluation
+       - WhatsApp feedback
+       - Database updates
+  </deployment_steps>
+
+  <success_criteria>
+    <must_have>
+      ✅ Python evaluation backend working
+      ⏳ React foto-review module created
+      ⏳ Next.js API routes implemented
+      ⏳ /foto-review page accessible
+      ⏳ AI evaluation working end-to-end
+      ⏳ WhatsApp feedback sending
+      ⏳ Database integration complete
+      ⏳ Deployed to production
+    </must_have>
+    <nice_to_have>
+      ⏳ Real-time updates (polling or webhooks)
+      ⏳ Photo comparison view
+      ⏳ Historical evaluations
+      ⏳ Export evaluation reports
+    </nice_to_have>
+  </success_criteria>
+
+  <important_notes>
+    - DO NOT modify existing wa-monitor module
+    - DO NOT change monitoring page structure
+    - FOLLOW existing FibreFlow patterns and conventions
+    - USE existing database connection utilities
+    - USE existing authentication system
+    - TEST thoroughly before production deployment
+    - ENSURE mobile responsive design
+    - HANDLE errors gracefully with user-friendly messages
+  </important_notes>
+
+  <estimated_completion>
+    Total Time: 3-4 hours
+    - Task 1 (foto-review module): 1 hour
+    - Task 2 (/foto-review page): 1 hour
+    - Task 3 (API routes): 1 hour
+    - Task 4 (WhatsApp integration): 30 min
+    - Task 5 (Navigation): 30 min
+    - Testing & Deployment: 1 hour
+  </estimated_completion>
+</project_specification>
