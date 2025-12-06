@@ -34,7 +34,7 @@
       "Verify all photos load correctly",
       "Verify grid is responsive on mobile"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -47,7 +47,7 @@
       "Verify modal can be closed",
       "Verify navigation between photos in modal"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -60,7 +60,7 @@
       "Verify step count is shown (e.g., 8/12 passed)",
       "Verify card styling matches FibreFlow theme"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -74,7 +74,7 @@
       "Verify each step shows score",
       "Verify each step shows AI comments"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -139,7 +139,7 @@
       "Verify authentication is required",
       "Verify unauthenticated users are redirected"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -152,7 +152,7 @@
       "Verify DRs can be selected",
       "Verify selected DR is highlighted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -207,7 +207,7 @@
       "Verify all DR photos are shown",
       "Verify gallery is properly formatted"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -248,7 +248,7 @@
       "Verify UI is non-interactive during loading",
       "Verify loading clears when complete"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -261,7 +261,7 @@
       "Verify 'FAIL' badge is red",
       "Verify badge is prominent and clear"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -274,7 +274,7 @@
       "Verify score is formatted to 1 decimal place",
       "Verify score color matches status (green for high, red for low)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -287,7 +287,7 @@
       "Verify count matches detailed results",
       "Verify visual indicator (progress bar or fraction)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -301,7 +301,7 @@
       "Verify step names match foto_prompts.py steps",
       "Verify steps are in correct order"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -315,7 +315,7 @@
       "Verify failed steps show red X",
       "Verify status matches AI evaluation"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -328,7 +328,7 @@
       "Verify score is formatted consistently",
       "Verify score colors indicate quality (red/yellow/green)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -342,7 +342,7 @@
       "Verify comments match evaluation criteria",
       "Verify long comments are properly wrapped"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
