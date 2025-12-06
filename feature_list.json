@@ -704,7 +704,7 @@
       "Verify menu item has appropriate icon (camera/photo)",
       "Verify menu item is in logical position"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -716,7 +716,7 @@
       "Verify page loads correctly",
       "Verify navigation item is highlighted/active"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
