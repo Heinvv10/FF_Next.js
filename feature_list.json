@@ -1178,7 +1178,7 @@
       "Verify retry button is available",
       "Verify page doesn't crash"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1190,7 +1190,7 @@
       "Verify page doesn't show broken images",
       "Verify evaluation is disabled or shows warning"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -1202,7 +1202,7 @@
       "Verify no API call is made",
       "Verify page remains functional"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -2162,7 +2162,7 @@
       "Verify animations enhance UX (not distract)",
       "Verify flow is intuitive"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -2174,7 +2174,7 @@
       "Verify tone of voice matches",
       "Verify logo usage is correct"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
