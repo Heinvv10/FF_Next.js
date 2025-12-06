@@ -1,11 +1,12 @@
 /**
  * POST /api/foto/evaluate
  * Trigger AI evaluation for a DR
- * Calls Python backend script via child_process
+ * Calls Python backend script via child_process and saves to database
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { EvaluationResult } from '@/modules/foto-review/types';
+import { saveEvaluation } from '@/modules/foto-review/services/fotoDbService';
 
 export default async function handler(
   req: NextApiRequest,
@@ -23,60 +24,62 @@ export default async function handler(
     }
 
     // TODO: Call Python backend script
-    // const result = await evaluateDRWithPython(dr_number);
+    // const pythonResult = await evaluateDRWithPython(dr_number);
     //
-    // For now, return mock evaluation data
+    // For now, generate mock evaluation data with more realistic results
+    // In production, this will be replaced with actual Python AI evaluation
+
+    // Simulate randomized AI evaluation
+    const totalSteps = 12;
+    const passRate = 0.7 + Math.random() * 0.25; // 70-95% pass rate
+    const passedSteps = Math.floor(totalSteps * passRate);
+    const averageScore = passRate * 10;
+
+    const stepLabels = [
+      'House Photo',
+      'Cable Span from Pole',
+      'Cable Entry Outside',
+      'Cable Entry Inside',
+      'Wall for Installation',
+      'ONT Back After Install',
+      'Power Meter Reading',
+      'ONT Barcode',
+      'UPS Serial Number',
+      'Final Installation',
+      'Green Lights on ONT',
+      'Customer Signature',
+    ];
 
     const mockEvaluation: EvaluationResult = {
       dr_number,
-      overall_status: 'PASS',
-      average_score: 8.5,
-      total_steps: 12,
-      passed_steps: 10,
-      step_results: [
-        {
-          step_number: 1,
-          step_name: 'house_photo',
-          step_label: 'House Photo',
-          passed: true,
-          score: 9.0,
-          comment: 'House is clearly visible from the street. Good photo quality.',
-        },
-        {
-          step_number: 2,
-          step_name: 'cable_span',
-          step_label: 'Cable Span from Pole',
-          passed: true,
-          score: 8.5,
-          comment: 'Full cable span visible. Installation looks professional.',
-        },
-        {
-          step_number: 3,
-          step_name: 'ont_barcode',
-          step_label: 'ONT Barcode',
-          passed: false,
-          score: 5.0,
-          comment: 'Barcode is partially obscured. Please retake with better lighting.',
-        },
-        {
-          step_number: 4,
-          step_name: 'final_installation',
-          step_label: 'Final Installation',
-          passed: true,
-          score: 9.5,
-          comment: 'Installation is neat and professional. Cable management is excellent.',
-        },
-      ],
+      overall_status: passedSteps >= totalSteps * 0.75 ? 'PASS' : 'FAIL',
+      average_score: parseFloat(averageScore.toFixed(1)),
+      total_steps: totalSteps,
+      passed_steps: passedSteps,
+      step_results: stepLabels.map((label, index) => ({
+        step_number: index + 1,
+        step_name: label.toLowerCase().replace(/\s+/g, '_'),
+        step_label: label,
+        passed: index < passedSteps,
+        score: index < passedSteps
+          ? 7 + Math.random() * 3 // 7-10 for passed
+          : 3 + Math.random() * 4, // 3-7 for failed
+        comment: index < passedSteps
+          ? `${label} is clearly visible and meets quality standards.`
+          : `${label} needs improvement. Please retake photo with better quality.`,
+      })),
       feedback_sent: false,
       evaluation_date: new Date(),
+      markdown_report: undefined, // Python backend would generate this
     };
 
-    // TODO: Save to database
-    // await saveEvaluationToDB(mockEvaluation);
+    // Save to database
+    const savedEvaluation = await saveEvaluation(mockEvaluation);
 
     return res.status(200).json({
       success: true,
-      data: mockEvaluation,
+      data: savedEvaluation,
+      message: 'Evaluation completed and saved successfully',
     });
   } catch (error) {
     console.error('Error evaluating DR:', error);

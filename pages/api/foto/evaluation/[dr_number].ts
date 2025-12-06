@@ -1,9 +1,10 @@
 /**
  * GET /api/foto/evaluation/[dr_number]
- * Fetch cached evaluation for a specific DR
+ * Fetch cached evaluation for a specific DR from database
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getEvaluationByDR } from '@/modules/foto-review/services/fotoDbService';
 
 export default async function handler(
   req: NextApiRequest,
@@ -20,13 +21,19 @@ export default async function handler(
       return res.status(400).json({ error: 'Invalid DR number' });
     }
 
-    // TODO: Fetch from database
-    // const evaluation = await getEvaluationFromDB(dr_number);
+    // Fetch from database
+    const evaluation = await getEvaluationByDR(dr_number);
 
-    // For now, return 404 (no cached evaluation)
-    return res.status(404).json({
-      error: 'No evaluation found',
-      message: `No evaluation found for DR ${dr_number}`,
+    if (!evaluation) {
+      return res.status(404).json({
+        error: 'No evaluation found',
+        message: `No evaluation found for DR ${dr_number}`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: evaluation,
     });
   } catch (error) {
     console.error('Error fetching evaluation:', error);
