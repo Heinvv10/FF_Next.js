@@ -412,7 +412,7 @@
       "Verify response matches TypeScript types",
       "Verify pagination works if implemented"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
