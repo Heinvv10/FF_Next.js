@@ -40,6 +40,8 @@ export interface DropRecord {
   project: string;
   /** Installation date */
   installation_date?: Date;
+  /** Installation date (alias for filtering compatibility) */
+  date?: Date;
   /** Customer name */
   customer_name?: string;
   /** Customer address */
@@ -80,6 +82,8 @@ export interface StepEvaluationResult {
 export interface EvaluationResult {
   /** DR number that was evaluated */
   dr_number: string;
+  /** Project name (for WhatsApp feedback routing) */
+  project?: string;
   /** Overall status: PASS or FAIL */
   overall_status: 'PASS' | 'FAIL';
   /** Average score across all steps (0-10) */
@@ -99,9 +103,9 @@ export interface EvaluationResult {
   /** When this evaluation was performed */
   evaluation_date: Date;
   /** Database record creation timestamp */
-  created_at: Date;
+  created_at?: Date;
   /** Database record last update timestamp */
-  updated_at: Date;
+  updated_at?: Date;
 }
 
 /**
@@ -228,6 +232,8 @@ export interface PhotosState {
 export interface PhotoGalleryProps {
   /** Array of photos to display */
   photos: PhotoMetadata[];
+  /** DR number for the photos */
+  dr_number: string;
   /** Callback when a photo is clicked */
   onPhotoClick?: (photo: PhotoMetadata) => void;
   /** Whether to show loading state */
@@ -260,8 +266,8 @@ export interface AIEvaluationCardProps {
  * Props for EvaluationResults component
  */
 export interface EvaluationResultsProps {
-  /** Array of step evaluation results */
-  stepResults: StepEvaluationResult[];
+  /** Evaluation result to display */
+  evaluation: EvaluationResult;
   /** Whether to show in compact mode */
   compact?: boolean;
   /** Custom class name for styling */
