@@ -617,7 +617,7 @@
       "Verify DR number is formatted correctly",
       "Verify DR number is prominent"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -630,7 +630,7 @@
       "Send feedback for PASS evaluation",
       "Verify 'PASS' status shown with ✅"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -642,7 +642,7 @@
       "Verify score is formatted to 1 decimal",
       "Verify score is in prominent location"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -653,7 +653,7 @@
       "Verify step count shown (e.g., 8/12 passed)",
       "Verify count matches evaluation results"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -666,7 +666,7 @@
       "Verify formatting makes failures clear (bullets or numbering)",
       "Verify message is concise (not overwhelming)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -678,7 +678,7 @@
       "Verify guidance is specific (not generic)",
       "Verify tone is constructive (not negative)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
