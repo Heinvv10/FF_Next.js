@@ -567,7 +567,7 @@
       "Verify error message indicates no evaluation found",
       "Verify database is not modified"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
