@@ -593,7 +593,7 @@
       "Verify error messages are user-friendly",
       "Verify no stack traces leak to client in production"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -605,7 +605,7 @@
       "Verify error responses include error property",
       "Verify TypeScript types match responses"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
