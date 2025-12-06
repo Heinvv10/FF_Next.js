@@ -165,7 +165,7 @@
       "Select 'All Projects'",
       "Verify all DRs are shown again"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -179,7 +179,7 @@
       "Clear filter",
       "Verify all DRs return"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -194,7 +194,7 @@
       "Select 'All'",
       "Verify all DRs shown"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

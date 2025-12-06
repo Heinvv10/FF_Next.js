@@ -3,7 +3,7 @@
  * AI-powered photo evaluation for installation drops
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Head from 'next/head';
 import { AppLayout } from '@/components/layout';
 import { Camera, AlertTriangle } from 'lucide-react';
@@ -11,6 +11,8 @@ import {
   PhotoGallery,
   AIEvaluationCard,
   EvaluationResults,
+  FilterControls,
+  type FilterOptions,
 } from '@/modules/foto-review/components';
 import { usePhotos } from '@/modules/foto-review/hooks/usePhotos';
 import { useFotoEvaluation } from '@/modules/foto-review/hooks/useFotoEvaluation';
@@ -18,6 +20,13 @@ import type { DropRecord } from '@/modules/foto-review/types';
 
 export default function FotoReviewPage() {
   const [selectedDR, setSelectedDR] = useState<DropRecord | null>(null);
+  const [filters, setFilters] = useState<FilterOptions>({
+    project: 'all',
+    startDate: '',
+    endDate: '',
+    status: 'all',
+  });
+
   const { photos, isLoading, error, refresh } = usePhotos();
   const {
     evaluation,
@@ -29,6 +38,60 @@ export default function FotoReviewPage() {
     isSendingFeedback,
     feedbackError,
   } = useFotoEvaluation();
+
+  // Extract unique projects for filter dropdown
+  const projects = useMemo(() => {
+    const uniqueProjects = new Set(photos.map((dr) => dr.project));
+    return Array.from(uniqueProjects).sort();
+  }, [photos]);
+
+  // Apply filters to photos
+  const filteredPhotos = useMemo(() => {
+    return photos.filter((dr) => {
+      // Project filter
+      if (filters.project !== 'all' && dr.project !== filters.project) {
+        return false;
+      }
+
+      // Date range filter
+      if (filters.startDate && dr.date) {
+        const drDate = new Date(dr.date);
+        const startDate = new Date(filters.startDate);
+        if (drDate < startDate) {
+          return false;
+        }
+      }
+
+      if (filters.endDate && dr.date) {
+        const drDate = new Date(dr.date);
+        const endDate = new Date(filters.endDate);
+        // Set end date to end of day for inclusive filtering
+        endDate.setHours(23, 59, 59, 999);
+        if (drDate > endDate) {
+          return false;
+        }
+      }
+
+      // Status filter
+      if (filters.status === 'evaluated' && !dr.evaluated) {
+        return false;
+      }
+      if (filters.status === 'pending' && dr.evaluated) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [photos, filters]);
+
+  const handleClearFilters = () => {
+    setFilters({
+      project: 'all',
+      startDate: '',
+      endDate: '',
+      status: 'all',
+    });
+  };
 
   // Auto-fetch evaluation when DR is selected
   const handleSelectDR = async (dr: DropRecord) => {
@@ -83,8 +146,18 @@ export default function FotoReviewPage() {
               <div className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="p-4 border-b bg-gray-50">
                   <h2 className="text-lg font-semibold text-gray-900">Drop Records</h2>
-                  <p className="text-sm text-gray-600 mt-1">{photos.length} DRs with photos</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {filteredPhotos.length} of {photos.length} DRs
+                  </p>
                 </div>
+
+                {/* Filter Controls */}
+                <FilterControls
+                  projects={projects}
+                  filters={filters}
+                  onFilterChange={setFilters}
+                  onClearFilters={handleClearFilters}
+                />
 
                 {isLoading ? (
                   <div className="p-8 text-center">
@@ -102,14 +175,26 @@ export default function FotoReviewPage() {
                       Retry
                     </button>
                   </div>
-                ) : photos.length === 0 ? (
+                ) : filteredPhotos.length === 0 ? (
                   <div className="p-8 text-center">
                     <Camera className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-500">No DRs with photos found</p>
+                    <p className="text-gray-500">
+                      {photos.length === 0
+                        ? 'No DRs with photos found'
+                        : 'No DRs match the selected filters'}
+                    </p>
+                    {photos.length > 0 && (
+                      <button
+                        onClick={handleClearFilters}
+                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                      >
+                        Clear Filters
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="divide-y max-h-[600px] overflow-y-auto">
-                    {photos.map((dr) => (
+                    {filteredPhotos.map((dr) => (
                       <button
                         key={dr.dr_number}
                         onClick={() => handleSelectDR(dr)}
