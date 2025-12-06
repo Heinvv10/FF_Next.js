@@ -3,8 +3,9 @@
  * AI-powered photo evaluation for installation drops
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import { AppLayout } from '@/components/layout';
 import { Camera, AlertTriangle } from 'lucide-react';
@@ -20,6 +21,7 @@ import { useFotoEvaluation } from '@/modules/foto-review/hooks/useFotoEvaluation
 import type { DropRecord } from '@/modules/foto-review/types';
 
 export default function FotoReviewPage() {
+  const router = useRouter();
   const [selectedDR, setSelectedDR] = useState<DropRecord | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({
     project: 'all',
@@ -93,6 +95,56 @@ export default function FotoReviewPage() {
       status: 'all',
     });
   };
+
+  // Restore selected DR from URL on page load
+  useEffect(() => {
+    if (!router.isReady || !photos.length) return;
+
+    const drNumber = router.query.dr as string;
+    if (drNumber && !selectedDR) {
+      const dr = photos.find((p) => p.dr_number === drNumber);
+      if (dr) {
+        setSelectedDR(dr);
+        // Fetch existing evaluation if available
+        if (dr.evaluated) {
+          fetchEvaluation(dr.dr_number);
+        }
+      }
+    }
+  }, [router.isReady, router.query.dr, photos, selectedDR, fetchEvaluation]);
+
+  // Update URL when DR is selected
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    const currentDR = router.query.dr as string;
+    const newDR = selectedDR?.dr_number;
+
+    // Only update if different to avoid infinite loops
+    if (currentDR !== newDR) {
+      if (newDR) {
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: { ...router.query, dr: newDR },
+          },
+          undefined,
+          { shallow: true }
+        );
+      } else if (currentDR) {
+        // Remove dr param if no DR selected
+        const { dr, ...restQuery } = router.query;
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: restQuery,
+          },
+          undefined,
+          { shallow: true }
+        );
+      }
+    }
+  }, [selectedDR, router]);
 
   // Auto-fetch evaluation when DR is selected
   const handleSelectDR = async (dr: DropRecord) => {

@@ -1251,7 +1251,7 @@
       "Verify same DR is selected after reload",
       "Verify evaluation results still show"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
