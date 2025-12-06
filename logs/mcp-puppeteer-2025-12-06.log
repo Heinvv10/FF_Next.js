@@ -33,3 +33,16 @@
 {"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-12-06 19:52:42.616"}
 {"arguments":{"url":"http://localhost:3005"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-12-06 19:53:51.849","tool":"puppeteer_navigate"}
 {"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-12-06 19:53:51.850"}
+{"level":"info","message":"Puppeteer MCP Server closing","service":"mcp-puppeteer","timestamp":"2025-12-06 20:05:58.232"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-12-06 20:06:04.677"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-12-06 20:06:04.678"}
+{"arguments":{"url":"http://localhost:3005"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-12-06 20:08:45.081","tool":"puppeteer_navigate"}
+{"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-12-06 20:08:45.082"}
+{"level":"info","message":"Puppeteer MCP Server closing","service":"mcp-puppeteer","timestamp":"2025-12-06 20:19:24.925"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-12-06 20:19:31.764"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-12-06 20:19:31.765"}
+{"level":"info","message":"Puppeteer MCP Server closing","service":"mcp-puppeteer","timestamp":"2025-12-06 20:30:24.423"}
+{"level":"info","message":"Starting MCP server","service":"mcp-puppeteer","timestamp":"2025-12-06 20:30:30.614"}
+{"level":"info","message":"MCP server started successfully","service":"mcp-puppeteer","timestamp":"2025-12-06 20:30:30.616"}
+{"arguments":{"url":"http://localhost:3005/foto-review"},"level":"debug","message":"Tool call received","service":"mcp-puppeteer","timestamp":"2025-12-06 20:36:21.897","tool":"puppeteer_navigate"}
+{"0":"n","1":"p","2":"x","level":"info","message":"Launching browser with config:","service":"mcp-puppeteer","timestamp":"2025-12-06 20:36:21.898"}

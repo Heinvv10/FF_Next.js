@@ -1,13 +1,17 @@
 /**
  * Feedback Button Component
  * Handles sending WhatsApp feedback with preview dialog
+ *
+ * Updated to use FibreFlow premium components (VelocityButton, GlassCard)
  */
 
 'use client';
 
 import { useState } from 'react';
 import { Send, X } from 'lucide-react';
-import type { FeedbackButtonProps } from '../types';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { VelocityButton } from '@/components/ui/VelocityButton';
+import type { FeedbackButtonProps} from '../types';
 
 export function FeedbackButton({
   dr_number,
@@ -52,9 +56,9 @@ export function FeedbackButton({
   if (evaluation.feedback_sent) {
     return (
       <div className="text-center py-2 text-sm">
-        <span className="text-green-600 font-medium">✓ Feedback sent</span>
+        <span className="text-green-400 font-medium">✓ Feedback sent</span>
         {evaluation.feedback_sent_at && (
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-400 mt-1">
             {new Date(evaluation.feedback_sent_at).toLocaleString()}
           </p>
         )}
@@ -64,34 +68,28 @@ export function FeedbackButton({
 
   return (
     <>
-      <button
+      <VelocityButton
         onClick={() => setShowPreview(true)}
         disabled={disabled || isSending}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        variant="glass-primary"
+        size="lg"
+        className="w-full"
+        loading={isSending}
       >
-        {isSending ? (
-          <>
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span>Sending...</span>
-          </>
-        ) : (
-          <>
-            <Send className="w-4 h-4" />
-            <span>Send Feedback</span>
-          </>
-        )}
-      </button>
+        <Send className="w-4 h-4 mr-2" />
+        {isSending ? 'Sending...' : 'Send Feedback'}
+      </VelocityButton>
 
       {/* Preview Dialog */}
       {showPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <GlassCard variant="strong" elevation={6} rounded="lg" padding="none" className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">Preview WhatsApp Message</h3>
+            <div className="flex items-center justify-between p-6 border-b border-white/20">
+              <h3 className="text-lg font-semibold text-white">Preview WhatsApp Message</h3>
               <button
                 onClick={() => setShowPreview(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -99,31 +97,34 @@ export function FeedbackButton({
 
             {/* Message Preview */}
             <div className="p-6">
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <pre className="whitespace-pre-wrap text-sm text-gray-800 font-sans">
+              <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                <pre className="whitespace-pre-wrap text-sm text-gray-200 font-sans">
                   {formatFeedbackMessage()}
                 </pre>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t">
-              <button
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-white/20">
+              <VelocityButton
                 onClick={() => setShowPreview(false)}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                variant="glass"
+                size="md"
               >
                 Cancel
-              </button>
-              <button
+              </VelocityButton>
+              <VelocityButton
                 onClick={handleSend}
                 disabled={isSending}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                variant="glass-primary"
+                size="md"
+                loading={isSending}
               >
-                <Send className="w-4 h-4" />
-                <span>Confirm Send</span>
-              </button>
+                <Send className="w-4 h-4 mr-2" />
+                Confirm Send
+              </VelocityButton>
             </div>
-          </div>
+          </GlassCard>
         </div>
       )}
     </>
