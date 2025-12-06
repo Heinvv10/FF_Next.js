@@ -374,7 +374,7 @@
       "Check WhatsApp group for message",
       "Verify message received correctly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

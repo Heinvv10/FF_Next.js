@@ -7,6 +7,61 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getEvaluationByDR, markFeedbackSent } from '@/modules/foto-review/services/fotoDbService';
 
+// Project WhatsApp group mappings (same as wa-monitor)
+const PROJECT_GROUPS: Record<string, { jid: string; name: string }> = {
+  'Velo Test': {
+    jid: '120363421664266245@g.us',
+    name: 'Velo Test'
+  },
+  'Lawley': {
+    jid: '120363418298130331@g.us',
+    name: 'Lawley Activation 3'
+  },
+  'Mohadin': {
+    jid: '120363421532174586@g.us',
+    name: 'Mohadin Activations 🥳'
+  },
+  'Mamelodi': {
+    jid: '120363408849234743@g.us',
+    name: 'Mamelodi POP1 Activations'
+  }
+};
+
+/**
+ * Send message to WhatsApp group via Sender API
+ * Uses the same service as wa-monitor on VPS localhost:8081
+ */
+async function sendWhatsAppFeedback(drNumber: string, message: string, project?: string): Promise<void> {
+  // Get project group JID
+  const projectKey = project || 'Velo Test'; // Default to Velo Test for testing
+  const groupConfig = PROJECT_GROUPS[projectKey];
+
+  if (!groupConfig) {
+    throw new Error(`No WhatsApp group configured for project: ${projectKey}`);
+  }
+
+  // Send to group without @mention (general announcement)
+  // Using localhost because this runs on the VPS where WhatsApp service is hosted
+  const response = await fetch('http://localhost:8081/send-message', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      group_jid: groupConfig.jid,
+      message: message,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`WhatsApp API error: ${response.status} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  if (!result.success) {
+    throw new Error(`Failed to send WhatsApp message: ${result.message || 'Unknown error'}`);
+  }
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -43,18 +98,27 @@ export default async function handler(
     // Format WhatsApp message
     const message = formatFeedbackMessage(evaluation);
 
-    // TODO: Send via wa-monitor service
-    // await sendWhatsAppMessage({
-    //   to: '+27XXXXXXXXX', // Get from DR/project configuration
-    //   message: message,
-    // });
+    // Send via WhatsApp (using wa-monitor service on VPS)
+    // Feature flag: USE_WHATSAPP_FEEDBACK to enable/disable actual WhatsApp sending
+    const USE_WHATSAPP = process.env.USE_WHATSAPP_FEEDBACK === 'true';
+
+    if (USE_WHATSAPP) {
+      try {
+        console.log(`[WhatsApp] Sending feedback for ${dr_number}...`);
+        await sendWhatsAppFeedback(dr_number, message, evaluation.project);
+        console.log(`[WhatsApp] Feedback sent successfully`);
+      } catch (error) {
+        console.error(`[WhatsApp] Failed to send feedback:`, error);
+        // Don't fail the request if WhatsApp fails - still update database
+        // This allows the system to work even if WhatsApp service is down
+      }
+    } else {
+      console.log(`[MOCK] WhatsApp feedback for ${dr_number}:`);
+      console.log(message);
+    }
 
     // Update feedback_sent flag in database
     const updatedEvaluation = await markFeedbackSent(dr_number);
-
-    // For now, simulate successful send
-    console.log(`[MOCK] WhatsApp feedback sent for ${dr_number}:`);
-    console.log(message);
 
     return res.status(200).json({
       success: true,
@@ -62,7 +126,9 @@ export default async function handler(
         dr_number: updatedEvaluation.dr_number,
         feedback_sent: updatedEvaluation.feedback_sent,
         feedback_sent_at: updatedEvaluation.feedback_sent_at,
-        message: 'Feedback sent successfully',
+        message: USE_WHATSAPP
+          ? 'Feedback sent to WhatsApp successfully'
+          : 'Feedback logged successfully (WhatsApp disabled)',
       },
     });
   } catch (error) {
