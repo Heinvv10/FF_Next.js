@@ -692,7 +692,7 @@
       "Verify message is not too long",
       "Verify message is mobile-friendly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
