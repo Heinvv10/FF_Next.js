@@ -68,6 +68,9 @@ export function PhotoGallery({ photos, dr_number }: PhotoGalleryProps) {
               fill
               className="object-cover"
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
             />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
               <p className="text-white text-xs font-medium truncate">{photo.stepLabel}</p>
@@ -92,7 +95,7 @@ export function PhotoGallery({ photos, dr_number }: PhotoGalleryProps) {
       {/* Lightbox Modal */}
       {selectedPhotoIndex !== null && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-200"
           onClick={closeLightbox}
           onKeyDown={handleKeyDown}
           tabIndex={0}
@@ -100,40 +103,40 @@ export function PhotoGallery({ photos, dr_number }: PhotoGalleryProps) {
           aria-modal="true"
           aria-label="Photo lightbox"
         >
-          {/* Close Button */}
+          {/* Close Button - Prominent with background */}
           <button
-            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+            className="absolute top-4 right-4 z-10 text-white bg-black/50 hover:bg-black/70 rounded-full p-3 transition-all hover:scale-110 active:scale-95"
             onClick={closeLightbox}
             aria-label="Close lightbox"
           >
-            <X size={32} />
+            <X size={28} />
           </button>
 
-          {/* Previous Button */}
+          {/* Previous Button - More prominent with background circle */}
           {selectedPhotoIndex > 0 && (
             <button
-              className="absolute left-4 text-white hover:text-gray-300 transition-colors"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-white bg-black/50 hover:bg-black/70 rounded-full p-4 transition-all hover:scale-110 active:scale-95 shadow-lg"
               onClick={(e) => {
                 e.stopPropagation();
                 goToPrevious();
               }}
               aria-label="Previous photo"
             >
-              <ChevronLeft size={48} />
+              <ChevronLeft size={32} />
             </button>
           )}
 
-          {/* Next Button */}
+          {/* Next Button - More prominent with background circle */}
           {selectedPhotoIndex < photos.length - 1 && (
             <button
-              className="absolute right-4 text-white hover:text-gray-300 transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 text-white bg-black/50 hover:bg-black/70 rounded-full p-4 transition-all hover:scale-110 active:scale-95 shadow-lg"
               onClick={(e) => {
                 e.stopPropagation();
                 goToNext();
               }}
               aria-label="Next photo"
             >
-              <ChevronRight size={48} />
+              <ChevronRight size={32} />
             </button>
           )}
 

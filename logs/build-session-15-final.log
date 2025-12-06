@@ -1,0 +1,289 @@
+
+> fibreflow-react@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.18
+  - Environments: .env.production.local, .env.local, .env.production, .env
+  - Experiments (use with caution):
+    · disableOptimizedLoading
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings
+
+__barrel_optimize__?names=Grid3X3!=!./node_modules/lucide-react/dist/esm/lucide-react.js
+There are multiple modules with names that only differ in casing.
+This can lead to unexpected behavior when compiling on a filesystem with other case-semantic.
+Use equal casing. Compare these module identifiers:
+* /home/louisdup/VF/Apps/FF_React/node_modules/next/dist/build/webpack/loaders/next-barrel-loader.js??next-barrel-loader:?names=Grid3X3!/home/louisdup/VF/Apps/FF_React/node_modules/lucide-react/dist/esm/lucide-react.js
+    Used by 1 module(s), i. e.
+    /home/louisdup/VF/Apps/FF_React/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js??ruleSet[1].rules[16].oneOf[7].use[0]!/home/louisdup/VF/Apps/FF_React/src/modules/sow/imports-datagrid/components/HeaderSection.tsx
+* /home/louisdup/VF/Apps/FF_React/node_modules/next/dist/build/webpack/loaders/next-barrel-loader.js??next-barrel-loader:?names=Grid3x3!/home/louisdup/VF/Apps/FF_React/node_modules/lucide-react/dist/esm/lucide-react.js
+    Used by 1 module(s), i. e.
+    /home/louisdup/VF/Apps/FF_React/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js??ruleSet[1].rules[16].oneOf[7].use[0]!/home/louisdup/VF/Apps/FF_React/pages/onemap/grid.tsx
+
+Import trace for requested module:
+__barrel_optimize__?names=Grid3X3!=!./node_modules/lucide-react/dist/esm/lucide-react.js
+./src/modules/sow/imports-datagrid/components/HeaderSection.tsx
+./src/modules/sow/imports-datagrid/components/index.ts
+./src/modules/sow/imports-datagrid/index.ts
+./src/modules/sow/ImportsDataGridPage.tsx
+
+__barrel_optimize__?names=Grid3X3!=!./node_modules/lucide-react/dist/esm/lucide-react.js
+There are multiple modules with names that only differ in casing.
+This can lead to unexpected behavior when compiling on a filesystem with other case-semantic.
+Use equal casing. Compare these module identifiers:
+* /home/louisdup/VF/Apps/FF_React/node_modules/next/dist/build/webpack/loaders/next-barrel-loader.js??next-barrel-loader:?names=Grid3X3!/home/louisdup/VF/Apps/FF_React/node_modules/lucide-react/dist/esm/lucide-react.js
+    Used by 1 module(s), i. e.
+    /home/louisdup/VF/Apps/FF_React/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js??ruleSet[1].rules[16].oneOf[7].use[0]!/home/louisdup/VF/Apps/FF_React/src/modules/sow/imports-datagrid/components/HeaderSection.tsx
+* /home/louisdup/VF/Apps/FF_React/node_modules/next/dist/build/webpack/loaders/next-barrel-loader.js??next-barrel-loader:?names=Grid3x3!/home/louisdup/VF/Apps/FF_React/node_modules/lucide-react/dist/esm/lucide-react.js
+    Used by 1 module(s), i. e.
+    /home/louisdup/VF/Apps/FF_React/node_modules/next/dist/build/webpack/loaders/next-swc-loader.js??ruleSet[1].rules[16].oneOf[7].use[0]!/home/louisdup/VF/Apps/FF_React/pages/onemap/grid.tsx
+
+Import trace for requested module:
+__barrel_optimize__?names=Grid3X3!=!./node_modules/lucide-react/dist/esm/lucide-react.js
+./src/modules/sow/imports-datagrid/components/HeaderSection.tsx
+./src/modules/sow/imports-datagrid/components/index.ts
+./src/modules/sow/imports-datagrid/index.ts
+./src/modules/sow/ImportsDataGridPage.tsx
+./pages/imports/index.tsx
+
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/25) ...
+   Generating static pages (6/25) 
+   Generating static pages (12/25) 
+   Generating static pages (18/25) 
+ ✓ Generating static pages (25/25)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                                      Size     First Load JS
+┌ ○ /_not-found                                                  189 B           142 kB
+├ ƒ /api/contractors                                             0 B                0 B
+├ ○ /contractors                                                 1.76 kB         248 kB
+├ ƒ /contractors/[id]                                            6.02 kB         252 kB
+├ ƒ /contractors/[id]/documents-report                           178 B           246 kB
+├ ƒ /contractors/[id]/edit                                       188 B           236 kB
+├ ƒ /contractors/[id]/onboarding                                 3.77 kB         250 kB
+├ ○ /contractors/documents-report                                179 B           246 kB
+├ ○ /contractors/new                                             174 B           236 kB
+├ ○ /contractors/rag-dashboard                                   2.46 kB         154 kB
+├ ○ /drops/dashboard                                             180 kB          451 kB
+├ ○ /foto-reviews                                                5.48 kB         147 kB
+├ ○ /projects                                                    12.3 kB         273 kB
+├ ○ /test-onboarding                                             711 B           143 kB
+├ ○ /wa-monitor                                                  167 B           710 kB
+├ ƒ /wa-monitor/dr-validation                                    4.03 kB         261 kB
+└ ○ /wa-monitor/health                                           167 B           710 kB
++ First Load JS shared by all                                    142 kB
+  └ chunks/npm.next-53470740ce147b94.js                          139 kB
+  └ other shared chunks (total)                                  3.33 kB
+
+Route (pages)                                                    Size     First Load JS
+┌ ƒ /                                                            529 B           225 kB
+├   /_app                                                        0 B             225 kB
+├ ƒ /action-items                                                1.41 kB         328 kB
+├ ƒ /action-items/[slug]                                         3.43 kB         330 kB
+├ ○ /admin/poles-sync                                            2.33 kB         227 kB
+├ ○ /admin/qfield-sync                                           3.13 kB         228 kB
+├ ƒ /analytics                                                   844 B           328 kB
+├ ƒ /api/action-items                                            0 B             225 kB
+├ ƒ /api/action-items/[id]                                       0 B             225 kB
+├ ƒ /api/action-items/extract                                    0 B             225 kB
+├ ƒ /api/action-items/extract-all                                0 B             225 kB
+├ ƒ /api/action-items/stats                                      0 B             225 kB
+├ ƒ /api/admin/init-db                                           0 B             225 kB
+├ ƒ /api/analytics/dashboard/stats                               0 B             225 kB
+├ ƒ /api/analytics/dashboard/summary                             0 B             225 kB
+├ ƒ /api/analytics/dashboard/trends                              0 B             225 kB
+├ ƒ /api/analytics/errors                                        0 B             225 kB
+├ ƒ /api/analytics/projects/summary                              0 B             225 kB
+├ ƒ /api/analytics/web-vitals                                    0 B             225 kB
+├ ƒ /api/clients                                                 0 B             225 kB
+├ ƒ /api/clients/[id]                                            0 B             225 kB
+├ ƒ /api/clients/summary                                         0 B             225 kB
+├ ƒ /api/contractors-documents                                   0 B             225 kB
+├ ƒ /api/contractors-documents-delete                            0 B             225 kB
+├ ƒ /api/contractors-documents-export                            0 B             225 kB
+├ ƒ /api/contractors-documents-report                            0 B             225 kB
+├ ƒ /api/contractors-documents-report-summary                    0 B             225 kB
+├ ƒ /api/contractors-documents-update                            0 B             225 kB
+├ ƒ /api/contractors-documents-upload                            0 B             225 kB
+├ ƒ /api/contractors-documents-verify                            0 B             225 kB
+├ ƒ /api/contractors-onboarding-complete                         0 B             225 kB
+├ ƒ /api/contractors-onboarding-stages                           0 B             225 kB
+├ ƒ /api/contractors-onboarding-stages-update                    0 B             225 kB
+├ ƒ /api/contractors-projects                                    0 B             225 kB
+├ ƒ /api/contractors-projects-delete                             0 B             225 kB
+├ ƒ /api/contractors-projects-update                             0 B             225 kB
+├ ƒ /api/contractors-rag                                         0 B             225 kB
+├ ƒ /api/contractors-update                                      0 B             225 kB
+├ ƒ /api/contractors/[contractorId]                              0 B             225 kB
+├ ƒ /api/contractors/[contractorId]/onboarding/complete          0 B             225 kB
+├ ƒ /api/contractors/[contractorId]/onboarding/stages            0 B             225 kB
+├ ƒ /api/contractors/[contractorId]/onboarding/stages/[stageId]  0 B             225 kB
+├ ƒ /api/cron/sync-action-items                                  0 B             225 kB
+├ ƒ /api/database/health                                         0 B             225 kB
+├ ƒ /api/database/info                                           0 B             225 kB
+├ ƒ /api/database/query                                          0 B             225 kB
+├ ƒ /api/field/export                                            0 B             225 kB
+├ ƒ /api/field/quality-checks                                    0 B             225 kB
+├ ƒ /api/field/schedules                                         0 B             225 kB
+├ ƒ /api/field/sync                                              0 B             225 kB
+├ ƒ /api/field/tasks                                             0 B             225 kB
+├ ƒ /api/field/tasks/[id]                                        0 B             225 kB
+├ ƒ /api/field/technicians                                       0 B             225 kB
+├ ƒ /api/foto-reviews/[jobId]                                    0 B             225 kB
+├ ƒ /api/foto-reviews/[jobId]/approve                            0 B             225 kB
+├ ƒ /api/foto-reviews/[jobId]/edit-feedback                      0 B             225 kB
+├ ƒ /api/foto-reviews/[jobId]/history                            0 B             225 kB
+├ ƒ /api/foto-reviews/[jobId]/reject                             0 B             225 kB
+├ ƒ /api/foto-reviews/[jobId]/send-to-whatsapp                   0 B             225 kB
+├ ƒ /api/foto-reviews/image                                      0 B             225 kB
+├ ƒ /api/foto-reviews/pending                                    0 B             225 kB
+├ ƒ /api/foto/evaluate                                           0 B             225 kB
+├ ƒ /api/foto/evaluation/[dr_number]                             0 B             225 kB
+├ ƒ /api/foto/feedback                                           0 B             225 kB
+├ ƒ /api/foto/photos                                             0 B             225 kB
+├ ƒ /api/health                                                  0 B             225 kB
+├ ƒ /api/health/db                                               0 B             225 kB
+├ ƒ /api/marketing-activations                                   0 B             225 kB
+├ ƒ /api/meetings                                                0 B             225 kB
+├ ƒ /api/meetings-sync-cron                                      0 B             225 kB
+├ ƒ /api/nokia/velocity                                          0 B             225 kB
+├ ƒ /api/onemap/properties                                       0 B             225 kB
+├ ƒ /api/onemap/properties-enhanced                              0 B             225 kB
+├ ƒ /api/onemap/properties-with-mapping                          0 B             225 kB
+├ ƒ /api/onemap/upload                                           0 B             225 kB
+├ ƒ /api/poles                                                   0 B             225 kB
+├ ƒ /api/procurement/boq                                         0 B             225 kB
+├ ƒ /api/procurement/metrics/aggregate                           0 B             225 kB
+├ ƒ /api/procurement/projects/summaries                          0 B             225 kB
+├ ƒ /api/procurement/rfq                                         0 B             225 kB
+├ ƒ /api/procurement/stock                                       0 B             225 kB
+├ ƒ /api/projects                                                0 B             225 kB
+├ ƒ /api/projects/[projectId]                                    0 B             225 kB
+├ ƒ /api/projects/[projectId]/phases                             0 B             225 kB
+├ ƒ /api/projects/[projectId]/phases/[phaseId]                   0 B             225 kB
+├ ƒ /api/projects/[projectId]/progress                           0 B             225 kB
+├ ƒ /api/projects/index-with-zod                                 0 B             225 kB
+├ ƒ /api/projects/search                                         0 B             225 kB
+├ ƒ /api/projects/stats                                          0 B             225 kB
+├ ƒ /api/qfield/oes-sync                                         0 B             225 kB
+├ ƒ /api/qfield/oes-upload                                       0 B             225 kB
+├ ƒ /api/qfield/poles-sync                                       0 B             225 kB
+├ ƒ /api/qfield/projects                                         0 B             225 kB
+├ ƒ /api/realtime/poll                                           0 B             225 kB
+├ ƒ /api/reminder-preferences                                    0 B             225 kB
+├ ƒ /api/reminders                                               0 B             225 kB
+├ ƒ /api/reminders-delete                                        0 B             225 kB
+├ ƒ /api/reminders-update                                        0 B             225 kB
+├ ƒ /api/search                                                  0 B             225 kB
+├ ƒ /api/sow                                                     0 B             225 kB
+├ ƒ /api/sow/drops                                               0 B             225 kB
+├ ƒ /api/sow/drops/search                                        0 B             225 kB
+├ ƒ /api/sow/drops/stats                                         0 B             225 kB
+├ ƒ /api/sow/fibre                                               0 B             225 kB
+├ ƒ /api/sow/import                                              0 B             225 kB
+├ ƒ /api/sow/import-status                                       0 B             225 kB
+├ ƒ /api/sow/import/[importId]/status                            0 B             225 kB
+├ ƒ /api/sow/list                                                0 B             225 kB
+├ ƒ /api/sow/poles                                               0 B             225 kB
+├ ƒ /api/sow/project                                             0 B             225 kB
+├ ƒ /api/sow/project/[projectId]                                 0 B             225 kB
+├ ƒ /api/sow/project/[projectId]/import                          0 B             225 kB
+├ ƒ /api/sow/project/[projectId]/poles-with-drops                0 B             225 kB
+├ ƒ /api/sow/project/[projectId]/summary                         0 B             225 kB
+├ ƒ /api/sow/summary                                             0 B             225 kB
+├ ƒ /api/sow/tables/check                                        0 B             225 kB
+├ ƒ /api/staff                                                   0 B             225 kB
+├ ƒ /api/suppliers                                               0 B             225 kB
+├ ƒ /api/suppliers/[supplierId]                                  0 B             225 kB
+├ ƒ /api/suppliers/[supplierId]/compliance                       0 B             225 kB
+├ ƒ /api/suppliers/[supplierId]/ratings                          0 B             225 kB
+├ ƒ /api/suppliers/statistics                                    0 B             225 kB
+├ ƒ /api/version                                                 0 B             225 kB
+├ ƒ /api/wa-monitor-daily-drops                                  0 B             225 kB
+├ ƒ /api/wa-monitor-dr-validation                                0 B             225 kB
+├ ƒ /api/wa-monitor-drops                                        0 B             225 kB
+├ ƒ /api/wa-monitor-drops/[id]                                   0 B             225 kB
+├ ƒ /api/wa-monitor-drops/[id]/lock                              0 B             225 kB
+├ ƒ /api/wa-monitor-drops/[id]/unlock                            0 B             225 kB
+├ ƒ /api/wa-monitor-health                                       0 B             225 kB
+├ ƒ /api/wa-monitor-project-stats                                0 B             225 kB
+├ ƒ /api/wa-monitor-projects-summary                             0 B             225 kB
+├ ƒ /api/wa-monitor-send-feedback                                0 B             225 kB
+├ ƒ /api/wa-monitor-sync-sharepoint                              0 B             225 kB
+├ ƒ /api/wa-monitor-sync-sharepoint-test                         0 B             225 kB
+├ ƒ /api/ws                                                      0 B             225 kB
+├ ƒ /clients                                                     781 B           225 kB
+├ ƒ /clients/[id]                                                512 B           225 kB
+├ ƒ /clients/[id]/edit                                           336 B           577 kB
+├ ○ /clients/new                                                 310 B           577 kB
+├ ƒ /communications                                              2.55 kB         329 kB
+├ ƒ /daily-progress                                              2.27 kB         329 kB
+├ ƒ /dashboard                                                   863 B           328 kB
+├ ƒ /drops                                                       3.7 kB          331 kB
+├ ƒ /enhanced-kpis                                               1.66 kB         329 kB
+├ ƒ /fiber-stringing                                             2.64 kB         330 kB
+├ ƒ /field                                                       4.88 kB         332 kB
+├ ƒ /foto-review                                                 10.5 kB         337 kB
+├ ƒ /imports                                                     463 B           225 kB
+├ ƒ /installations                                               2.1 kB          329 kB
+├ ƒ /kpi-dashboard                                               1.37 kB         328 kB
+├ ○ /marketing-activations                                       2.11 kB         329 kB
+├ ƒ /meetings                                                    4.25 kB         331 kB
+├ ƒ /migration-status                                            15.8 kB         349 kB
+├ ƒ /nokia-equipment                                             1.39 kB         331 kB
+├ ƒ /onemap                                                      1.08 kB         328 kB
+├ ƒ /onemap/export                                               766 B           328 kB
+├ ƒ /onemap/grid                                                 731 B           328 kB
+├ ƒ /onemap/import                                               2.02 kB         329 kB
+├ ƒ /onemap/layers                                               674 B           328 kB
+├ ƒ /onemap/map                                                  587 B           328 kB
+├ ƒ /onemap/search                                               989 B           328 kB
+├ ƒ /pole-capture                                                3.43 kB         330 kB
+├ ƒ /pole-tracker                                                455 B           225 kB
+├ ƒ /procurement                                                 5.06 kB         324 kB
+├ ƒ /procurement/boq                                             25.7 kB         347 kB
+├ ƒ /procurement/rfq                                             2.07 kB         227 kB
+├ ƒ /procurement/stock                                           2.34 kB         324 kB
+├ ○ /projects-wa-test                                            1.26 kB         226 kB
+├ ƒ /projects/[id]                                               497 B           225 kB
+├ ƒ /projects/[id]/edit                                          733 B           225 kB
+├ ƒ /projects/[id]/tracker                                       505 B           225 kB
+├ ƒ /projects/new                                                539 B           225 kB
+├ ○ /projects/new-test                                           1.57 kB         226 kB
+├ ƒ /reports                                                     967 B           328 kB
+├ ƒ /settings                                                    805 B           328 kB
+├ ƒ /sign-in                                                     666 B           225 kB
+├ ƒ /sow                                                         430 B           225 kB
+├ ƒ /sow-management                                              443 B           225 kB
+├ ƒ /sow/grid                                                    469 B           225 kB
+├ ƒ /sow/import                                                  439 B           225 kB
+├ ƒ /sow/list                                                    436 B           225 kB
+├ ƒ /staff                                                       2.71 kB         330 kB
+├ ƒ /staff/[id]                                                  522 B           225 kB
+├ ○ /staff/[id]/edit                                             330 B           621 kB
+├ ○ /staff/import (368 ms)                                       3.1 kB          572 kB
+├ ○ /staff/new (459 ms)                                          313 B           621 kB
+├ ƒ /suppliers                                                   53.3 kB         494 kB
+├ ƒ /suppliers/new                                               2.36 kB         329 kB
+├ ƒ /tasks                                                       1.38 kB         328 kB
+├ ƒ /test                                                        433 B           225 kB
+├ ○ /test-realtime                                               16.3 kB         241 kB
+└ ƒ /workflow-portal                                             221 kB          558 kB
++ First Load JS shared by all                                    242 kB
+  ├ chunks/framework-02f0dcafa418b819.js                         45.6 kB
+  ├ chunks/npm.next-53470740ce147b94.js                          139 kB
+  └ chunks/npm.tanstack-3840d4f440619631.js                      11.6 kB
+  ├ chunks/pages/_app-e672947fbfc5702e.js                        13.3 kB
+  ├ css/9d8f6d41b1383e43.css                                     17.7 kB
+  └ other shared chunks (total)                                  15.5 kB
+
+ƒ Middleware                                                     25.9 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -193,25 +193,27 @@ export default function FotoReviewPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="divide-y max-h-[600px] overflow-y-auto">
+                  <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto scroll-smooth">
                     {filteredPhotos.map((dr) => (
                       <button
                         key={dr.dr_number}
                         onClick={() => handleSelectDR(dr)}
-                        className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${
-                          selectedDR?.dr_number === dr.dr_number ? 'bg-blue-50 border-l-4 border-blue-600' : ''
+                        className={`w-full text-left p-4 transition-all duration-200 hover:bg-gray-50 ${
+                          selectedDR?.dr_number === dr.dr_number
+                            ? 'bg-blue-50 border-l-4 border-blue-600 shadow-sm'
+                            : 'hover:border-l-4 hover:border-gray-300'
                         }`}
                       >
-                        <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center justify-between mb-2">
                           <span className="font-semibold text-gray-900">{dr.dr_number}</span>
                           {dr.evaluated && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
                               Evaluated
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600">{dr.project}</p>
-                        <p className="text-xs text-gray-500 mt-1">{dr.photos.length} photos</p>
+                        <p className="text-sm text-gray-600 font-medium mb-1">{dr.project}</p>
+                        <p className="text-xs text-gray-500">{dr.photos.length} photo{dr.photos.length !== 1 ? 's' : ''}</p>
                       </button>
                     ))}
                   </div>

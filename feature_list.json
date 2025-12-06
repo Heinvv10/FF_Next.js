@@ -970,7 +970,7 @@
       "Verify images don't stretch or squish",
       "Verify lazy loading works properly"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -983,7 +983,7 @@
       "Verify navigation arrows are visible",
       "Verify photo is centered and scaled nicely"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -1033,7 +1033,7 @@
       "Verify loading message is visible",
       "Verify animation stops when loading completes"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
@@ -1099,7 +1099,7 @@
       "Verify scrolling works smoothly",
       "Verify list is not cramped"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "style",
