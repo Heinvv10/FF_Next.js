@@ -11,6 +11,7 @@ import {
   executePythonEvaluation,
   PythonEvaluationError,
 } from '@/modules/foto-review/services/fotoPythonService';
+import { validateDrNumber } from '@/modules/foto-review/utils/drValidator';
 
 // Feature flag: Use Python backend or mock data
 const USE_PYTHON_BACKEND = process.env.USE_PYTHON_BACKEND === 'true';
@@ -28,16 +29,25 @@ export default async function handler(
 
     console.log('[evaluate API] Received request for DR:', dr_number);
 
-    if (!dr_number) {
-      return res.status(400).json({ error: 'DR number is required' });
+    // Validate DR number format and check for SQL injection
+    const validation = validateDrNumber(dr_number);
+
+    if (!validation.valid) {
+      return res.status(400).json({
+        error: 'Invalid DR number',
+        message: validation.error,
+      });
     }
+
+    // Use sanitized DR number
+    const sanitizedDr = validation.sanitized!;
 
     let evaluation: EvaluationResult;
 
     if (USE_PYTHON_BACKEND) {
       console.log('[evaluate API] Using Python backend for evaluation');
       try {
-        evaluation = await executePythonEvaluation(dr_number);
+        evaluation = await executePythonEvaluation(sanitizedDr);
         console.log('[evaluate API] Python evaluation successful');
       } catch (error) {
         if (error instanceof PythonEvaluationError) {
@@ -58,11 +68,11 @@ export default async function handler(
       }
     } else {
       console.log('[evaluate API] Using mock evaluation data (Python backend disabled)');
-      evaluation = generateMockEvaluation(dr_number);
+      evaluation = generateMockEvaluation(sanitizedDr);
     }
 
     // Save to database
-    console.log('[evaluate API] Saving evaluation for DR:', dr_number);
+    console.log('[evaluate API] Saving evaluation for DR:', sanitizedDr);
     const savedEvaluation = await saveEvaluation(evaluation);
     console.log('[evaluate API] Saved successfully:', savedEvaluation.dr_number);
 

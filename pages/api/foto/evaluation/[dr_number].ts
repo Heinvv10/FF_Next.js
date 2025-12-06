@@ -5,6 +5,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getEvaluationByDR } from '@/modules/foto-review/services/fotoDbService';
+import { validateDrNumber } from '@/modules/foto-review/utils/drValidator';
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,17 +18,28 @@ export default async function handler(
   try {
     const { dr_number } = req.query;
 
-    if (!dr_number || typeof dr_number !== 'string') {
-      return res.status(400).json({ error: 'Invalid DR number' });
+    // Validate DR number format and check for SQL injection
+    const validation = validateDrNumber(
+      typeof dr_number === 'string' ? dr_number : undefined
+    );
+
+    if (!validation.valid) {
+      return res.status(400).json({
+        error: 'Invalid DR number',
+        message: validation.error,
+      });
     }
 
+    // Use sanitized DR number (trimmed and uppercase)
+    const sanitizedDr = validation.sanitized!;
+
     // Fetch from database
-    const evaluation = await getEvaluationByDR(dr_number);
+    const evaluation = await getEvaluationByDR(sanitizedDr);
 
     if (!evaluation) {
       return res.status(404).json({
         error: 'No evaluation found',
-        message: `No evaluation found for DR ${dr_number}`,
+        message: `No evaluation found for DR ${sanitizedDr}`,
       });
     }
 

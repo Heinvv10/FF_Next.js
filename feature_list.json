@@ -529,7 +529,7 @@
       "Send request with SQL injection attempt",
       "Verify request is sanitized/rejected"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

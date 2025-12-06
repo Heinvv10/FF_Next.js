@@ -6,6 +6,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getEvaluationByDR, markFeedbackSent } from '@/modules/foto-review/services/fotoDbService';
+import { validateDrNumber } from '@/modules/foto-review/utils/drValidator';
 
 // Project WhatsApp group mappings (same as wa-monitor)
 const PROJECT_GROUPS: Record<string, { jid: string; name: string }> = {
@@ -73,17 +74,26 @@ export default async function handler(
   try {
     const { dr_number } = req.body;
 
-    if (!dr_number) {
-      return res.status(400).json({ error: 'DR number is required' });
+    // Validate DR number format and check for SQL injection
+    const validation = validateDrNumber(dr_number);
+
+    if (!validation.valid) {
+      return res.status(400).json({
+        error: 'Invalid DR number',
+        message: validation.error,
+      });
     }
 
+    // Use sanitized DR number
+    const sanitizedDr = validation.sanitized!;
+
     // Fetch evaluation from database
-    const evaluation = await getEvaluationByDR(dr_number);
+    const evaluation = await getEvaluationByDR(sanitizedDr);
 
     if (!evaluation) {
       return res.status(404).json({
         error: 'Evaluation not found',
-        message: `No evaluation found for DR ${dr_number}. Please run evaluation first.`,
+        message: `No evaluation found for DR ${sanitizedDr}. Please run evaluation first.`,
       });
     }
 
@@ -91,7 +101,7 @@ export default async function handler(
     if (evaluation.feedback_sent) {
       return res.status(400).json({
         error: 'Feedback already sent',
-        message: `Feedback for DR ${dr_number} was already sent on ${evaluation.feedback_sent_at?.toISOString()}`,
+        message: `Feedback for DR ${sanitizedDr} was already sent on ${evaluation.feedback_sent_at?.toISOString()}`,
       });
     }
 
@@ -104,8 +114,8 @@ export default async function handler(
 
     if (USE_WHATSAPP) {
       try {
-        console.log(`[WhatsApp] Sending feedback for ${dr_number}...`);
-        await sendWhatsAppFeedback(dr_number, message, evaluation.project);
+        console.log(`[WhatsApp] Sending feedback for ${sanitizedDr}...`);
+        await sendWhatsAppFeedback(sanitizedDr, message, evaluation.project);
         console.log(`[WhatsApp] Feedback sent successfully`);
       } catch (error) {
         console.error(`[WhatsApp] Failed to send feedback:`, error);
@@ -113,12 +123,12 @@ export default async function handler(
         // This allows the system to work even if WhatsApp service is down
       }
     } else {
-      console.log(`[MOCK] WhatsApp feedback for ${dr_number}:`);
+      console.log(`[MOCK] WhatsApp feedback for ${sanitizedDr}:`);
       console.log(message);
     }
 
     // Update feedback_sent flag in database
-    const updatedEvaluation = await markFeedbackSent(dr_number);
+    const updatedEvaluation = await markFeedbackSent(sanitizedDr);
 
     return res.status(200).json({
       success: true,
