@@ -69,7 +69,10 @@
       "Bash(for dir in */)",
       "Bash(do echo \"=== $dir%/ ===\")",
       "Bash(pkill:*)",
-      "Bash(fuser:*)"
+      "Bash(fuser:*)",
+      "Bash(git init:*)",
+      "Bash(xargs curl:*)",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": [],

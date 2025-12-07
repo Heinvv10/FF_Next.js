@@ -11,7 +11,7 @@ import { AppLayout } from '@/components/layout';
 import { Camera, AlertTriangle } from 'lucide-react';
 import {
   PhotoGallery,
-  AIEvaluationCard,
+  EvaluationPanel,
   EvaluationResults,
   FilterControls,
   type FilterOptions,
@@ -303,15 +303,14 @@ export default function FotoReviewPage() {
                     <PhotoGallery photos={selectedDR.photos} dr_number={selectedDR.dr_number} />
                   </section>
 
-                  {/* Evaluation Card */}
+                  {/* Evaluation Panel */}
                   <section aria-labelledby="evaluation-heading" aria-live="polite" aria-atomic="false">
-                    <AIEvaluationCard
-                      dr_number={selectedDR.dr_number}
-                      evaluation={evaluation}
-                      isEvaluating={isEvaluating}
-                      onEvaluate={handleEvaluate}
-                      onSendFeedback={handleSendFeedback}
-                      isSendingFeedback={isSendingFeedback}
+                    <EvaluationPanel
+                      drop={selectedDR}
+                      onEvaluate={evaluate}
+                      onSendFeedback={async (drNumber, message) => {
+                        await sendFeedback(drNumber);
+                      }}
                     />
                   </section>
 
