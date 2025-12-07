@@ -7,7 +7,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { PhotoGalleryProps } from '../types';
 
@@ -64,15 +63,12 @@ export function PhotoGallery({ photos, dr_number }: PhotoGalleryProps) {
             aria-label={`View ${photo.stepLabel} - ${photo.filename}`}
             type="button"
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={photo.url}
               alt={photo.stepLabel}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
-              placeholder="blur"
-              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
             />
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2" aria-hidden="true">
               <p className="text-white text-xs font-medium truncate">{photo.stepLabel}</p>
@@ -147,15 +143,13 @@ export function PhotoGallery({ photos, dr_number }: PhotoGalleryProps) {
             className="relative max-w-5xl max-h-[90vh] w-full h-full flex flex-col items-center justify-center p-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full h-full">
+            <div className="relative w-full h-full flex items-center justify-center">
               {photos[selectedPhotoIndex] && (
-                <Image
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
                   src={photos[selectedPhotoIndex].url}
                   alt={photos[selectedPhotoIndex].stepLabel}
-                  fill
-                  className="object-contain"
-                  sizes="100vw"
-                  priority
+                  className="max-w-full max-h-full object-contain"
                 />
               )}
             </div>

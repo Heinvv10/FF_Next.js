@@ -1,11 +1,39 @@
 /**
  * GET /api/foto/photos
- * Fetch DRs with photos
+ * Fetch DRs with photos from qa_photo_reviews table
  * Supports filtering by project, date range, and evaluation status
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import type { DropRecord } from '@/modules/foto-review/types';
+import { neon } from '@neondatabase/serverless';
+import type { DropRecord, Photo } from '@/modules/foto-review/types';
+
+const sql = neon(process.env.DATABASE_URL!);
+
+// Photo step mapping
+const PHOTO_STEPS = [
+  { step: 'step_01_house_photo', label: 'House Photo' },
+  { step: 'step_02_cable_from_pole', label: 'Cable From Pole' },
+  { step: 'step_03_cable_entry_outside', label: 'Cable Entry Outside' },
+  { step: 'step_04_cable_entry_inside', label: 'Cable Entry Inside' },
+  { step: 'step_05_wall_for_installation', label: 'Wall For Installation' },
+  { step: 'step_06_ont_back_after_install', label: 'ONT Back After Install' },
+  { step: 'step_07_power_meter_reading', label: 'Power Meter Reading' },
+  { step: 'step_08_ont_barcode', label: 'ONT Barcode' },
+  { step: 'step_09_ups_serial', label: 'UPS Serial' },
+  { step: 'step_10_final_installation', label: 'Final Installation' },
+  { step: 'step_11_green_lights', label: 'Green Lights' },
+  { step: 'step_12_customer_signature', label: 'Customer Signature' },
+];
+
+/**
+ * Construct proxied photo URL to bypass CORS
+ */
+function getProxiedPhotoUrl(drNumber: string, step: string): string {
+  const BOSS_API_URL = process.env.BOSS_VPS_API_URL || 'http://72.61.197.178:8001';
+  const bossUrl = `${BOSS_API_URL}/api/photo/${drNumber}/${step}.jpg`;
+  return `/api/foto/photo-proxy?url=${encodeURIComponent(bossUrl)}`;
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -16,133 +44,70 @@ export default async function handler(
   }
 
   try {
-    // Extract query parameters for filtering
-    const { project, startDate, endDate } = req.query;
+    // Query database - fetch all recent DRs
+    const rows = await sql`
+      SELECT
+        drop_number,
+        project,
+        review_date as installation_date,
+        user_name as customer_name,
+        completed_photos,
+        outstanding_photos,
+        step_01_house_photo,
+        step_02_cable_from_pole,
+        step_03_cable_entry_outside,
+        step_04_cable_entry_inside,
+        step_05_wall_for_installation,
+        step_06_ont_back_after_install,
+        step_07_power_meter_reading,
+        step_08_ont_barcode,
+        step_09_ups_serial,
+        step_10_final_installation,
+        step_11_green_lights,
+        step_12_customer_signature
+      FROM qa_photo_reviews
+      ORDER BY review_date DESC, drop_number DESC
+      LIMIT 100
+    `;
 
-    // TODO: Fetch from actual photo storage (VPS, Firebase, S3)
-    // For now, return mock data for testing
+    // Transform database rows to DropRecord format
+    const dropRecords: DropRecord[] = rows.map((row: any) => {
+      // Build photos array from step columns
+      const photos: Photo[] = [];
 
-    const mockPhotos: DropRecord[] = [
-      {
-        dr_number: 'DR1234567',
-        project: 'Lawley',
-        installation_date: new Date('2024-12-01'),
-        customer_name: 'John Doe',
-        address: '123 Main St',
-        pole_number: 'POLE001',
-        photos: [
-          {
-            id: '1',
-            url: 'https://placehold.co/600x400/png?text=House+Photo',
-            step: 'step_01_house_photo',
-            stepLabel: 'House Photo',
-            timestamp: new Date('2024-12-01T10:00:00Z'),
-            filename: 'house.jpg',
-          },
-          {
-            id: '2',
-            url: 'https://placehold.co/600x400/png?text=Cable+Span',
-            step: 'step_02_cable_span',
-            stepLabel: 'Cable Span',
-            timestamp: new Date('2024-12-01T10:05:00Z'),
-            filename: 'cable.jpg',
-          },
-          {
-            id: '3',
-            url: 'https://placehold.co/600x400/png?text=ONT+Barcode',
-            step: 'step_03_ont_barcode',
-            stepLabel: 'ONT Barcode',
-            timestamp: new Date('2024-12-01T10:10:00Z'),
-            filename: 'barcode.jpg',
-          },
-        ],
-        evaluated: false,
-      },
-      {
-        dr_number: 'DR7654321',
-        project: 'Mohadin',
-        installation_date: new Date('2024-12-02'),
-        customer_name: 'Jane Smith',
-        address: '456 Oak Ave',
-        pole_number: 'POLE002',
-        photos: [
-          {
-            id: '4',
-            url: 'https://placehold.co/600x400/png?text=House+Photo',
-            step: 'step_01_house_photo',
-            stepLabel: 'House Photo',
-            timestamp: new Date('2024-12-02T14:00:00Z'),
-            filename: 'house2.jpg',
-          },
-        ],
-        evaluated: true,
-        last_evaluation_date: new Date('2024-12-02T15:00:00Z'),
-      },
-      {
-        dr_number: 'DR9999999',
-        project: 'Lawley',
-        installation_date: new Date('2024-11-28'),
-        customer_name: 'Bob Wilson',
-        address: '789 Elm St',
-        pole_number: 'POLE003',
-        photos: [
-          {
-            id: '5',
-            url: 'https://placehold.co/600x400/png?text=House+Photo',
-            step: 'step_01_house_photo',
-            stepLabel: 'House Photo',
-            timestamp: new Date('2024-11-28T09:00:00Z'),
-            filename: 'house3.jpg',
-          },
-        ],
-        evaluated: false,
-      },
-    ];
-
-    // Apply filters
-    let filteredPhotos = [...mockPhotos];
-
-    // Filter by project
-    if (project && typeof project === 'string') {
-      filteredPhotos = filteredPhotos.filter(
-        (dr) => dr.project.toLowerCase() === project.toLowerCase()
-      );
-    }
-
-    // Filter by date range
-    if (startDate || endDate) {
-      const start = startDate ? new Date(startDate as string) : null;
-      const end = endDate ? new Date(endDate as string) : null;
-
-      // Validate dates
-      if (start && isNaN(start.getTime())) {
-        return res.status(400).json({
-          error: 'Invalid startDate format',
-        });
-      }
-      if (end && isNaN(end.getTime())) {
-        return res.status(400).json({
-          error: 'Invalid endDate format',
-        });
-      }
-
-      // Set end date to end of day for inclusive filtering
-      if (end) {
-        end.setHours(23, 59, 59, 999);
-      }
-
-      filteredPhotos = filteredPhotos.filter((dr) => {
-        if (!dr.installation_date) return false;
-        const drDate = new Date(dr.installation_date);
-        if (start && drDate < start) return false;
-        if (end && drDate > end) return false;
-        return true;
+      PHOTO_STEPS.forEach((stepDef, index) => {
+        // Only include photos that exist (step column = true)
+        if (row[stepDef.step] === true) {
+          photos.push({
+            id: `${row.drop_number}-${stepDef.step}`,
+            url: getProxiedPhotoUrl(row.drop_number, stepDef.step),
+            step: stepDef.step,
+            stepLabel: stepDef.label,
+            timestamp: row.installation_date ? new Date(row.installation_date) : new Date(),
+            filename: `${stepDef.step}.jpg`,
+          });
+        }
       });
-    }
+
+      return {
+        dr_number: row.drop_number,
+        project: row.project,
+        installation_date: row.installation_date ? new Date(row.installation_date) : null,
+        customer_name: row.customer_name || 'Unknown',
+        address: '', // Not in qa_photo_reviews table
+        pole_number: '', // Not in qa_photo_reviews table
+        photos,
+        evaluated: false, // TODO: Check if DR has evaluation
+        last_evaluation_date: undefined,
+      };
+    });
+
+    // Filter out DRs with no photos
+    const dropRecordsWithPhotos = dropRecords.filter(dr => dr.photos.length > 0);
 
     return res.status(200).json({
       success: true,
-      data: filteredPhotos,
+      data: dropRecordsWithPhotos,
     });
   } catch (error) {
     console.error('Error fetching photos:', error);
