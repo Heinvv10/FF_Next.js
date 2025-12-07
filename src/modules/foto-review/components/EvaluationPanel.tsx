@@ -44,18 +44,22 @@ export function EvaluationPanel({ drop, onEvaluate, onSendFeedback }: Evaluation
 
   // Generate feedback message from evaluation results
   const generateFeedbackMessage = (result: EvaluationResult) => {
-    const passed = result.results?.results?.filter((r: any) => r.status === 'PASS') || [];
-    const failed = result.results?.results?.filter((r: any) => r.status === 'FAIL') || [];
+    // Handle both old format (results.results) and new format (step_results)
+    const stepResults = result.step_results || result.results?.results || [];
+    const passed = stepResults.filter((r: any) => r.passed === true || r.status === 'PASS');
+    const failed = stepResults.filter((r: any) => r.passed === false || r.status === 'FAIL');
 
     let message = `${drop.dr_number}\n`;
 
     if (failed.length === 0) {
-      message += `All items complete! ✅\nScore: ${result.overall_score}%`;
+      message += `All items complete! ✅\nScore: ${result.average_score || result.overall_score}%`;
     } else {
-      message += `NEEDS CORRECTION\nScore: ${result.overall_score}%\n\n`;
+      message += `NEEDS CORRECTION\nScore: ${result.average_score || result.overall_score}%\n\n`;
       message += `Issues found:\n`;
       failed.forEach((item: any) => {
-        message += `• ${item.step}: ${item.issues || 'Failed quality check'}\n`;
+        const stepName = item.step_label || item.step || `Step ${item.step_number}`;
+        const issue = item.comment || item.issues || 'Failed quality check';
+        message += `• ${stepName}: ${issue}\n`;
       });
 
       if (passed.length > 0) {
@@ -159,50 +163,56 @@ export function EvaluationPanel({ drop, onEvaluate, onSendFeedback }: Evaluation
           </div>
 
           {/* Step Results */}
-          {evaluation.results?.results && (
+          {evaluation.step_results && evaluation.step_results.length > 0 && (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Step-by-step Results:
               </p>
-              {evaluation.results.results.map((step: any, index: number) => (
-                <div
-                  key={index}
-                  className={`p-3 rounded-lg border ${
-                    step.status === 'PASS'
-                      ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20'
-                      : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    {step.status === 'PASS' ? (
-                      <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium ${
-                        step.status === 'PASS'
-                          ? 'text-green-800 dark:text-green-200'
-                          : 'text-red-800 dark:text-red-200'
-                      }`}>
-                        {step.step}
-                      </p>
-                      {step.issues && (
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                          {step.issues}
-                        </p>
+              {evaluation.step_results.map((step: any, index: number) => {
+                const isPassed = step.passed === true || step.status === 'PASS';
+                const stepName = step.step_label || step.step || `Step ${step.step_number}`;
+                const comment = step.comment || step.issues || '';
+
+                return (
+                  <div
+                    key={index}
+                    className={`p-3 rounded-lg border ${
+                      isPassed
+                        ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20'
+                        : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {isPassed ? (
+                        <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                       )}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium ${
+                          isPassed
+                            ? 'text-green-800 dark:text-green-200'
+                            : 'text-red-800 dark:text-red-200'
+                        }`}>
+                          {stepName}
+                        </p>
+                        {comment && (
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            {comment}
+                          </p>
+                        )}
+                      </div>
+                      <span className={`text-xs font-semibold ${
+                        isPassed
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {step.score ? `${Math.round(step.score * 10)}%` : ''}
+                      </span>
                     </div>
-                    <span className={`text-xs font-semibold ${
-                      step.status === 'PASS'
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
-                    }`}>
-                      {step.score}%
-                    </span>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

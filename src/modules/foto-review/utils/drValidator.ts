@@ -4,10 +4,11 @@
  */
 
 /**
- * Valid DR number format: DR followed by 7-10 digits
- * Examples: DR1234567, DR7654321, DR1765044553029
+ * Valid DR number format: Alphanumeric string (may or may not start with DR)
+ * Examples: DR1234567, DRTEST0808, TEST006, DR7654321
+ * Relaxed to support BOSS VPS test DRs and various naming formats
  */
-export const DR_NUMBER_REGEX = /^DR\d{7,10}$/;
+export const DR_NUMBER_REGEX = /^[A-Z0-9]{3,20}$/i;
 
 /**
  * Validation result interface
@@ -87,11 +88,11 @@ export function validateDrNumber(drNumber: string | undefined | null): DrValidat
     }
   }
 
-  // Validate format: DR followed by 7-10 digits
+  // Validate format: Alphanumeric string 3-20 characters
   if (!DR_NUMBER_REGEX.test(trimmed)) {
     return {
       valid: false,
-      error: 'Invalid DR number format. Expected format: DR followed by 7-10 digits (e.g., DR1234567)',
+      error: 'Invalid DR number format. Expected 3-20 alphanumeric characters (e.g., DR1234567, DRTEST0808, TEST006)',
     };
   }
 
