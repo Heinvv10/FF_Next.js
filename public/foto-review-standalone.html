@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foto Review - FibreFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function FotoReviewApp() {
+            const [drops, setDrops] = useState([]);
+            const [selectedDrop, setSelectedDrop] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [filter, setFilter] = useState({ project: '' });
+
+            useEffect(() => {
+                fetchDrops();
+                const interval = setInterval(fetchDrops, 30000);
+                return () => clearInterval(interval);
+            }, [filter]);
+
+            async function fetchDrops() {
+                try {
+                    const url = filter.project 
+                        ? `/api/foto/photos?project=${filter.project}`
+                        : '/api/foto/photos';
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (data.success) {
+                        setDrops(data.data);
+                    }
+                } catch (err) {
+                    console.error('Error fetching drops:', err);
+                } finally {
+                    setLoading(false);
+                }
+            }
+
+            async function evaluateDrop(drop) {
+                try {
+                    const res = await fetch('/api/foto/evaluate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            dr_number: drop.dr_number,
+                            photos: drop.photos,
+                            project: drop.project
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        alert('Evaluation:\n\n' + data.data.feedback);
+                    }
+                } catch (err) {
+                    alert('Error: ' + err.message);
+                }
+            }
+
+            return (
+                <div className="min-h-screen p-6">
+                    <div className="max-w-7xl mx-auto">
+                        {/* Header */}
+                        <div className="mb-6">
+                            <h1 className="text-3xl font-bold text-gray-900">Foto Review</h1>
+                            <p className="text-gray-600 mt-1">AI-powered photo quality assurance</p>
+                        </div>
+
+                        {/* Filters */}
+                        <div className="mb-6 bg-white p-4 rounded-lg border">
+                            <label className="block text-sm font-medium mb-2">Project Filter:</label>
+                            <select 
+                                value={filter.project}
+                                onChange={(e) => setFilter({ project: e.target.value })}
+                                className="px-3 py-2 border rounded-md"
+                            >
+                                <option value="">All Projects</option>
+                                <option value="Lawley">Lawley</option>
+                                <option value="Mohadin">Mohadin</option>
+                                <option value="Velo Test">Velo Test</option>
+                            </select>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Drop List */}
+                            <div className="bg-white rounded-lg border p-4">
+                                <h2 className="text-lg font-semibold mb-4">Drops ({drops.length})</h2>
+                                <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                                    {drops.map(drop => (
+                                        <div
+                                            key={drop.id}
+                                            onClick={() => setSelectedDrop(drop)}
+                                            className={`p-3 border rounded cursor-pointer hover:bg-gray-50 ${
+                                                selectedDrop?.id === drop.id ? 'bg-blue-50 border-blue-500' : ''
+                                            }`}
+                                        >
+                                            <div className="font-medium">{drop.dr_number}</div>
+                                            <div className="text-sm text-gray-600">{drop.project}</div>
+                                            <div className="text-sm text-gray-500">{drop.photo_count}/12 photos</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Photo Grid */}
+                            <div className="lg:col-span-2 bg-white rounded-lg border p-4">
+                                {selectedDrop ? (
+                                    <>
+                                        <div className="mb-4">
+                                            <h2 className="text-xl font-bold">{selectedDrop.dr_number}</h2>
+                                            <p className="text-gray-600">{selectedDrop.project} • {selectedDrop.photo_count}/12 photos</p>
+                                            <button
+                                                onClick={() => evaluateDrop(selectedDrop)}
+                                                className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                                            >
+                                                🤖 AI Evaluate
+                                            </button>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {selectedDrop.photos.map((photo, idx) => (
+                                                <div key={idx} className="border rounded p-2">
+                                                    <div className="text-sm font-medium mb-2">{photo.label}</div>
+                                                    {photo.exists ? (
+                                                        <img 
+                                                            src={photo.url} 
+                                                            alt={photo.label}
+                                                            className="w-full h-48 object-cover rounded"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-48 bg-gray-100 rounded flex items-center justify-center text-gray-400">
+                                                            No photo
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex items-center justify-center h-64 text-gray-400">
+                                        Select a drop to view photos
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<FotoReviewApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>

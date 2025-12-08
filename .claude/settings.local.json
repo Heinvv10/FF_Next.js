@@ -72,7 +72,8 @@
       "Bash(fuser:*)",
       "Bash(git init:*)",
       "Bash(xargs curl:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": [],
