@@ -34,6 +34,7 @@ Each page log follows this format:
 | Field Operations | `src/pages/Field.tsx` | [field.md](./field.md) | - |
 | Analytics | `src/pages/Analytics.tsx` | [analytics.md](./analytics.md) | - |
 | Reports | `src/pages/Reports.tsx` | [reports.md](./reports.md) | - |
+| Foto Review | `pages/foto-review.tsx` | [foto-review.md](./foto-review.md) | Dec 8, 2024 - 5:55 PM |
 
 ## Log Entry Template
 

@@ -397,6 +397,60 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 **When creating new API routes**: Use descriptive parameter names (e.g., `[projectId]`, `[contractorId]`) instead of generic `[id]` to avoid future conflicts.
 
+### Page Layout Patterns
+
+#### Standard Layout (with Sidebar)
+
+Most pages use the standard `AppLayout` component which includes:
+- Left sidebar navigation
+- Header with user menu
+- Footer
+
+```tsx
+import { AppLayout } from '@/components/layout';
+
+export default function MyPage() {
+  return (
+    <AppLayout>
+      {/* Page content */}
+    </AppLayout>
+  );
+}
+```
+
+#### Disabling Layout (Fullscreen Pages)
+
+Some pages need to display without the sidebar for better UX (e.g., foto-review, fullscreen dashboards). Use the `getLayout` pattern:
+
+```tsx
+import type { ReactElement } from 'react';
+
+function FotoReviewPage() {
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Full-width page content without sidebar */}
+    </div>
+  );
+}
+
+// This function overrides the default layout
+FotoReviewPage.getLayout = function getLayout(page: ReactElement) {
+  return page;  // Returns just the page without any wrapper
+};
+
+export default FotoReviewPage;
+```
+
+**Current Pages Without Sidebar:**
+- `/foto-review` - Photo review interface (maximizes screen space for photos)
+
+**When to Remove Sidebar:**
+- Photo/image-heavy interfaces
+- Data visualization dashboards
+- External-facing pages
+- Mobile-optimized views
+- Focus-mode workflows
+
 ### ⚠️ CRITICAL: Vercel Deployment Issue with Nested Dynamic Routes
 
 **PROBLEM**: Vercel's Pages Router does NOT properly deploy nested dynamic routes when both a file and directory exist at the same level.

@@ -190,6 +190,44 @@ await applyFilters({
 });
 ```
 
+## Page Layout Configuration
+
+### Fullscreen Mode (No Sidebar)
+
+The foto-review page displays in fullscreen mode without the standard AppLayout sidebar. This provides maximum screen space for photo review operations.
+
+**Implementation (December 8, 2024):**
+
+The page bypasses the default AppLayout using a custom `getLayout` function:
+
+```tsx
+// pages/foto-review.tsx
+import type { ReactElement } from 'react';
+
+function FotoReviewPage() {
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Page content without sidebar */}
+    </div>
+  );
+}
+
+// Disable AppLayout for this page (no sidebar/menu)
+FotoReviewPage.getLayout = function getLayout(page: ReactElement) {
+  return page;  // Returns just the page content without any layout wrapper
+};
+
+export default FotoReviewPage;
+```
+
+**Key Points:**
+- No sidebar menu on the left
+- Full width available for content
+- Custom header and navigation within the page
+- Better for photo-focused workflows
+
+To restore the sidebar, simply remove the `getLayout` function and wrap content in `<AppLayout>`.
+
 ## API Integration
 
 This module communicates with Next.js API routes:
