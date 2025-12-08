@@ -4,10 +4,10 @@
  */
 
 import { useState, useMemo, useEffect } from 'react';
+import type { ReactElement } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
-import { AppLayout } from '@/components/layout';
 import { Camera, AlertTriangle } from 'lucide-react';
 import {
   PhotoGallery,
@@ -20,7 +20,7 @@ import { usePhotos } from '@/modules/foto-review/hooks/usePhotos';
 import { useFotoEvaluation } from '@/modules/foto-review/hooks/useFotoEvaluation';
 import type { DropRecord } from '@/modules/foto-review/types';
 
-export default function FotoReviewPage() {
+function FotoReviewPage() {
   const router = useRouter();
   const [selectedDR, setSelectedDR] = useState<DropRecord | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({
@@ -187,8 +187,8 @@ export default function FotoReviewPage() {
         <meta name="description" content="AI-powered installation photo evaluation" />
       </Head>
 
-      <AppLayout>
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
@@ -346,14 +346,14 @@ export default function FotoReviewPage() {
             </main>
           </div>
         </div>
-      </AppLayout>
+      </div>
     </>
   );
 }
 
-// Use server-side props for authentication
-export const getServerSideProps = async () => {
-  return {
-    props: {},
-  };
+// Disable AppLayout for this page (no sidebar/menu)
+FotoReviewPage.getLayout = function getLayout(page: ReactElement) {
+  return page;
 };
+
+export default FotoReviewPage;
