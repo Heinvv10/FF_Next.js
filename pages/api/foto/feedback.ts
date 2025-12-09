@@ -4,6 +4,7 @@
  * Integrates with wa-monitor service and updates database
  *
  * Project Routing Logic:
+ * - DRs with "test" in the number (e.g., DRTEST0808) → Velo Test WhatsApp group
  * - Projects with "test" in name → Velo Test WhatsApp group
  * - Lawley → Lawley Activation 3 group
  * - Mohadin → Mohadin Activations group
@@ -101,8 +102,10 @@ export default async function handler(
     if (customMessage) {
       // Use the custom message provided by the human agent
       message = customMessage;
-      // If project is "Test" or similar, route to Velo Test group
-      evaluationProject = (project?.toLowerCase().includes('test')) ? 'Velo Test' : project;
+      // If project or DR number contains "test", route to Velo Test group
+      const isTestDR = sanitizedDr.toLowerCase().includes('test');
+      const isTestProject = project?.toLowerCase().includes('test');
+      evaluationProject = (isTestDR || isTestProject) ? 'Velo Test' : project;
     } else {
       // Fetch evaluation from database
       const evaluation = await getEvaluationByDR(sanitizedDr);
@@ -124,8 +127,10 @@ export default async function handler(
 
       // Format WhatsApp message
       message = formatFeedbackMessage(evaluation);
-      // If project is "Test" or similar, route to Velo Test group
-      evaluationProject = (evaluation.project?.toLowerCase().includes('test')) ? 'Velo Test' : evaluation.project;
+      // If project or DR number contains "test", route to Velo Test group
+      const isTestDR = sanitizedDr.toLowerCase().includes('test');
+      const isTestProject = evaluation.project?.toLowerCase().includes('test');
+      evaluationProject = (isTestDR || isTestProject) ? 'Velo Test' : evaluation.project;
     }
 
     // Send via WhatsApp (using wa-monitor service on VPS)
