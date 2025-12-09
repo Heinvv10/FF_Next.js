@@ -2,6 +2,12 @@
  * POST /api/foto/feedback
  * Send WhatsApp feedback for an evaluation
  * Integrates with wa-monitor service and updates database
+ *
+ * Project Routing Logic:
+ * - Projects with "test" in name → Velo Test WhatsApp group
+ * - Lawley → Lawley Activation 3 group
+ * - Mohadin → Mohadin Activations group
+ * - Mamelodi → Mamelodi POP1 Activations group
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -95,7 +101,8 @@ export default async function handler(
     if (customMessage) {
       // Use the custom message provided by the human agent
       message = customMessage;
-      evaluationProject = project; // Use project from request if provided
+      // If project is "Test" or similar, route to Velo Test group
+      evaluationProject = (project?.toLowerCase().includes('test')) ? 'Velo Test' : project;
     } else {
       // Fetch evaluation from database
       const evaluation = await getEvaluationByDR(sanitizedDr);
@@ -117,7 +124,8 @@ export default async function handler(
 
       // Format WhatsApp message
       message = formatFeedbackMessage(evaluation);
-      evaluationProject = evaluation.project;
+      // If project is "Test" or similar, route to Velo Test group
+      evaluationProject = (evaluation.project?.toLowerCase().includes('test')) ? 'Velo Test' : evaluation.project;
     }
 
     // Send via WhatsApp (using wa-monitor service on VPS)
@@ -126,9 +134,9 @@ export default async function handler(
 
     if (USE_WHATSAPP) {
       try {
-        console.log(`[WhatsApp] Sending feedback for ${sanitizedDr}...`);
+        console.log(`[WhatsApp] Sending feedback for ${sanitizedDr} to project: ${evaluationProject || 'Velo Test (default)'}...`);
         await sendWhatsAppFeedback(sanitizedDr, message, evaluationProject);
-        console.log(`[WhatsApp] Feedback sent successfully`);
+        console.log(`[WhatsApp] Feedback sent successfully to ${evaluationProject || 'Velo Test'} group`);
       } catch (error) {
         console.error(`[WhatsApp] Failed to send feedback:`, error);
         // Don't fail the request if WhatsApp fails - still update database
