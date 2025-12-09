@@ -12,7 +12,7 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getEvaluationByDR, markFeedbackSent } from '@/modules/foto-review/services/fotoDbService';
+import { getEvaluationByDR, markFeedbackSent, getDropSubmitterPhone } from '@/modules/foto-review/services/fotoDbService';
 import { validateDrNumber } from '@/modules/foto-review/utils/drValidator';
 
 // Project WhatsApp group mappings (same as wa-monitor)
@@ -36,8 +36,9 @@ const PROJECT_GROUPS: Record<string, { jid: string; name: string }> = {
 };
 
 /**
- * Send message to WhatsApp group via Bridge API
- * Uses the WhatsApp Bridge service on VPS localhost:8080 (doesn't require recipient_jid)
+ * Send message to WhatsApp group
+ * Uses Sender API (8081) with @mention if phone number available
+ * Falls back to Bridge API (8080) without @mention if no phone number
  */
 async function sendWhatsAppFeedback(drNumber: string, message: string, project?: string): Promise<void> {
   // Get project group JID
@@ -48,8 +49,39 @@ async function sendWhatsAppFeedback(drNumber: string, message: string, project?:
     throw new Error(`No WhatsApp group configured for project: ${projectKey}`);
   }
 
-  // Send to group using Bridge API (doesn't require recipient_jid for @mention)
-  // Using localhost because this runs on the VPS where WhatsApp service is hosted
+  // Try to get submitter's phone number from qa_photo_reviews (WA Monitor data)
+  const submitterPhone = await getDropSubmitterPhone(drNumber);
+
+  if (submitterPhone) {
+    // Use Sender API with @mention (port 8081)
+    console.log(`[WhatsApp] Using Sender API with @mention for ${submitterPhone}`);
+
+    const response = await fetch('http://localhost:8081/send-message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        group_jid: groupConfig.jid,
+        recipient_jid: submitterPhone + '@s.whatsapp.net',  // Format for WhatsApp JID
+        message: message,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[WhatsApp] Sender API failed, falling back to Bridge API: ${errorText}`);
+      // Fall through to Bridge API below
+    } else {
+      const result = await response.json();
+      if (result.success) {
+        return; // Success with @mention
+      }
+      console.error(`[WhatsApp] Sender API failed: ${result.message || 'Unknown error'}`);
+    }
+  }
+
+  // Fallback: Use Bridge API without @mention (port 8080)
+  console.log(`[WhatsApp] Using Bridge API without @mention (no phone number found or Sender API failed)`);
+
   const response = await fetch('http://localhost:8080/api/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -214,6 +214,32 @@ export async function markFeedbackSent(drNumber: string): Promise<EvaluationResu
   }
 }
 
+/**
+ * Get submitter phone number from qa_photo_reviews (WA Monitor data)
+ * @param drNumber - Drop record number
+ * @returns Phone number or null if not found
+ */
+export async function getDropSubmitterPhone(drNumber: string): Promise<string | null> {
+  try {
+    const sql = getDbConnection();
+    const rows = await sql`
+      SELECT submitted_by
+      FROM qa_photo_reviews
+      WHERE drop_number = ${drNumber}
+      LIMIT 1
+    `;
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return rows[0].submitted_by || null;
+  } catch (error) {
+    console.error(`Error getting submitter phone for DR ${drNumber}:`, error);
+    return null;
+  }
+}
+
 // ==================== HELPER FUNCTIONS ====================
 
 /**

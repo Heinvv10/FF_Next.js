@@ -74,7 +74,10 @@
       "Bash(xargs curl:*)",
       "Bash(xargs:*)",
       "Bash(git merge:*)",
-      "Bash(git revert:*)"
+      "Bash(git revert:*)",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''$DATABASE_URL'' -c \"\"SELECT dr_number, submitted_by, project FROM foto_ai_reviews WHERE dr_number = ''DRTEST0808'';\"\"\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'' -c \"\"SELECT dr_number, submitted_by, project FROM foto_ai_reviews WHERE dr_number = ''DRTEST0808'';\"\"\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'' -c \"\"SELECT drop_number, submitted_by, user_name, project FROM qa_photo_reviews WHERE drop_number LIKE ''%TEST%'' ORDER BY created_at DESC LIMIT 5;\"\"\")"
     ],
     "deny": [],
     "ask": [],
