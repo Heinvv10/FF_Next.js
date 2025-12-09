@@ -36,8 +36,8 @@ const PROJECT_GROUPS: Record<string, { jid: string; name: string }> = {
 };
 
 /**
- * Send message to WhatsApp group via Sender API
- * Uses the same service as wa-monitor on VPS localhost:8081
+ * Send message to WhatsApp group via Bridge API
+ * Uses the WhatsApp Bridge service on VPS localhost:8080 (doesn't require recipient_jid)
  */
 async function sendWhatsAppFeedback(drNumber: string, message: string, project?: string): Promise<void> {
   // Get project group JID
@@ -48,13 +48,13 @@ async function sendWhatsAppFeedback(drNumber: string, message: string, project?:
     throw new Error(`No WhatsApp group configured for project: ${projectKey}`);
   }
 
-  // Send to group without @mention (general announcement)
+  // Send to group using Bridge API (doesn't require recipient_jid for @mention)
   // Using localhost because this runs on the VPS where WhatsApp service is hosted
-  const response = await fetch('http://localhost:8081/send-message', {
+  const response = await fetch('http://localhost:8080/api/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      group_jid: groupConfig.jid,
+      recipient: groupConfig.jid,  // Bridge API uses 'recipient' instead of 'group_jid'
       message: message,
     }),
   });
