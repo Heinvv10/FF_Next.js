@@ -155,11 +155,22 @@ export async function getEvaluation(dr_number: string): Promise<EvaluationResult
 
 /**
  * Send WhatsApp feedback for an evaluation
- * Formats results and sends via wa-monitor service
+ * Supports both auto-generated and custom messages
+ * @param dr_number - The DR number to send feedback for
+ * @param message - Optional custom message (if not provided, uses evaluation from DB)
+ * @param project - Optional project name for routing to correct WhatsApp group
  */
-export async function sendFeedback(dr_number: string): Promise<FeedbackResponse> {
+export async function sendFeedback(
+  dr_number: string,
+  message?: string,
+  project?: string
+): Promise<FeedbackResponse> {
   try {
-    const request: SendFeedbackRequest = { dr_number };
+    const request: SendFeedbackRequest = {
+      dr_number,
+      ...(message && { message }),
+      ...(project && { project })
+    };
 
     const response = await fetch(API_FEEDBACK, {
       method: 'POST',

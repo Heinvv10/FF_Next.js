@@ -42,7 +42,7 @@ export function EvaluationPanel({ drop, onEvaluate, onSendFeedback }: Evaluation
     }
   };
 
-  // Generate feedback message from evaluation results
+  // Generate feedback message from evaluation results (similar to WA Monitor format)
   const generateFeedbackMessage = (result: EvaluationResult) => {
     // Handle both old format (results.results) and new format (step_results)
     const stepResults = result.step_results || result.results?.results || [];
@@ -51,19 +51,33 @@ export function EvaluationPanel({ drop, onEvaluate, onSendFeedback }: Evaluation
 
     let message = `${drop.dr_number}\n`;
 
+    // If all steps pass - simple approval message
     if (failed.length === 0) {
-      message += `All items complete! ✅\nScore: ${result.average_score || result.overall_score}%`;
+      message += `All items complete! ✅`;
     } else {
-      message += `NEEDS CORRECTION\nScore: ${result.average_score || result.overall_score}%\n\n`;
-      message += `Issues found:\n`;
+      // Focus on what needs correction (similar to WA Monitor)
+      message += `NEEDS CORRECTION\n\n`;
+
+      // Show failed items with issues
+      message += `Incorrect items:\n`;
       failed.forEach((item: any) => {
         const stepName = item.step_label || item.step || `Step ${item.step_number}`;
         const issue = item.comment || item.issues || 'Failed quality check';
-        message += `• ${stepName}: ${issue}\n`;
+        // Format similar to WA Monitor: "• Step Name - Issue description"
+        message += `• ${stepName} - ${issue}\n`;
       });
 
-      if (passed.length > 0) {
-        message += `\n✅ Approved: ${passed.length}/${result.total_steps} steps`;
+      // Optional: Add any missing steps if needed
+      const missingSteps = stepResults.filter((r: any) =>
+        r.score === 0 || r.comment?.toLowerCase().includes('missing') || r.comment?.toLowerCase().includes('not found')
+      );
+
+      if (missingSteps.length > 0 && missingSteps.length !== failed.length) {
+        message += `\nMissing items:\n`;
+        missingSteps.forEach((item: any) => {
+          const stepName = item.step_label || item.step || `Step ${item.step_number}`;
+          message += `• ${stepName}\n`;
+        });
       }
     }
 

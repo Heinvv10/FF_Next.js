@@ -72,7 +72,7 @@ export default async function handler(
   }
 
   try {
-    const { dr_number } = req.body;
+    const { dr_number, message: customMessage, project } = req.body;
 
     // Validate DR number format and check for SQL injection
     const validation = validateDrNumber(dr_number);
@@ -87,26 +87,38 @@ export default async function handler(
     // Use sanitized DR number
     const sanitizedDr = validation.sanitized!;
 
-    // Fetch evaluation from database
-    const evaluation = await getEvaluationByDR(sanitizedDr);
+    // If custom message is provided, use it directly
+    // Otherwise, fetch evaluation and generate message
+    let message: string;
+    let evaluationProject: string | undefined;
 
-    if (!evaluation) {
-      return res.status(404).json({
-        error: 'Evaluation not found',
-        message: `No evaluation found for DR ${sanitizedDr}. Please run evaluation first.`,
-      });
+    if (customMessage) {
+      // Use the custom message provided by the human agent
+      message = customMessage;
+      evaluationProject = project; // Use project from request if provided
+    } else {
+      // Fetch evaluation from database
+      const evaluation = await getEvaluationByDR(sanitizedDr);
+
+      if (!evaluation) {
+        return res.status(404).json({
+          error: 'Evaluation not found',
+          message: `No evaluation found for DR ${sanitizedDr}. Please run evaluation first.`,
+        });
+      }
+
+      // Check if feedback was already sent (only when using auto-generated)
+      if (evaluation.feedback_sent) {
+        return res.status(400).json({
+          error: 'Feedback already sent',
+          message: `Feedback for DR ${sanitizedDr} was already sent on ${evaluation.feedback_sent_at?.toISOString()}`,
+        });
+      }
+
+      // Format WhatsApp message
+      message = formatFeedbackMessage(evaluation);
+      evaluationProject = evaluation.project;
     }
-
-    // Check if feedback was already sent
-    if (evaluation.feedback_sent) {
-      return res.status(400).json({
-        error: 'Feedback already sent',
-        message: `Feedback for DR ${sanitizedDr} was already sent on ${evaluation.feedback_sent_at?.toISOString()}`,
-      });
-    }
-
-    // Format WhatsApp message
-    const message = formatFeedbackMessage(evaluation);
 
     // Send via WhatsApp (using wa-monitor service on VPS)
     // Feature flag: USE_WHATSAPP_FEEDBACK to enable/disable actual WhatsApp sending
@@ -115,7 +127,7 @@ export default async function handler(
     if (USE_WHATSAPP) {
       try {
         console.log(`[WhatsApp] Sending feedback for ${sanitizedDr}...`);
-        await sendWhatsAppFeedback(sanitizedDr, message, evaluation.project);
+        await sendWhatsAppFeedback(sanitizedDr, message, evaluationProject);
         console.log(`[WhatsApp] Feedback sent successfully`);
       } catch (error) {
         console.error(`[WhatsApp] Failed to send feedback:`, error);
@@ -127,15 +139,24 @@ export default async function handler(
       console.log(message);
     }
 
-    // Update feedback_sent flag in database
-    const updatedEvaluation = await markFeedbackSent(sanitizedDr);
+    // Update feedback_sent flag in database (only if we have an evaluation)
+    let feedbackStatus = { feedback_sent: true, feedback_sent_at: new Date() };
+
+    if (!customMessage) {
+      // Only update database if we're using an evaluation from DB
+      const updatedEvaluation = await markFeedbackSent(sanitizedDr);
+      feedbackStatus = {
+        feedback_sent: updatedEvaluation.feedback_sent,
+        feedback_sent_at: updatedEvaluation.feedback_sent_at
+      };
+    }
 
     return res.status(200).json({
       success: true,
       data: {
-        dr_number: updatedEvaluation.dr_number,
-        feedback_sent: updatedEvaluation.feedback_sent,
-        feedback_sent_at: updatedEvaluation.feedback_sent_at,
+        dr_number: sanitizedDr,
+        feedback_sent: feedbackStatus.feedback_sent,
+        feedback_sent_at: feedbackStatus.feedback_sent_at,
         message: USE_WHATSAPP
           ? 'Feedback sent to WhatsApp successfully'
           : 'Feedback logged successfully (WhatsApp disabled)',

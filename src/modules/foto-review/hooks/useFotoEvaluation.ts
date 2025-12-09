@@ -19,7 +19,7 @@ export interface UseFotoEvaluationReturn {
   /** Fetch existing evaluation */
   fetchEvaluation: (dr_number: string) => Promise<void>;
   /** Send WhatsApp feedback */
-  sendFeedback: (dr_number: string) => Promise<void>;
+  sendFeedback: (dr_number: string, message?: string, project?: string) => Promise<void>;
   /** Whether feedback is being sent */
   isSendingFeedback: boolean;
   /** Feedback error message */
@@ -83,16 +83,19 @@ export function useFotoEvaluation(): UseFotoEvaluationReturn {
 
   /**
    * Send WhatsApp feedback
+   * @param dr_number - The DR number to send feedback for
+   * @param message - Optional custom message (if not provided, uses evaluation from DB)
+   * @param project - Optional project name for routing to correct WhatsApp group
    */
-  const sendFeedback = useCallback(async (dr_number: string) => {
+  const sendFeedback = useCallback(async (dr_number: string, message?: string, project?: string) => {
     setIsSendingFeedback(true);
     setFeedbackError(null);
 
     try {
-      await api.sendFeedback(dr_number);
+      await api.sendFeedback(dr_number, message, project);
 
-      // Update evaluation to mark feedback as sent
-      if (evaluation && evaluation.dr_number === dr_number) {
+      // Update evaluation to mark feedback as sent (only if no custom message)
+      if (!message && evaluation && evaluation.dr_number === dr_number) {
         setEvaluation({
           ...evaluation,
           feedback_sent: true,

@@ -309,7 +309,7 @@ function FotoReviewPage() {
                       drop={selectedDR}
                       onEvaluate={evaluate}
                       onSendFeedback={async (drNumber, message) => {
-                        await sendFeedback(drNumber);
+                        await sendFeedback(drNumber, message, selectedDR.project);
                       }}
                     />
                   </section>

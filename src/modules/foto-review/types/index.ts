@@ -136,6 +136,10 @@ export interface EvaluateRequest {
 export interface SendFeedbackRequest {
   /** DR number to send feedback for */
   dr_number: string;
+  /** Optional custom feedback message (overrides auto-generated) */
+  message?: string;
+  /** Optional project name for routing to correct WhatsApp group */
+  project?: string;
 }
 
 /**
