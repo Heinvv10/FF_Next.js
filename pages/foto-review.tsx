@@ -307,7 +307,11 @@ function FotoReviewPage() {
                   <section aria-labelledby="evaluation-heading" aria-live="polite" aria-atomic="false">
                     <EvaluationPanel
                       drop={selectedDR}
-                      onEvaluate={evaluate}
+                      evaluation={evaluation}
+                      isEvaluating={isEvaluating}
+                      onEvaluate={async (drNumber) => {
+                        await evaluate(drNumber);
+                      }}
                       onSendFeedback={async (drNumber, message) => {
                         await sendFeedback(drNumber, message, selectedDR.project);
                       }}

@@ -6,41 +6,42 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Send, Sparkles, RefreshCw, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import type { DropRecord, EvaluationResult } from '../types';
 
 interface EvaluationPanelProps {
   drop: DropRecord;
-  onEvaluate: (drNumber: string) => Promise<EvaluationResult>;
+  evaluation?: EvaluationResult | null;
+  isEvaluating?: boolean;
+  onEvaluate: (drNumber: string) => Promise<void>;
   onSendFeedback: (drNumber: string, message: string) => Promise<void>;
 }
 
-export function EvaluationPanel({ drop, onEvaluate, onSendFeedback }: EvaluationPanelProps) {
-  const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
+export function EvaluationPanel({ drop, evaluation = null, isEvaluating = false, onEvaluate, onSendFeedback }: EvaluationPanelProps) {
   const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [evaluating, setEvaluating] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Run AI evaluation
   const handleEvaluate = async () => {
     try {
-      setEvaluating(true);
       setError(null);
-      const result = await onEvaluate(drop.dr_number);
-      setEvaluation(result);
-
-      // Auto-generate feedback message
-      generateFeedbackMessage(result);
+      await onEvaluate(drop.dr_number);
+      // Evaluation will come through props after parent updates
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Evaluation failed';
       setError(errorMessage);
       console.error('Evaluation error:', err);
-    } finally {
-      setEvaluating(false);
     }
   };
+
+  // Auto-generate feedback message when evaluation changes
+  useEffect(() => {
+    if (evaluation) {
+      generateFeedbackMessage(evaluation);
+    }
+  }, [evaluation]);
 
   // Generate feedback message from evaluation results (similar to WA Monitor format)
   const generateFeedbackMessage = (result: EvaluationResult) => {
@@ -117,10 +118,10 @@ export function EvaluationPanel({ drop, onEvaluate, onSendFeedback }: Evaluation
 
         <button
           onClick={handleEvaluate}
-          disabled={evaluating}
+          disabled={isEvaluating}
           className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors"
         >
-          {evaluating ? (
+          {isEvaluating ? (
             <>
               <RefreshCw className="w-4 h-4 animate-spin" />
               Evaluating...
@@ -276,7 +277,7 @@ export function EvaluationPanel({ drop, onEvaluate, onSendFeedback }: Evaluation
       )}
 
       {/* Instructions (shown when no evaluation yet) */}
-      {!evaluation && !evaluating && (
+      {!evaluation && !isEvaluating && (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p className="text-sm">
