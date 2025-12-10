@@ -267,13 +267,14 @@ export function WaMonitorDashboard() {
 
   return (
     <div className="space-y-6 p-6">
-      {/* Header */}
+      {/* Action buttons and refresh info */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">WA Monitor Dashboard</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Live monitoring of WhatsApp QA review drops
-          </p>
+          {lastRefresh && (
+            <Typography variant="caption" color="textSecondary">
+              Last updated: {lastRefresh.toLocaleTimeString()} (Auto-refresh every 30s)
+            </Typography>
+          )}
         </div>
         <div className="flex gap-2">
           <Button
@@ -294,13 +295,6 @@ export function WaMonitorDashboard() {
           </Button>
         </div>
       </div>
-
-      {/* Last refresh time */}
-      {lastRefresh && (
-        <Typography variant="caption" color="textSecondary">
-          Last updated: {lastRefresh.toLocaleTimeString()} (Auto-refresh every 30s)
-        </Typography>
-      )}
 
       {/* Error Alert */}
       {error && (
