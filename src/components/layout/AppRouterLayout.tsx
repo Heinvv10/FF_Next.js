@@ -62,7 +62,7 @@ export function AppRouterLayout({ children }: AppRouterLayoutProps) {
       if (segments.includes('rag-dashboard')) {
         return {
           title: 'RAG Dashboard',
-          breadcrumbs: ['Home', 'Contractors', 'RAG Dashboard'],
+          breadcrumbs: ['Home', 'Contractors'],
         };
       }
       if (segments.length > 1) {
@@ -81,15 +81,21 @@ export function AppRouterLayout({ children }: AppRouterLayoutProps) {
     if (pathname.includes('foto-reviews')) {
       return {
         title: 'Foto Reviews',
-        breadcrumbs: ['Home', 'QA', 'Foto Reviews'],
+        breadcrumbs: ['Home', 'QA'],
       };
     }
 
     // WA Monitor
     if (pathname.includes('wa-monitor')) {
+      if (pathname.includes('dr-validation')) {
+        return {
+          title: 'DR Validation',
+          breadcrumbs: ['Home', 'QA', 'WhatsApp Monitor'],
+        };
+      }
       return {
         title: 'WhatsApp Monitor',
-        breadcrumbs: ['Home', 'QA', 'WhatsApp Monitor'],
+        breadcrumbs: ['Home', 'QA'],
       };
     }
 
