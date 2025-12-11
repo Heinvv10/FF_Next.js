@@ -26,6 +26,36 @@ Track daily work, deployments, and major updates.
 
 ---
 
+## 2024-12-11 - [FIX]: WA Monitor Double Header Display Issue
+
+### What Was Done
+- Fixed duplicate header/navigation display on WA Monitor page
+- Removed redundant layout file causing nested layouts
+- Cleaned up conflicting route structures
+- Performed clean rebuild and deployment to both environments
+
+### Root Cause
+- WA Monitor had its own `layout.tsx` at `/app/(main)/wa-monitor/layout.tsx`
+- This created nested layouts with the parent `(main)/layout.tsx`
+- Result: duplicate headers, breadcrumbs, and navigation elements
+
+### Files Changed
+- **Deleted:** `app/(main)/wa-monitor/layout.tsx` (67 lines removed)
+- **Modified:** `src/modules/wa-monitor/components/WaMonitorDashboard.tsx`
+- **Modified:** `src/components/layout/AppRouterLayout.tsx`
+
+### Deployed
+- [x] Deployed to Production (app.fibreflow.app)
+- [x] Deployed to Development (dev.fibreflow.app)
+- Clean build with cache clearing
+
+### Related
+- Git commits: aecb305, 51e2c96, 40027ce
+- Page log: `/docs/page-logs/wa-monitor.md`
+- Issue: User reported duplicate navigation text
+
+---
+
 ## 2025-11-24 - [ARCHITECTURE]: WA Monitor Module - Full Isolation & Independence ✅
 
 ### What Was Done

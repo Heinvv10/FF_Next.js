@@ -68,3 +68,65 @@ systemctl restart whatsapp-bridge-prod
 - "Failed to send WhatsApp message"
 - "WhatsApp Bridge disconnected"
 - "wa-monitor-send-feedback 500 error"
+
+---
+
+## December 11, 2024 - 3:00 PM
+
+### 🔧 Fixed Double Header Display Issue
+
+**Problem:**
+WA Monitor page was displaying duplicate headers/navigation bars:
+- Two instances of "Home > QA > WhatsApp Monitor" breadcrumbs
+- Two title sections showing "WhatsApp Monitor"
+- User reported seeing duplicate navigation text stacked on top of each other
+
+**Root Cause:**
+The wa-monitor directory had its own `layout.tsx` file at `/app/(main)/wa-monitor/layout.tsx` that was applying a second layout on top of the existing `(main)/layout.tsx`. This caused nested layouts:
+1. First layout from `/app/(main)/layout.tsx` (AppRouterLayout with sidebar)
+2. Second layout from `/app/(main)/wa-monitor/layout.tsx` (duplicate header without sidebar)
+
+**Investigation Steps:**
+1. Initially removed duplicate header from WaMonitorDashboard component (incorrect target)
+2. Discovered conflicting route structure: `/app/wa-monitor` vs `/app/(main)/wa-monitor`
+3. Found extra layout file in wa-monitor directory applying its own Header component
+
+**Solution:**
+```bash
+# Remove the redundant layout file
+rm /home/louisdup/VF/Apps/FF_React/app/(main)/wa-monitor/layout.tsx
+
+# Clean rebuild to ensure no cached layouts
+rm -rf .next
+npm run build
+pm2 restart fibreflow-prod
+```
+
+**Files Changed:**
+
+1. **DELETED: `app/(main)/wa-monitor/layout.tsx`**
+   - Removed entire file (67 lines)
+   - This layout was redundant as `(main)/layout.tsx` already provides navigation
+
+2. **`src/modules/wa-monitor/components/WaMonitorDashboard.tsx`** (Lines 268-297)
+   - Removed duplicate "WA Monitor Dashboard" header section
+   - Kept action buttons (Refresh, Export CSV)
+
+3. **`src/components/layout/AppRouterLayout.tsx`** (Lines 88-100)
+   - Updated breadcrumb logic for wa-monitor routes
+   - Removed "WhatsApp Monitor" from breadcrumbs array to avoid duplication
+
+**Prevention:**
+- All pages under `app/(main)/` automatically get the AppRouterLayout
+- Never add a `layout.tsx` file in subdirectories unless you need a completely different layout
+- If a page needs no sidebar, use the `getLayout` pattern in Pages Router instead
+
+**Time to Fix:** ~30 minutes
+**Deployments:** Production and Development environments
+
+**Keywords for Search:**
+- "double header"
+- "duplicate navigation"
+- "duplicate breadcrumbs"
+- "nested layouts"
+- "wa-monitor header duplication"
