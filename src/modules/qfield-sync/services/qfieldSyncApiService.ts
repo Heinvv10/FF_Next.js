@@ -208,23 +208,34 @@ class QFieldSyncApiService {
   connectWebSocket(
     onMessage: (event: MessageEvent) => void,
     onError?: (event: Event) => void
-  ): WebSocket {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const ws = new WebSocket(`${protocol}//${host}/ws/qfield-sync`);
+  ): WebSocket | null {
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined') {
+      console.warn('WebSocket not available in server-side rendering');
+      return null;
+    }
 
-    ws.onmessage = onMessage;
-    ws.onerror = onError || console.error;
+    try {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host;
+      const ws = new WebSocket(`${protocol}//${host}/ws/qfield-sync`);
 
-    ws.onopen = () => {
-      console.log('QField Sync WebSocket connected');
-    };
+      ws.onmessage = onMessage;
+      ws.onerror = onError || console.error;
 
-    ws.onclose = () => {
-      console.log('QField Sync WebSocket disconnected');
-    };
+      ws.onopen = () => {
+        console.log('QField Sync WebSocket connected');
+      };
 
-    return ws;
+      ws.onclose = () => {
+        console.log('QField Sync WebSocket disconnected');
+      };
+
+      return ws;
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
+      return null;
+    }
   }
 
   /**

@@ -6,11 +6,14 @@
 import React from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { QFieldSyncDashboard } from '@/modules/qfield-sync/components';
+import { QFieldSyncErrorBoundary } from '@/modules/qfield-sync/components/ErrorBoundary';
 
 export default function QFieldSyncPage() {
   return (
     <AppLayout>
-      <QFieldSyncDashboard />
+      <QFieldSyncErrorBoundary>
+        <QFieldSyncDashboard />
+      </QFieldSyncErrorBoundary>
     </AppLayout>
   );
 }

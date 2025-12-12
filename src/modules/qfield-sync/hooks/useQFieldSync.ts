@@ -155,45 +155,63 @@ export function useQFieldSync(): UseQFieldSyncReturn {
 
   // Set up WebSocket connection for real-time updates
   useEffect(() => {
+    // Temporarily disable WebSocket until backend implementation is ready
+    const ENABLE_WEBSOCKET = false;
+
+    if (!ENABLE_WEBSOCKET) {
+      console.log('WebSocket disabled - using polling for updates');
+      return;
+    }
+
     const connectWebSocket = () => {
       try {
-        wsRef.current = qfieldSyncApiService.connectWebSocket(
+        const ws = qfieldSyncApiService.connectWebSocket(
           (event) => {
-            const data = JSON.parse(event.data);
-            console.log('WebSocket message:', data);
+            try {
+              const data = JSON.parse(event.data);
+              console.log('WebSocket message:', data);
 
-            switch (data.type) {
-              case 'sync_started':
-                setCurrentJob(data.data);
-                break;
-              case 'sync_progress':
-                setCurrentJob(data.data);
-                break;
-              case 'sync_completed':
-                setCurrentJob(null);
-                fetchSyncHistory();
-                fetchDashboardData();
-                break;
-              case 'sync_error':
-                setCurrentJob(null);
-                setError(data.data.message);
-                fetchSyncHistory();
-                break;
-              default:
-                break;
+              switch (data.type) {
+                case 'sync_started':
+                  setCurrentJob(data.data);
+                  break;
+                case 'sync_progress':
+                  setCurrentJob(data.data);
+                  break;
+                case 'sync_completed':
+                  setCurrentJob(null);
+                  fetchSyncHistory();
+                  fetchDashboardData();
+                  break;
+                case 'sync_error':
+                  setCurrentJob(null);
+                  setError(data.data.message);
+                  fetchSyncHistory();
+                  break;
+                default:
+                  break;
+              }
+            } catch (parseError) {
+              console.error('Failed to parse WebSocket message:', parseError);
             }
           },
           (error) => {
             console.error('WebSocket error:', error);
           }
         );
+
+        if (ws) {
+          wsRef.current = ws;
+        }
       } catch (err) {
         console.error('Failed to connect WebSocket:', err);
       }
     };
 
-    // Connect WebSocket
-    connectWebSocket();
+    // Only connect WebSocket in browser environment
+    if (typeof window !== 'undefined') {
+      connectWebSocket();
+    }
 
     // Cleanup on unmount
     return () => {
