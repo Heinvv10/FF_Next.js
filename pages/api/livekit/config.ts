@@ -11,8 +11,9 @@ export default async function handler(
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Return the public LiveKit URL for client connection
-    const serverUrl = process.env.LIVEKIT_URL || '';
+    // Return the public LiveKit URL for client connection (wss://)
+    // Use NEXT_PUBLIC_LIVEKIT_URL for external/client connections
+    const serverUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || process.env.LIVEKIT_URL || '';
 
     return res.status(200).json({
         serverUrl,
