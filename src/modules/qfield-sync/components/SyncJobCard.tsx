@@ -113,7 +113,7 @@ export function SyncJobCard({ job, onCancel }: SyncJobCardProps) {
       </div>
 
       {/* Errors */}
-      {job.errors.length > 0 && (
+      {job.errors && job.errors.length > 0 && (
         <div className="mt-4 p-3 bg-red-50 rounded-md">
           <p className="text-sm font-medium text-red-800 mb-2">Errors ({job.errors.length})</p>
           <div className="space-y-1 max-h-32 overflow-y-auto">

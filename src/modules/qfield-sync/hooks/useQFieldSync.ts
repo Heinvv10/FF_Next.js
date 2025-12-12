@@ -49,7 +49,14 @@ export function useQFieldSync(): UseQFieldSyncReturn {
   const fetchCurrentJob = useCallback(async () => {
     try {
       const job = await qfieldSyncApiService.getCurrentJob();
-      setCurrentJob(job);
+      if (job) {
+        setCurrentJob({
+          ...job,
+          errors: job.errors || []
+        });
+      } else {
+        setCurrentJob(null);
+      }
     } catch (err) {
       console.error('Failed to fetch current job:', err);
     }
@@ -59,7 +66,10 @@ export function useQFieldSync(): UseQFieldSyncReturn {
   const fetchSyncHistory = useCallback(async () => {
     try {
       const response = await qfieldSyncApiService.getSyncHistory();
-      setSyncHistory(response.jobs);
+      setSyncHistory(response.jobs.map(job => ({
+        ...job,
+        errors: job.errors || []
+      })));
     } catch (err) {
       console.error('Failed to fetch sync history:', err);
     }
@@ -82,7 +92,10 @@ export function useQFieldSync(): UseQFieldSyncReturn {
     try {
       setError(null);
       const job = await qfieldSyncApiService.startSync(type, direction);
-      setCurrentJob(job);
+      setCurrentJob({
+        ...job,
+        errors: job.errors || []
+      });
 
       // Refresh data after starting sync
       setTimeout(() => {
@@ -173,10 +186,16 @@ export function useQFieldSync(): UseQFieldSyncReturn {
 
               switch (data.type) {
                 case 'sync_started':
-                  setCurrentJob(data.data);
+                  setCurrentJob({
+                    ...data.data,
+                    errors: data.data.errors || []
+                  });
                   break;
                 case 'sync_progress':
-                  setCurrentJob(data.data);
+                  setCurrentJob({
+                    ...data.data,
+                    errors: data.data.errors || []
+                  });
                   break;
                 case 'sync_completed':
                   setCurrentJob(null);
