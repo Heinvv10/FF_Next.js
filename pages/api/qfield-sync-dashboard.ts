@@ -1,0 +1,249 @@
+/**
+ * QField Sync Dashboard API Endpoint
+ * Returns dashboard data for the QField sync module
+ */
+
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { neon } from '@neondatabase/serverless';
+import { getAuth } from '../../lib/auth-mock';
+import { apiResponse } from '@/lib/apiResponse';
+
+const sql = neon(process.env.DATABASE_URL!);
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { userId } = getAuth(req);
+
+  if (!userId) {
+    return apiResponse.unauthorized(res);
+  }
+
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', ['GET']);
+    return res.status(405).json({ error: `Method ${req.method} not allowed` });
+  }
+
+  try {
+    // Get connection status (simplified for now)
+    const connectionStatus = {
+      qfieldcloud: await checkQFieldConnection(),
+      fibreflow: await checkDatabaseConnection(),
+    };
+
+    // Get QFieldCloud projects (mock data for now)
+    const projects = await getQFieldProjects();
+
+    // Get current sync job if any
+    const currentJob = await getCurrentSyncJob();
+
+    // Get recent sync jobs
+    const recentJobs = await getRecentSyncJobs();
+
+    // Get sync statistics
+    const stats = await getSyncStatistics();
+
+    // Get unresolved conflicts
+    const conflicts = await getUnresolvedConflicts();
+
+    // Get current configuration
+    const config = await getSyncConfiguration();
+
+    const dashboardData = {
+      connectionStatus,
+      projects,
+      currentJob,
+      recentJobs,
+      stats,
+      conflicts,
+      config,
+    };
+
+    return apiResponse.success(res, dashboardData, 'Dashboard data retrieved successfully');
+
+  } catch (error) {
+    console.error('QField Sync Dashboard API error:', error);
+    return apiResponse.internalError(res, error);
+  }
+}
+
+async function checkQFieldConnection(): Promise<'connected' | 'disconnected' | 'error'> {
+  try {
+    // TODO: Implement actual QFieldCloud connection check
+    // For now, return mock status
+    return 'connected';
+  } catch (error) {
+    return 'error';
+  }
+}
+
+async function checkDatabaseConnection(): Promise<'connected' | 'disconnected' | 'error'> {
+  try {
+    // Test database connection
+    const result = await sql`SELECT 1 as connected`;
+    return result && result[0]?.connected === 1 ? 'connected' : 'disconnected';
+  } catch (error) {
+    return 'error';
+  }
+}
+
+async function getQFieldProjects() {
+  // TODO: Fetch from QFieldCloud API
+  // Mock data for now
+  return [
+    {
+      id: 'proj_fiber_infra',
+      name: 'Fiber Infrastructure',
+      description: 'Main fiber cable tracking project',
+      owner: 'FibreFlow',
+      isPublic: false,
+      lastModified: new Date().toISOString(),
+      layers: [
+        {
+          id: 'layer_cables',
+          name: 'fiber_cables',
+          type: 'line' as const,
+          featureCount: 156,
+          fields: [],
+        },
+        {
+          id: 'layer_poles',
+          name: 'poles',
+          type: 'point' as const,
+          featureCount: 423,
+          fields: [],
+        },
+      ],
+      status: 'active' as const,
+    },
+  ];
+}
+
+async function getCurrentSyncJob() {
+  try {
+    // Check if there's an active sync job in the database
+    const result = await sql`
+      SELECT
+        id, type, status, direction, started_at,
+        records_processed, records_created, records_updated,
+        records_failed, errors
+      FROM qfield_sync_jobs
+      WHERE status = 'syncing'
+      ORDER BY started_at DESC
+      LIMIT 1
+    `;
+
+    return result[0] || null;
+  } catch (error) {
+    // Table might not exist yet
+    return null;
+  }
+}
+
+async function getRecentSyncJobs() {
+  try {
+    const result = await sql`
+      SELECT
+        id, type, status, direction, started_at, completed_at,
+        records_processed, records_created, records_updated,
+        records_failed, duration_ms
+      FROM qfield_sync_jobs
+      WHERE status IN ('completed', 'error')
+      ORDER BY started_at DESC
+      LIMIT 5
+    `;
+
+    return result.map(job => ({
+      ...job,
+      duration: job.duration_ms,
+      errors: [],
+    }));
+  } catch (error) {
+    // Table might not exist yet
+    return [];
+  }
+}
+
+async function getSyncStatistics() {
+  try {
+    const stats = await sql`
+      SELECT
+        COUNT(*) as total_syncs,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as successful_syncs,
+        COUNT(CASE WHEN status = 'error' THEN 1 END) as failed_syncs,
+        SUM(records_processed) as total_records_synced,
+        AVG(duration_ms) as average_sync_duration,
+        MAX(completed_at) as last_sync
+      FROM qfield_sync_jobs
+      WHERE completed_at IS NOT NULL
+    `;
+
+    const result = stats[0] || {};
+
+    return {
+      lastSync: result.last_sync || null,
+      totalSyncs: parseInt(result.total_syncs) || 0,
+      successfulSyncs: parseInt(result.successful_syncs) || 0,
+      failedSyncs: parseInt(result.failed_syncs) || 0,
+      totalRecordsSynced: parseInt(result.total_records_synced) || 0,
+      averageSyncDuration: parseInt(result.average_sync_duration) || 0,
+      nextScheduledSync: null, // Calculate based on config
+    };
+  } catch (error) {
+    // Return default stats if table doesn't exist
+    return {
+      lastSync: null,
+      totalSyncs: 0,
+      successfulSyncs: 0,
+      failedSyncs: 0,
+      totalRecordsSynced: 0,
+      averageSyncDuration: 0,
+      nextScheduledSync: null,
+    };
+  }
+}
+
+async function getUnresolvedConflicts() {
+  try {
+    const conflicts = await sql`
+      SELECT
+        id, record_id, field, qfield_value, fibreflow_value,
+        detected_at, resolution, resolved_at, resolved_by
+      FROM qfield_sync_conflicts
+      WHERE resolution IS NULL
+      ORDER BY detected_at DESC
+      LIMIT 20
+    `;
+
+    return conflicts.map(conflict => ({
+      ...conflict,
+      qfieldValue: conflict.qfield_value,
+      fibreflowValue: conflict.fibreflow_value,
+      detectedAt: conflict.detected_at,
+      resolvedAt: conflict.resolved_at,
+      resolvedBy: conflict.resolved_by,
+    }));
+  } catch (error) {
+    // Table might not exist yet
+    return [];
+  }
+}
+
+async function getSyncConfiguration() {
+  // TODO: Store configuration in database or environment variables
+  // For now, return default configuration
+  return {
+    qfieldcloud: {
+      url: process.env.NEXT_PUBLIC_QFIELD_URL || 'https://qfield.fibreflow.app',
+      projectId: process.env.NEXT_PUBLIC_QFIELD_PROJECT_ID || '',
+      apiKey: '***', // Never expose the actual API key
+      pollingInterval: 300,
+    },
+    fibreflow: {
+      databaseUrl: '***', // Never expose the actual database URL
+      targetTable: 'sow_fibre',
+    },
+    mapping: [],
+    syncMode: 'automatic',
+    syncDirection: 'bidirectional',
+    autoResolveConflicts: false,
+  };
+}

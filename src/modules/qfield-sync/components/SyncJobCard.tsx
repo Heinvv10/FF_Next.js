@@ -1,0 +1,135 @@
+/**
+ * Sync Job Card Component
+ * Displays current sync job progress and status
+ */
+
+import React from 'react';
+import { RefreshCw, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { SyncJob } from '../types/qfield-sync.types';
+
+interface SyncJobCardProps {
+  job: SyncJob;
+  onCancel?: () => void;
+}
+
+export function SyncJobCard({ job, onCancel }: SyncJobCardProps) {
+  const getStatusColor = () => {
+    switch (job.status) {
+      case 'syncing':
+        return 'text-blue-600 bg-blue-100';
+      case 'completed':
+        return 'text-green-600 bg-green-100';
+      case 'error':
+        return 'text-red-600 bg-red-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const getStatusIcon = () => {
+    switch (job.status) {
+      case 'syncing':
+        return <RefreshCw className="h-5 w-5 animate-spin" />;
+      case 'completed':
+        return <CheckCircle className="h-5 w-5" />;
+      case 'error':
+        return <AlertCircle className="h-5 w-5" />;
+      default:
+        return null;
+    }
+  };
+
+  const totalRecords = job.recordsProcessed + job.recordsFailed;
+  const progressPercentage = totalRecords > 0 ? (job.recordsProcessed / totalRecords) * 100 : 0;
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Current Sync Job</h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Type: {job.type.replace('_', ' ').toUpperCase()} | Direction: {job.direction}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor()}`}>
+            {getStatusIcon()}
+            {job.status === 'syncing' ? 'Syncing' : job.status === 'completed' ? 'Completed' : 'Failed'}
+          </span>
+          {job.status === 'syncing' && onCancel && (
+            <button
+              onClick={onCancel}
+              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+              title="Cancel sync"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      {job.status === 'syncing' && (
+        <div className="mb-4">
+          <div className="flex justify-between text-sm text-gray-600 mb-1">
+            <span>Progress</span>
+            <span>{Math.round(progressPercentage)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Statistics */}
+      <div className="grid grid-cols-4 gap-4 mb-4">
+        <div>
+          <p className="text-sm text-gray-600">Processed</p>
+          <p className="text-xl font-semibold text-gray-900">{job.recordsProcessed}</p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Created</p>
+          <p className="text-xl font-semibold text-green-600">{job.recordsCreated}</p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Updated</p>
+          <p className="text-xl font-semibold text-blue-600">{job.recordsUpdated}</p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Failed</p>
+          <p className="text-xl font-semibold text-red-600">{job.recordsFailed}</p>
+        </div>
+      </div>
+
+      {/* Timing */}
+      <div className="flex justify-between text-sm text-gray-500">
+        <span>Started: {new Date(job.startedAt).toLocaleTimeString()}</span>
+        {job.completedAt && (
+          <span>Duration: {Math.round((job.duration || 0) / 1000)}s</span>
+        )}
+      </div>
+
+      {/* Errors */}
+      {job.errors.length > 0 && (
+        <div className="mt-4 p-3 bg-red-50 rounded-md">
+          <p className="text-sm font-medium text-red-800 mb-2">Errors ({job.errors.length})</p>
+          <div className="space-y-1 max-h-32 overflow-y-auto">
+            {job.errors.slice(0, 5).map((error, index) => (
+              <p key={index} className="text-xs text-red-700">
+                {error.recordId}: {error.message}
+              </p>
+            ))}
+            {job.errors.length > 5 && (
+              <p className="text-xs text-red-600 italic">
+                ...and {job.errors.length - 5} more errors
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

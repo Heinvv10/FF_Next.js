@@ -1,0 +1,120 @@
+// LiveKit Rooms API
+// CRUD operations for LiveKit rooms
+
+import type { NextApiRequest, NextApiResponse } from 'next';
+import {
+    createRoom,
+    listRooms,
+    deleteRoom,
+    generateToken,
+    generateRoomName
+} from '@/modules/livekit/services/livekitService';
+import type { CreateRoomRequest, CreateRoomResponse, LiveKitRoom } from '@/modules/livekit/types/livekit.types';
+import { getAuth } from '@clerk/nextjs/server';
+import { neon } from '@neondatabase/serverless';
+
+const sql = neon(process.env.DATABASE_URL!);
+
+interface RoomsResponse {
+    success: boolean;
+    rooms?: LiveKitRoom[];
+    room?: LiveKitRoom;
+    token?: string;
+    error?: string;
+}
+
+export default async function handler(
+    req: NextApiRequest,
+    res: NextApiResponse<RoomsResponse>
+) {
+    // Check authentication
+    const { userId } = getAuth(req);
+    if (!userId) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    // GET - List rooms
+    if (req.method === 'GET') {
+        try {
+            const rooms = await listRooms();
+            return res.status(200).json({ success: true, rooms });
+        } catch (error: any) {
+            console.error('List rooms error:', error);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+    }
+
+    // POST - Create room
+    if (req.method === 'POST') {
+        try {
+            const { title, emptyTimeout, maxParticipants } = req.body as CreateRoomRequest;
+
+            if (!title) {
+                return res.status(400).json({ success: false, error: 'title is required' });
+            }
+
+            const roomName = generateRoomName();
+            const result = await createRoom({
+                name: roomName,
+                title,
+                emptyTimeout,
+                maxParticipants,
+            });
+
+            if (!result.success || !result.room) {
+                return res.status(500).json({ success: false, error: result.error });
+            }
+
+            // Save to database
+            await sql`
+        INSERT INTO livekit_meetings (room_name, title, created_at)
+        VALUES (${roomName}, ${title}, NOW())
+      `;
+
+            // Generate token for the creator
+            const tokenResult = await generateToken({
+                roomName,
+                participantName: 'Host',
+                participantIdentity: userId,
+            });
+
+            return res.status(200).json({
+                success: true,
+                room: result.room,
+                token: tokenResult.token,
+            });
+        } catch (error: any) {
+            console.error('Create room error:', error);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+    }
+
+    // DELETE - Delete room
+    if (req.method === 'DELETE') {
+        try {
+            const { roomName } = req.query;
+
+            if (!roomName || typeof roomName !== 'string') {
+                return res.status(400).json({ success: false, error: 'roomName is required' });
+            }
+
+            const deleted = await deleteRoom(roomName);
+
+            if (deleted) {
+                // Update database
+                await sql`
+          UPDATE livekit_meetings 
+          SET ended_at = NOW() 
+          WHERE room_name = ${roomName}
+        `;
+            }
+
+            return res.status(200).json({ success: deleted });
+        } catch (error: any) {
+            console.error('Delete room error:', error);
+            return res.status(500).json({ success: false, error: error.message });
+        }
+    }
+
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { Plus, RefreshCw, Video } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import type { Meeting, UpcomingMeeting } from './types/meeting.types';
 import { MeetingStatsCards } from './components/MeetingStatsCards';
@@ -16,6 +17,8 @@ export function MeetingsDashboard() {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     loadMeetings();
@@ -106,6 +109,27 @@ export function MeetingsDashboard() {
     setShowNewMeetingModal(true);
   };
 
+  const handleStartVideoMeeting = async () => {
+    setIsCreatingRoom(true);
+    try {
+      const response = await fetch('/api/livekit/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: `Meeting ${new Date().toLocaleString()}` }),
+      });
+      const data = await response.json();
+      if (data.success && data.room) {
+        router.push(`/livekit/${data.room.name}`);
+      } else {
+        alert('Failed to create meeting: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error: any) {
+      alert('Failed to create meeting: ' + error.message);
+    } finally {
+      setIsCreatingRoom(false);
+    }
+  };
+
   return (
     <div className="ff-page-container">
       {/* Header */}
@@ -115,18 +139,30 @@ export function MeetingsDashboard() {
           <p className="text-gray-600">Schedule, manage and track all meetings</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <button
-            onClick={handleSync}
-            disabled={isSyncing}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-              isSyncing
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-          >
-            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Syncing...' : 'Sync from Fireflies'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleStartVideoMeeting}
+              disabled={isCreatingRoom}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isCreatingRoom
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+            >
+              <Video className="w-4 h-4" />
+              {isCreatingRoom ? 'Creating...' : 'Start Video Meeting'}
+            </button>
+            <button
+              onClick={handleSync}
+              disabled={isSyncing}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isSyncing
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+            >
+              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Syncing...' : 'Sync from Fireflies'}
+            </button>
+          </div>
           {syncMessage && (
             <p className={`text-sm ${syncMessage.startsWith('✓') ? 'text-green-600' : 'text-red-600'}`}>
               {syncMessage}
@@ -148,11 +184,10 @@ export function MeetingsDashboard() {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${
-                      activeTab === tab
+                    className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${activeTab === tab
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
+                      }`}
                   >
                     {tab}
                   </button>
@@ -161,21 +196,21 @@ export function MeetingsDashboard() {
             </div>
           </div>
 
-          <MeetingsList 
-            meetings={filteredMeetings} 
+          <MeetingsList
+            meetings={filteredMeetings}
             onEditMeeting={handleEditMeeting}
             onDeleteMeeting={handleDeleteMeeting}
           />
         </div>
 
-        <MeetingsSidebar 
+        <MeetingsSidebar
           upcomingMeetings={upcomingMeetings}
           meetings={meetings}
           onScheduleMeeting={handleScheduleMeeting}
         />
       </div>
 
-      <MeetingDetailModal 
+      <MeetingDetailModal
         meeting={selectedMeeting}
         isOpen={showMeetingModal}
         onClose={() => setShowMeetingModal(false)}

@@ -10,7 +10,8 @@ import {
   Droplets,
   FileSignature,
   Home,
-  LayoutDashboard
+  LayoutDashboard,
+  ArrowDownUp
 } from 'lucide-react';
 import type { NavSection } from './types';
 
@@ -36,6 +37,13 @@ export const projectSection: NavSection = {
       icon: Cable,
       label: 'Fiber Stringing',
       shortLabel: 'Fiber',
+      permissions: [],
+    },
+    {
+      to: '/qfield-sync',
+      icon: ArrowDownUp,
+      label: 'QField Sync',
+      shortLabel: 'Sync',
       permissions: [],
     },
     {
