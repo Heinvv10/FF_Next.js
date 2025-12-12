@@ -22,6 +22,7 @@ import { SyncStatsCard } from './SyncStatsCard';
 import { ConflictResolver } from './ConflictResolver';
 import { SyncHistoryTable } from './SyncHistoryTable';
 import { SyncConfigModal } from './SyncConfigModal';
+import { FiberCableDataViewer } from './FiberCableDataViewer';
 import { useQFieldSync } from '../hooks/useQFieldSync';
 
 export function QFieldSyncDashboard() {
@@ -38,7 +39,7 @@ export function QFieldSyncDashboard() {
   } = useQFieldSync();
 
   const [showConfig, setShowConfig] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'history' | 'conflicts'>('overview');
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'data' | 'history' | 'conflicts'>('overview');
 
   useEffect(() => {
     // Initial data load
@@ -155,6 +156,16 @@ export function QFieldSyncDashboard() {
             Overview
           </button>
           <button
+            onClick={() => setSelectedTab('data')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              selectedTab === 'data'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Field Data
+          </button>
+          <button
             onClick={() => setSelectedTab('history')}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               selectedTab === 'history'
@@ -224,6 +235,10 @@ export function QFieldSyncDashboard() {
             </div>
           )}
         </div>
+      )}
+
+      {selectedTab === 'data' && (
+        <FiberCableDataViewer />
       )}
 
       {selectedTab === 'history' && (
