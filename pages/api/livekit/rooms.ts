@@ -9,8 +9,7 @@ import {
     generateToken,
     generateRoomName
 } from '@/modules/livekit/services/livekitService';
-import type { CreateRoomRequest, CreateRoomResponse, LiveKitRoom } from '@/modules/livekit/types/livekit.types';
-import { getAuth } from '@clerk/nextjs/server';
+import type { CreateRoomRequest, LiveKitRoom } from '@/modules/livekit/types/livekit.types';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -27,12 +26,6 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse<RoomsResponse>
 ) {
-    // Check authentication
-    const { userId } = getAuth(req);
-    if (!userId) {
-        return res.status(401).json({ success: false, error: 'Unauthorized' });
-    }
-
     // GET - List rooms
     if (req.method === 'GET') {
         try {
@@ -75,7 +68,6 @@ export default async function handler(
             const tokenResult = await generateToken({
                 roomName,
                 participantName: 'Host',
-                participantIdentity: userId,
             });
 
             return res.status(200).json({

@@ -4,7 +4,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { startRecording, stopRecording } from '@/modules/livekit/services/livekitService';
 import type { RecordingRequest, RecordingResponse } from '@/modules/livekit/types/livekit.types';
-import { getAuth } from '@clerk/nextjs/server';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -16,12 +15,6 @@ export default async function handler(
     // Only allow POST
     if (req.method !== 'POST') {
         return res.status(405).json({ success: false, error: 'Method not allowed' });
-    }
-
-    // Check authentication
-    const { userId } = getAuth(req);
-    if (!userId) {
-        return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
     try {

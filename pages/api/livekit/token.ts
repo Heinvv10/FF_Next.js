@@ -4,7 +4,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { generateToken } from '@/modules/livekit/services/livekitService';
 import type { TokenRequest, TokenResponse } from '@/modules/livekit/types/livekit.types';
-import { getAuth } from '@clerk/nextjs/server';
 
 export default async function handler(
     req: NextApiRequest,
@@ -13,12 +12,6 @@ export default async function handler(
     // Only allow POST
     if (req.method !== 'POST') {
         return res.status(405).json({ success: false, error: 'Method not allowed' });
-    }
-
-    // Check authentication
-    const { userId } = getAuth(req);
-    if (!userId) {
-        return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
     try {
