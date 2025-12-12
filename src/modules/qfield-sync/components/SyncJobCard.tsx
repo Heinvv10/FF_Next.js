@@ -48,7 +48,7 @@ export function SyncJobCard({ job, onCancel }: SyncJobCardProps) {
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Current Sync Job</h3>
           <p className="text-sm text-gray-600 mt-1">
-            Type: {job.type.replace('_', ' ').toUpperCase()} | Direction: {job.direction}
+            Type: {job.type ? job.type.replace('_', ' ').toUpperCase() : 'Unknown'} | Direction: {job.direction || 'Unknown'}
           </p>
         </div>
         <div className="flex items-center gap-2">

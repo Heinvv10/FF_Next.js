@@ -38,17 +38,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const currentJob = result[0] || null;
 
     if (currentJob) {
-      // Format the response
+      // Format the response with null checks
       const formattedJob = {
-        id: currentJob.id,
-        type: currentJob.type,
-        status: currentJob.status,
-        direction: currentJob.direction,
-        startedAt: currentJob.started_at,
-        recordsProcessed: currentJob.records_processed,
-        recordsCreated: currentJob.records_created,
-        recordsUpdated: currentJob.records_updated,
-        recordsFailed: currentJob.records_failed,
+        id: currentJob.id || 'unknown',
+        type: currentJob.type || 'fiber_cables',
+        status: currentJob.status || 'syncing',
+        direction: currentJob.direction || 'bidirectional',
+        startedAt: currentJob.started_at || new Date().toISOString(),
+        recordsProcessed: currentJob.records_processed || 0,
+        recordsCreated: currentJob.records_created || 0,
+        recordsUpdated: currentJob.records_updated || 0,
+        recordsFailed: currentJob.records_failed || 0,
         errors: currentJob.errors || [],
       };
 

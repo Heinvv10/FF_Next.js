@@ -131,7 +131,18 @@ async function getCurrentSyncJob() {
       LIMIT 1
     `;
 
-    return result[0] || null;
+    if (result[0]) {
+      // Ensure all required fields are present
+      return {
+        ...result[0],
+        type: result[0].type || 'fiber_cables',
+        status: result[0].status || 'idle',
+        direction: result[0].direction || 'bidirectional',
+        errors: result[0].errors || []
+      };
+    }
+
+    return null;
   } catch (error) {
     // Table might not exist yet
     return null;
@@ -153,8 +164,15 @@ async function getRecentSyncJobs() {
 
     return result.map(job => ({
       ...job,
-      duration: job.duration_ms,
+      type: job.type || 'fiber_cables',
+      status: job.status || 'completed',
+      direction: job.direction || 'bidirectional',
+      duration: job.duration_ms || 0,
       errors: [],
+      recordsProcessed: job.records_processed || 0,
+      recordsCreated: job.records_created || 0,
+      recordsUpdated: job.records_updated || 0,
+      recordsFailed: job.records_failed || 0,
     }));
   } catch (error) {
     // Table might not exist yet

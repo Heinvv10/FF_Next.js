@@ -101,7 +101,7 @@ export function SyncHistoryTable({ history }: SyncHistoryTableProps) {
                   {job.id.substring(0, 8)}...
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {job.type.replace('_', ' ').charAt(0).toUpperCase() + job.type.slice(1).replace('_', ' ')}
+                  {job.type ? (job.type.replace('_', ' ').charAt(0).toUpperCase() + job.type.slice(1).replace('_', ' ')) : 'Unknown'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {getDirectionBadge(job.direction)}

@@ -49,14 +49,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       OFFSET ${offset}
     `;
 
-    // Format the jobs
+    // Format the jobs with null checks
     const formattedJobs = jobs.map(job => ({
-      id: job.id,
-      type: job.type,
-      status: job.status,
-      direction: job.direction,
-      startedAt: job.started_at,
-      completedAt: job.completed_at,
+      id: job.id || 'unknown',
+      type: job.type || 'fiber_cables',
+      status: job.status || 'completed',
+      direction: job.direction || 'bidirectional',
+      startedAt: job.started_at || new Date().toISOString(),
+      completedAt: job.completed_at || null,
       recordsProcessed: job.records_processed || 0,
       recordsCreated: job.records_created || 0,
       recordsUpdated: job.records_updated || 0,
