@@ -16,8 +16,6 @@ import {
 } from '../types/qfield-sync.types';
 
 class QFieldSyncApiService {
-  private baseUrl = '/api/qfield-sync';
-
   /**
    * Generic request handler
    */
@@ -25,7 +23,7 @@ class QFieldSyncApiService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
+    const url = endpoint;
 
     const response = await fetch(url, {
       ...options,
@@ -50,14 +48,14 @@ class QFieldSyncApiService {
    * Get dashboard data
    */
   async getDashboardData(): Promise<QFieldSyncDashboardData> {
-    return this.request<QFieldSyncDashboardData>('/dashboard');
+    return this.request<QFieldSyncDashboardData>('/api/qfield-sync-dashboard');
   }
 
   /**
    * Get list of QFieldCloud projects
    */
   async getProjects(): Promise<QFieldProject[]> {
-    const response = await this.request<ProjectListResponse>('/projects');
+    const response = await this.request<ProjectListResponse>('/api/qfield-sync-projects');
     return response.projects;
   }
 
@@ -65,7 +63,7 @@ class QFieldSyncApiService {
    * Get project details
    */
   async getProject(projectId: string): Promise<QFieldProject> {
-    return this.request<QFieldProject>(`/projects/${projectId}`);
+    return this.request<QFieldProject>(`/api/qfield-sync-projects?id=${projectId}`);
   }
 
   /**
@@ -75,7 +73,7 @@ class QFieldSyncApiService {
     type: SyncJob['type'],
     direction: SyncDirection = 'bidirectional'
   ): Promise<SyncJob> {
-    return this.request<SyncJob>('/sync/start', {
+    return this.request<SyncJob>('/api/qfield-sync-start', {
       method: 'POST',
       body: JSON.stringify({ type, direction }),
     });
@@ -85,7 +83,7 @@ class QFieldSyncApiService {
    * Get current sync job status
    */
   async getCurrentJob(): Promise<SyncJob | null> {
-    return this.request<SyncJob | null>('/sync/current');
+    return this.request<SyncJob | null>('/api/qfield-sync-current');
   }
 
   /**
@@ -96,7 +94,7 @@ class QFieldSyncApiService {
     pageSize = 20
   ): Promise<SyncHistoryResponse> {
     return this.request<SyncHistoryResponse>(
-      `/sync/history?page=${page}&pageSize=${pageSize}`
+      `/api/qfield-sync-history?page=${page}&pageSize=${pageSize}`
     );
   }
 
@@ -104,14 +102,14 @@ class QFieldSyncApiService {
    * Get sync statistics
    */
   async getSyncStats(): Promise<SyncStats> {
-    return this.request<SyncStats>('/sync/stats');
+    return this.request<SyncStats>('/api/qfield-sync-stats');
   }
 
   /**
    * Get unresolved conflicts
    */
   async getConflicts(): Promise<SyncConflict[]> {
-    return this.request<SyncConflict[]>('/conflicts');
+    return this.request<SyncConflict[]>('/api/qfield-sync-conflicts');
   }
 
   /**
@@ -121,9 +119,9 @@ class QFieldSyncApiService {
     conflictId: string,
     resolution: 'use_qfield' | 'use_fibreflow' | 'merge' | 'skip'
   ): Promise<SyncResponse> {
-    return this.request<SyncResponse>(`/conflicts/${conflictId}/resolve`, {
+    return this.request<SyncResponse>('/api/qfield-sync-conflicts-resolve', {
       method: 'POST',
-      body: JSON.stringify({ resolution }),
+      body: JSON.stringify({ conflictId, resolution }),
     });
   }
 
@@ -131,21 +129,21 @@ class QFieldSyncApiService {
    * Test QFieldCloud connection
    */
   async testQFieldConnection(): Promise<SyncResponse> {
-    return this.request<SyncResponse>('/test/qfield-connection');
+    return this.request<SyncResponse>('/api/qfield-sync-test-qfield');
   }
 
   /**
    * Test FibreFlow database connection
    */
   async testDatabaseConnection(): Promise<SyncResponse> {
-    return this.request<SyncResponse>('/test/database-connection');
+    return this.request<SyncResponse>('/api/qfield-sync-test-database');
   }
 
   /**
    * Update sync configuration
    */
   async updateConfig(config: any): Promise<SyncResponse> {
-    return this.request<SyncResponse>('/config', {
+    return this.request<SyncResponse>('/api/qfield-sync-config', {
       method: 'PUT',
       body: JSON.stringify(config),
     });
@@ -155,7 +153,7 @@ class QFieldSyncApiService {
    * Get sync configuration
    */
   async getConfig(): Promise<any> {
-    return this.request<any>('/config');
+    return this.request<any>('/api/qfield-sync-config');
   }
 
   /**
@@ -164,7 +162,7 @@ class QFieldSyncApiService {
   async triggerManualSync(
     type: SyncJob['type'] = 'fiber_cables'
   ): Promise<SyncJob> {
-    return this.request<SyncJob>('/sync/manual', {
+    return this.request<SyncJob>('/api/qfield-sync-manual', {
       method: 'POST',
       body: JSON.stringify({ type }),
     });
@@ -174,7 +172,7 @@ class QFieldSyncApiService {
    * Cancel current sync job
    */
   async cancelSync(): Promise<SyncResponse> {
-    return this.request<SyncResponse>('/sync/cancel', {
+    return this.request<SyncResponse>('/api/qfield-sync-cancel', {
       method: 'POST',
     });
   }
@@ -183,14 +181,14 @@ class QFieldSyncApiService {
    * Get sync job details
    */
   async getSyncJob(jobId: string): Promise<SyncJob> {
-    return this.request<SyncJob>(`/sync/jobs/${jobId}`);
+    return this.request<SyncJob>(`/api/qfield-sync-jobs?id=${jobId}`);
   }
 
   /**
    * Export sync history as CSV
    */
   async exportSyncHistory(): Promise<Blob> {
-    const response = await fetch(`${this.baseUrl}/sync/export`, {
+    const response = await fetch('/api/qfield-sync-export', {
       method: 'GET',
       headers: {
         'Accept': 'text/csv',
@@ -233,28 +231,28 @@ class QFieldSyncApiService {
    * Get fiber cable records from QFieldCloud
    */
   async getQFieldFiberCables(projectId: string): Promise<any[]> {
-    return this.request<any[]>(`/projects/${projectId}/fiber-cables`);
+    return this.request<any[]>(`/api/qfield-sync-fiber-cables?projectId=${projectId}&source=qfield`);
   }
 
   /**
    * Get fiber cable records from FibreFlow
    */
   async getFibreFlowFiberCables(): Promise<any[]> {
-    return this.request<any[]>('/fiber-cables');
+    return this.request<any[]>('/api/qfield-sync-fiber-cables?source=fibreflow');
   }
 
   /**
    * Compare records between systems
    */
   async compareRecords(type: string): Promise<any> {
-    return this.request<any>(`/compare/${type}`);
+    return this.request<any>(`/api/qfield-sync-compare?type=${type}`);
   }
 
   /**
    * Batch update multiple records
    */
   async batchUpdate(records: any[]): Promise<SyncResponse> {
-    return this.request<SyncResponse>('/batch-update', {
+    return this.request<SyncResponse>('/api/qfield-sync-batch-update', {
       method: 'POST',
       body: JSON.stringify({ records }),
     });
@@ -272,7 +270,7 @@ class QFieldSyncApiService {
     if (level) params.append('level', level);
 
     const query = params.toString() ? `?${params.toString()}` : '';
-    return this.request<any[]>(`/logs${query}`);
+    return this.request<any[]>(`/api/qfield-sync-logs${query}`);
   }
 
   /**
@@ -284,7 +282,7 @@ class QFieldSyncApiService {
     databaseConnection: boolean;
     lastSync: string | null;
   }> {
-    return this.request('/health');
+    return this.request('/api/qfield-sync-health');
   }
 }
 
