@@ -36,34 +36,6 @@ export function MeetingsSidebar({ upcomingMeetings, meetings, onScheduleMeeting 
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="ff-card">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-          <div className="space-y-2">
-            <button 
-              className="w-full text-left p-3 hover:bg-gray-50 rounded flex items-center gap-3"
-              onClick={onScheduleMeeting}
-            >
-              <Plus className="w-5 h-5 text-gray-600" />
-              <span className="text-sm">Schedule Meeting</span>
-            </button>
-            <button className="w-full text-left p-3 hover:bg-gray-50 rounded flex items-center gap-3">
-              <Video className="w-5 h-5 text-gray-600" />
-              <span className="text-sm">Start Instant Meeting</span>
-            </button>
-            <button className="w-full text-left p-3 hover:bg-gray-50 rounded flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-gray-600" />
-              <span className="text-sm">View Calendar</span>
-            </button>
-            <button className="w-full text-left p-3 hover:bg-gray-50 rounded flex items-center gap-3">
-              <FileText className="w-5 h-5 text-gray-600" />
-              <span className="text-sm">Meeting Templates</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Recent Action Items */}
       <div className="ff-card">
         <div className="p-6">
