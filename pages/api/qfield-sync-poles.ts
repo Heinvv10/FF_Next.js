@@ -5,6 +5,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { neon } from '@neondatabase/serverless';
+import { getQFieldPoles } from '@/modules/qfield-sync/services/qfieldcloudApiService';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -69,23 +70,30 @@ export default async function handler(
       `;
     }
 
-    // Simulate QFieldCloud data for testing
-    // In production, this would call the actual QFieldCloud API
-    const qfieldData = [];
-
-    // Mock some QFieldCloud data (simulate field updates)
-    if (fibreFlowResult.length > 0) {
-      const mockQFieldPoles = fibreFlowResult.slice(0, Math.min(10, fibreFlowResult.length)).map(pole => ({
-        ...pole,
-        source: 'qfieldcloud',
-        status: pole.status === 'pending' ? 'installed' : pole.status, // Simulate field updates
-        installation_date: pole.status === 'pending' ? new Date().toISOString().split('T')[0] : pole.installation_date,
-        latitude: pole.latitude ? parseFloat(pole.latitude) + 0.00001 : null, // Slight GPS difference
-        longitude: pole.longitude ? parseFloat(pole.longitude) + 0.00001 : null,
-        image_count: pole.image_count + 2, // Simulate additional field photos
-        updated_at: new Date().toISOString()
+    // Fetch real QFieldCloud data
+    let qfieldData = [];
+    try {
+      const qfieldPoles = await getQFieldPoles(projectId as string | undefined);
+      qfieldData = qfieldPoles.map(pole => ({
+        pole_number: pole.pole_number,
+        pole_type: pole.pole_type,
+        height: pole.height,
+        material: pole.material,
+        status: pole.status,
+        installation_date: pole.installation_date,
+        latitude: pole.latitude,
+        longitude: pole.longitude,
+        address: pole.address,
+        notes: pole.notes,
+        image_count: pole.image_count || 0,
+        created_at: pole.created_at,
+        updated_at: pole.updated_at,
+        source: 'qfieldcloud'
       }));
-      qfieldData.push(...mockQFieldPoles);
+    } catch (error) {
+      console.error('Error fetching QFieldCloud poles:', error);
+      // If QFieldCloud fails, continue with empty array
+      qfieldData = [];
     }
 
     // Calculate sync statistics

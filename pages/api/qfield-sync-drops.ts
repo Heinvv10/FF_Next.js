@@ -5,6 +5,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { neon } from '@neondatabase/serverless';
+import { getQFieldDrops } from '@/modules/qfield-sync/services/qfieldcloudApiService';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -67,29 +68,32 @@ export default async function handler(
       `;
     }
 
-    // Simulate QFieldCloud data for testing
-    // In production, this would call the actual QFieldCloud API
-    const qfieldData = [];
-
-    // Mock some QFieldCloud data (simulate field updates)
-    if (fibreFlowResult.length > 0) {
-      const mockQFieldDrops = fibreFlowResult.slice(0, Math.min(15, fibreFlowResult.length)).map(drop => ({
-        ...drop,
-        source: 'qfieldcloud',
-        // Simulate field updates
-        status: drop.status === 'planned' ? 'installed' : drop.status,
-        qc_status: drop.status === 'planned' ? 'pending' : 'approved',
-        installation_date: drop.status === 'planned' ? new Date().toISOString().split('T')[0] : drop.installation_date,
-        cable_length: drop.cable_length ? `${parseInt(drop.cable_length) + 5}m` : '50m', // Field measurements
-        metadata: {
-          ...drop.metadata,
-          field_verified: true,
-          photos_taken: 12,
-          gps_captured: true
-        },
-        updated_at: new Date().toISOString()
+    // Fetch real QFieldCloud data
+    let qfieldData = [];
+    try {
+      const qfieldDrops = await getQFieldDrops(projectId as string | undefined);
+      qfieldData = qfieldDrops.map(drop => ({
+        drop_number: drop.drop_number,
+        pole_number: drop.pole_number,
+        address: drop.address,
+        customer_name: drop.customer_name,
+        cable_length: drop.cable_length,
+        installation_date: drop.installation_date,
+        status: drop.status,
+        qc_status: drop.qc_status,
+        notes: drop.notes,
+        metadata: drop.metadata || {},
+        latitude: drop.latitude,
+        longitude: drop.longitude,
+        created_at: drop.created_at,
+        updated_at: drop.updated_at,
+        qc_updated_at: drop.updated_at, // Use updated_at for QC timestamp
+        source: 'qfieldcloud'
       }));
-      qfieldData.push(...mockQFieldDrops);
+    } catch (error) {
+      console.error('Error fetching QFieldCloud drops:', error);
+      // If QFieldCloud fails, continue with empty array
+      qfieldData = [];
     }
 
     // Calculate sync statistics

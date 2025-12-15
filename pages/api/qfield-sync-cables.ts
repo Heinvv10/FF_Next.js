@@ -5,6 +5,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { neon } from '@neondatabase/serverless';
+import { getQFieldCables } from '@/modules/qfield-sync/services/qfieldcloudApiService';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -65,21 +66,29 @@ export default async function handler(
       `;
     }
 
-    // For now, we'll simulate QFieldCloud data
-    // In production, this would call the actual QFieldCloud API
-    const qfieldData = [];
-
-    // Mock some QFieldCloud data for testing
-    if (fibreFlowResult.length > 0) {
-      // Simulate that some cables exist in QFieldCloud
-      const mockQFieldCables = fibreFlowResult.slice(0, Math.min(5, fibreFlowResult.length)).map(cable => ({
-        ...cable,
-        source: 'qfieldcloud',
-        // Simulate some differences
-        installation_status: cable.installation_status === 'completed' ? 'installed' : cable.installation_status,
-        updated_at: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+    // Fetch real QFieldCloud data
+    let qfieldData = [];
+    try {
+      const qfieldCables = await getQFieldCables(projectId as string | undefined);
+      qfieldData = qfieldCables.map(cable => ({
+        cable_id: cable.cable_id,
+        cable_type: cable.cable_type,
+        cable_size: cable.cable_size,
+        from_chamber: cable.from_chamber,
+        to_chamber: cable.to_chamber,
+        length_m: cable.length_m,
+        installation_date: cable.installation_date,
+        installation_status: cable.installation_status,
+        contractor: cable.contractor,
+        route_geometry: cable.route_geometry,
+        created_at: cable.created_at,
+        updated_at: cable.updated_at,
+        source: 'qfieldcloud'
       }));
-      qfieldData.push(...mockQFieldCables);
+    } catch (error) {
+      console.error('Error fetching QFieldCloud cables:', error);
+      // If QFieldCloud fails, continue with empty array
+      qfieldData = [];
     }
 
     // Identify synchronized cables (exist in both with same updated_at)
