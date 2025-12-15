@@ -23,6 +23,7 @@ import { ConflictResolver } from './ConflictResolver';
 import { SyncHistoryTable } from './SyncHistoryTable';
 import { SyncConfigModal } from './SyncConfigModal';
 import { FiberCableDataViewer } from './FiberCableDataViewer';
+import { FieldInstallationsViewer } from './FieldInstallationsViewer';
 import { useQFieldSync } from '../hooks/useQFieldSync';
 
 export function QFieldSyncDashboard() {
@@ -39,7 +40,7 @@ export function QFieldSyncDashboard() {
   } = useQFieldSync();
 
   const [showConfig, setShowConfig] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'data' | 'history' | 'conflicts'>('overview');
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'installations' | 'data' | 'history' | 'conflicts'>('overview');
 
   useEffect(() => {
     // Initial data load
@@ -156,6 +157,16 @@ export function QFieldSyncDashboard() {
             Overview
           </button>
           <button
+            onClick={() => setSelectedTab('installations')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              selectedTab === 'installations'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Poles & Drops
+          </button>
+          <button
             onClick={() => setSelectedTab('data')}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               selectedTab === 'data'
@@ -163,7 +174,7 @@ export function QFieldSyncDashboard() {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Field Data
+            Fiber Cables
           </button>
           <button
             onClick={() => setSelectedTab('history')}
@@ -235,6 +246,10 @@ export function QFieldSyncDashboard() {
             </div>
           )}
         </div>
+      )}
+
+      {selectedTab === 'installations' && (
+        <FieldInstallationsViewer />
       )}
 
       {selectedTab === 'data' && (
