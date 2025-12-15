@@ -4,7 +4,9 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { neonClient } from '@/lib/database/neonClient';
+import { neon } from '@neondatabase/serverless';
+
+const sql = neon(process.env.DATABASE_URL!);
 
 export default async function handler(
   req: NextApiRequest,
@@ -39,17 +41,17 @@ export default async function handler(
     `;
 
     const fibreFlowResult = projectId
-      ? await neonClient.query(fibreFlowQuery, [projectId])
-      : await neonClient.query(fibreFlowQuery);
+      ? await sql(fibreFlowQuery, [projectId])
+      : await sql(fibreFlowQuery);
 
     // For now, we'll simulate QFieldCloud data
     // In production, this would call the actual QFieldCloud API
     const qfieldData = [];
 
     // Mock some QFieldCloud data for testing
-    if (fibreFlowResult.rows.length > 0) {
+    if (fibreFlowResult.length > 0) {
       // Simulate that some cables exist in QFieldCloud
-      const mockQFieldCables = fibreFlowResult.rows.slice(0, Math.min(5, fibreFlowResult.rows.length)).map(cable => ({
+      const mockQFieldCables = fibreFlowResult.slice(0, Math.min(5, fibreFlowResult.length)).map(cable => ({
         ...cable,
         source: 'qfieldcloud',
         // Simulate some differences
@@ -60,7 +62,7 @@ export default async function handler(
     }
 
     // Identify synchronized cables (exist in both with same updated_at)
-    const synchronizedCables = fibreFlowResult.rows.filter(ffCable =>
+    const synchronizedCables = fibreFlowResult.filter(ffCable =>
       qfieldData.some(qfCable =>
         qfCable.cable_id === ffCable.cable_id &&
         qfCable.updated_at === ffCable.updated_at
@@ -69,16 +71,16 @@ export default async function handler(
 
     // Identify cables only in QFieldCloud
     const qfieldOnlyCables = qfieldData.filter(qfCable =>
-      !fibreFlowResult.rows.some(ffCable => ffCable.cable_id === qfCable.cable_id)
+      !fibreFlowResult.some(ffCable => ffCable.cable_id === qfCable.cable_id)
     );
 
     // Identify cables only in FibreFlow
-    const fibreflowOnlyCables = fibreFlowResult.rows.filter(ffCable =>
+    const fibreflowOnlyCables = fibreFlowResult.filter(ffCable =>
       !qfieldData.some(qfCable => qfCable.cable_id === ffCable.cable_id)
     );
 
     // Identify cables that need sync (exist in both but different updated_at)
-    const needSyncCables = fibreFlowResult.rows.filter(ffCable =>
+    const needSyncCables = fibreFlowResult.filter(ffCable =>
       qfieldData.some(qfCable =>
         qfCable.cable_id === ffCable.cable_id &&
         qfCable.updated_at !== ffCable.updated_at
@@ -90,14 +92,14 @@ export default async function handler(
       data: {
         summary: {
           qfieldcloud_total: qfieldData.length,
-          fibreflow_total: fibreFlowResult.rows.length,
+          fibreflow_total: fibreFlowResult.length,
           synchronized: synchronizedCables.length,
           needs_sync: needSyncCables.length,
           qfieldcloud_only: qfieldOnlyCables.length,
           fibreflow_only: fibreflowOnlyCables.length
         },
         qfieldcloud_cables: qfieldData,
-        fibreflow_cables: fibreFlowResult.rows,
+        fibreflow_cables: fibreFlowResult,
         synchronized_cables: synchronizedCables,
         qfieldcloud_only: qfieldOnlyCables,
         fibreflow_only: fibreflowOnlyCables,
