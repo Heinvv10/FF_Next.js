@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Plus, RefreshCw, Video } from 'lucide-react';
+import { Plus, RefreshCw, Video, Calendar, Film } from 'lucide-react';
+import Link from 'next/link';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import type { Meeting, UpcomingMeeting } from './types/meeting.types';
 import { MeetingStatsCards } from './components/MeetingStatsCards';
 import { MeetingsList } from './components/MeetingsList';
 import { MeetingsSidebar } from './components/MeetingsSidebar';
 import { MeetingDetailModal } from './components/MeetingDetailModal';
+import { ScheduleMeetingModal } from '@/modules/livekit/components/ScheduleMeetingModal';
 
 export function MeetingsDashboard() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -18,6 +20,7 @@ export function MeetingsDashboard() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -141,26 +144,40 @@ export function MeetingsDashboard() {
         <div className="flex flex-col items-end gap-2">
           <div className="flex gap-2">
             <button
+              onClick={() => setShowScheduleModal(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+            >
+              <Calendar className="w-4 h-4" />
+              Schedule Meeting
+            </button>
+            <button
               onClick={handleStartVideoMeeting}
               disabled={isCreatingRoom}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isCreatingRoom
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-green-600 text-white hover:bg-green-700'
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
             >
               <Video className="w-4 h-4" />
-              {isCreatingRoom ? 'Creating...' : 'Start Video Meeting'}
+              {isCreatingRoom ? 'Creating...' : 'Start Now'}
             </button>
+            <Link
+              href="/recordings"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+            >
+              <Film className="w-4 h-4" />
+              Recordings
+            </Link>
             <button
               onClick={handleSync}
               disabled={isSyncing}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${isSyncing
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
             >
               <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? 'Syncing...' : 'Sync from Fireflies'}
+              {isSyncing ? 'Syncing...' : 'Sync Fireflies'}
             </button>
           </div>
           {syncMessage && (
@@ -185,8 +202,8 @@ export function MeetingsDashboard() {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${activeTab === tab
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                   >
                     {tab}
@@ -214,6 +231,14 @@ export function MeetingsDashboard() {
         meeting={selectedMeeting}
         isOpen={showMeetingModal}
         onClose={() => setShowMeetingModal(false)}
+      />
+
+      <ScheduleMeetingModal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        onSuccess={() => {
+          // Optionally refresh meetings list after scheduling
+        }}
       />
     </div>
   );
