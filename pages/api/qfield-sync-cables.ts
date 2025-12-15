@@ -20,29 +20,50 @@ export default async function handler(
     const { projectId } = req.query;
 
     // Fetch FibreFlow fiber cable data from the fibre_segments table
-    const fibreFlowQuery = `
-      SELECT
-        segment_id as cable_id,
-        cable_type,
-        cable_size,
-        from_point as from_chamber,
-        to_point as to_chamber,
-        distance as length_m,
-        installation_date,
-        status as installation_status,
-        contractor,
-        created_at,
-        updated_at,
-        'fibreflow' as source
-      FROM fibre_segments
-      ${projectId ? 'WHERE project_id = $1' : ''}
-      ORDER BY segment_id
-      LIMIT 100
-    `;
+    let fibreFlowResult;
 
-    const fibreFlowResult = projectId
-      ? await sql(fibreFlowQuery, [projectId])
-      : await sql(fibreFlowQuery);
+    if (projectId) {
+      // Use template literal syntax for Neon serverless client with parameter
+      fibreFlowResult = await sql`
+        SELECT
+          segment_id as cable_id,
+          cable_type,
+          cable_size,
+          from_point as from_chamber,
+          to_point as to_chamber,
+          distance as length_m,
+          installation_date,
+          status as installation_status,
+          contractor,
+          created_at,
+          updated_at,
+          'fibreflow' as source
+        FROM fibre_segments
+        WHERE project_id = ${projectId}
+        ORDER BY segment_id
+        LIMIT 100
+      `;
+    } else {
+      // Query without project filter
+      fibreFlowResult = await sql`
+        SELECT
+          segment_id as cable_id,
+          cable_type,
+          cable_size,
+          from_point as from_chamber,
+          to_point as to_chamber,
+          distance as length_m,
+          installation_date,
+          status as installation_status,
+          contractor,
+          created_at,
+          updated_at,
+          'fibreflow' as source
+        FROM fibre_segments
+        ORDER BY segment_id
+        LIMIT 100
+      `;
+    }
 
     // For now, we'll simulate QFieldCloud data
     // In production, this would call the actual QFieldCloud API
