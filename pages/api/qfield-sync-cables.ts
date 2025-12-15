@@ -19,22 +19,22 @@ export default async function handler(
   try {
     const { projectId } = req.query;
 
-    // Fetch FibreFlow fiber cable data from the fibre table
+    // Fetch FibreFlow fiber cable data from the fibre_segments table
     const fibreFlowQuery = `
       SELECT
         segment_id as cable_id,
         cable_type,
         cable_size,
-        from_chamber,
-        to_chamber,
-        distance_m as length_m,
+        from_point as from_chamber,
+        to_point as to_chamber,
+        distance as length_m,
         installation_date,
-        installation_status,
-        contractor_name as contractor,
+        status as installation_status,
+        contractor,
         created_at,
         updated_at,
         'fibreflow' as source
-      FROM fibre
+      FROM fibre_segments
       ${projectId ? 'WHERE project_id = $1' : ''}
       ORDER BY segment_id
       LIMIT 100
