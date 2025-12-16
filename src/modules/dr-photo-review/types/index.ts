@@ -62,14 +62,44 @@ export interface DRDetails {
 }
 
 /**
+ * FiberTime compliance details
+ */
+export interface FibertimeCompliance {
+    compliant?: boolean;
+    wooden_board_visible?: boolean;
+    ont_level?: boolean;
+    antennas_upright?: boolean;
+    gizzu_mounted?: boolean;
+    cable_management_acceptable?: boolean;
+    fibertime_sticker_visible?: boolean;
+    fiber_loop_visible?: boolean;
+    sc_apc_connector_visible?: boolean;
+    voltage_selector_visible?: boolean;
+    voltage_setting?: '12V' | '9V' | 'unknown';
+    voltage_correct?: boolean;
+    cable_routing_unintrusive?: boolean;
+    entry_method_detected?: string;
+    matches_housing_type?: boolean;
+    internet_light_on?: boolean;
+    warnings?: string[];
+    critical_issues?: string[];
+}
+
+/**
  * Photo evaluation result from AI
  */
 export interface PhotoEvaluation {
-    status: 'completed' | 'pending' | 'failed';
-    score: number;
-    pass: boolean;
-    findings: string[];
     step_number: number;
+    accepted: boolean | null;
+    confidence: number;
+    details: string;
+    fibertime_compliance?: FibertimeCompliance;
+    issues?: string[] | null;
+    // Legacy fields for backward compatibility
+    status?: 'completed' | 'pending' | 'failed';
+    score?: number;
+    pass?: boolean;
+    findings?: string[];
     evaluated_at?: string;
 }
 
@@ -92,6 +122,8 @@ export interface DREvaluationResult {
 export interface VLMStatus {
     online: boolean;
     model: string;
+    models_available?: string[];
+    dr_verifier_ready?: boolean;
     last_check?: string;
     error?: string;
 }

@@ -88,24 +88,61 @@ function getStepInfo(stepNumber: number): { name: string; label: string; critica
 }
 
 /**
- * Evaluate a single photo with AI
+ * Evaluate a single photo with AI using FiberTime VLM
  */
 export async function evaluatePhoto(
     drNumber: string,
     filename: string,
-    stepNumber: number
+    stepNumber: number,
+    housingType?: string
 ): Promise<PhotoEvaluation> {
-    const response = await fetch(
-        `${API_BASE}/photos/${encodeURIComponent(drNumber)}/${encodeURIComponent(filename)}/evaluate?step_number=${stepNumber}`,
-        { method: 'POST' }
-    );
+    // First, fetch the image and convert to base64
+    const imageUrl = getPhotoUrl(drNumber, filename);
+    const imageResponse = await fetch(imageUrl);
+    if (!imageResponse.ok) {
+        throw new Error('Failed to fetch image for evaluation');
+    }
+    const imageBlob = await imageResponse.blob();
+    const imageBase64 = await blobToBase64(imageBlob);
+
+    // Call VLM evaluation endpoint
+    const response = await fetch(`${API_BASE}/evaluate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            step: stepNumber,
+            imageBase64,
+            housingType,
+            drNumber,
+        }),
+    });
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'Evaluation failed' }));
         throw new Error(error.message || `HTTP ${response.status}`);
     }
 
-    return response.json();
+    const result = await response.json();
+    return {
+        step_number: stepNumber,
+        accepted: result.evaluation?.accepted ?? null,
+        confidence: result.evaluation?.confidence ?? 0,
+        details: result.evaluation?.details ?? result.evaluation?.raw_response ?? '',
+        fibertime_compliance: result.evaluation?.fibertime_compliance,
+        issues: result.evaluation?.issues,
+    };
+}
+
+/**
+ * Convert blob to base64 string
+ */
+function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
 }
 
 /**
@@ -130,13 +167,19 @@ export async function evaluateAllPhotos(drNumber: string): Promise<DREvaluationR
  */
 export async function getVLMStatus(): Promise<VLMStatus> {
     try {
-        const response = await fetch(`${API_BASE}/vlm/status`);
+        const response = await fetch(`${API_BASE}/vlm-status`);
 
         if (!response.ok) {
             return { online: false, model: 'dr-verifier', error: `HTTP ${response.status}` };
         }
 
-        return response.json();
+        const data = await response.json();
+        return {
+            online: data.status === 'online',
+            model: 'dr-verifier',
+            models_available: data.models_available,
+            dr_verifier_ready: data.dr_verifier_ready,
+        };
     } catch (error) {
         return {
             online: false,
