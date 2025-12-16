@@ -5,7 +5,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const BACKEND_URL = process.env.DR_DASHBOARD_API_URL || 'http://localhost:8082';
+const BACKEND_URL = process.env.DR_DASHBOARD_API_URL || 'http://100.96.203.105:8082';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { path } = req.query;
