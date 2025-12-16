@@ -192,23 +192,72 @@ Analyze all provided photos and evaluate against each QA step.`;
 }
 
 /**
+ * Fetch image from URL and convert to base64
+ * @param imageUrl - URL of the image
+ * @returns Base64-encoded image string
+ */
+async function fetchImageAsBase64(imageUrl: string): Promise<string> {
+  try {
+    const response = await fetch(imageUrl);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString('base64');
+
+    return base64;
+  } catch (error) {
+    log.error('VlmService', `Failed to fetch/encode image ${imageUrl}: ${error}`);
+    throw error;
+  }
+}
+
+/**
  * Call VLM API with photos and evaluation prompt
  * @param drNumber - DR number to evaluate
- * @param photoUrls - Array of photo URLs
+ * @param photoUrls - Array of photo URLs from BOSS API
  * @returns VLM evaluation response
  */
 async function callVlmApi(drNumber: string, photoUrls: string[]): Promise<any> {
   const prompt = buildEvaluationPrompt(drNumber);
 
-  // Build Ollama API request
-  // Ollama uses its own format with images as base64 or URLs
+  log.info('VlmService', `Fetching and encoding ${photoUrls.length} photos for ${drNumber}...`);
+
+  // Fetch all images and convert to base64
+  // Ollama requires base64-encoded images, not URLs
+  const base64Images: string[] = [];
+
+  for (let i = 0; i < photoUrls.length; i++) {
+    try {
+      log.debug('VlmService', `Fetching photo ${i + 1}/${photoUrls.length}: ${photoUrls[i]}`);
+      const base64 = await fetchImageAsBase64(photoUrls[i]);
+      base64Images.push(base64);
+    } catch (error) {
+      log.warn('VlmService', `Skipping photo ${i + 1} due to error: ${error}`);
+      // Continue with other photos even if one fails
+    }
+  }
+
+  if (base64Images.length === 0) {
+    throw new VlmEvaluationError(
+      'Failed to fetch any photos for evaluation',
+      'NO_PHOTOS_FETCHED'
+    );
+  }
+
+  log.info('VlmService', `Successfully encoded ${base64Images.length}/${photoUrls.length} photos`);
+
+  // Build Ollama API request with base64 images
   const requestBody = {
     model: VLM_MODEL,
     messages: [
       {
         role: 'user',
         content: prompt,
-        images: photoUrls, // Ollama accepts array of image URLs directly
+        images: base64Images, // Ollama requires base64-encoded images
       },
     ],
     stream: false, // We want the full response at once
@@ -218,7 +267,7 @@ async function callVlmApi(drNumber: string, photoUrls: string[]): Promise<any> {
     },
   };
 
-  log.info('VlmService', `Calling VLM API for ${drNumber} with ${photoUrls.length} photos`);
+  log.info('VlmService', `Calling Ollama VLM API for ${drNumber}...`);
 
   try {
     const controller = new AbortController();
@@ -251,7 +300,7 @@ async function callVlmApi(drNumber: string, photoUrls: string[]): Promise<any> {
   } catch (error: any) {
     if (error.name === 'AbortError') {
       throw new VlmEvaluationError(
-        'VLM API request timed out after 2 minutes',
+        'VLM API request timed out after 3 minutes',
         'VLM_TIMEOUT'
       );
     }
