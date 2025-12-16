@@ -1,55 +1,66 @@
 /**
- * Mock Sessions API for DR Dashboard Testing
- * Returns demo DR session data for UI testing
+ * DR Sessions API - Fetches real data from BOSS VPS
+ * Returns list of DRs with photos for the DR Photo Review page
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-// Mock DR sessions for testing
-const MOCK_SESSIONS = [
-    {
-        dr_number: 'DR001234',
-        project: 'VPS',
-        status: 'completed',
-        current_step: 11,
-        steps_completed: 11,
-        needs_review: false,
-        photo_count: 11,
-    },
-    {
-        dr_number: 'DR001235',
-        project: 'VPS',
-        status: 'in_progress',
-        current_step: 7,
-        steps_completed: 6,
-        needs_review: true,
-        photo_count: 7,
-    },
-    {
-        dr_number: 'DR001236',
-        project: 'VPS',
-        status: 'needs_review',
-        current_step: 11,
-        steps_completed: 11,
-        needs_review: true,
-        photo_count: 11,
-    },
-    {
-        dr_number: 'DR001237',
-        project: 'VPS',
-        status: 'pending',
-        current_step: 1,
-        steps_completed: 0,
-        needs_review: false,
-        photo_count: 1,
-    },
-];
+// BOSS VPS API base URL (same as foto/photos.ts)
+const BOSS_API_URL = process.env.BOSS_VPS_API_URL || 'http://72.61.197.178:8001';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Return mock sessions
-    res.status(200).json(MOCK_SESSIONS);
+    try {
+        console.log(`[DR Sessions] Fetching from BOSS VPS: ${BOSS_API_URL}/api/photos`);
+
+        // Fetch photos from BOSS VPS API
+        const response = await fetch(`${BOSS_API_URL}/api/photos`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+            throw new Error(`BOSS VPS API returned ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log(`[DR Sessions] Received ${data.total_drs} DRs from BOSS VPS`);
+
+        // Transform BOSS API response to DR sessions format
+        const sessions = (data.drs || []).map((dr: any) => {
+            const photoCount = dr.photos?.length || 0;
+            const currentStep = photoCount;
+
+            // Determine status based on photo count
+            let status: string;
+            if (photoCount === 0) {
+                status = 'pending';
+            } else if (photoCount < 11) {
+                status = 'in_progress';
+            } else {
+                status = 'completed';
+            }
+
+            return {
+                dr_number: dr.dr_number,
+                project: dr.project || 'VPS',
+                status,
+                current_step: currentStep,
+                steps_completed: photoCount,
+                needs_review: photoCount >= 11,
+                photo_count: photoCount,
+            };
+        });
+
+        return res.status(200).json(sessions);
+    } catch (error) {
+        console.error('[DR Sessions] Error fetching from BOSS VPS:', error);
+        return res.status(502).json({
+            error: 'Failed to fetch DR sessions from BOSS VPS',
+            message: error instanceof Error ? error.message : 'Unknown error',
+        });
+    }
 }

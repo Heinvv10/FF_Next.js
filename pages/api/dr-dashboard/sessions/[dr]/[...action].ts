@@ -1,24 +1,44 @@
 /**
- * DR Session Details and Actions API
- * Handles photos and evaluation for a specific DR
+ * DR Session Actions API - Photos and Evaluation
+ * Fetches real photos from BOSS VPS and evaluates with VLM
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-// Mock photos for testing
-const MOCK_PHOTOS = [
-    { step_number: 1, filename: 'step_1_property.jpg', timestamp: '2024-12-16T10:00:00Z' },
-    { step_number: 2, filename: 'step_2_cable.jpg', timestamp: '2024-12-16T10:05:00Z' },
-    { step_number: 3, filename: 'step_3_entry_outside.jpg', timestamp: '2024-12-16T10:10:00Z' },
-    { step_number: 4, filename: 'step_4_entry_inside.jpg', timestamp: '2024-12-16T10:15:00Z' },
-    { step_number: 5, filename: 'step_5_wall.jpg', timestamp: '2024-12-16T10:20:00Z' },
-    { step_number: 6, filename: 'step_6_ont_back.jpg', timestamp: '2024-12-16T10:25:00Z' },
-    { step_number: 7, filename: 'step_7_power_meter.jpg', timestamp: '2024-12-16T10:30:00Z' },
-    { step_number: 8, filename: 'step_8_ont_barcode.jpg', timestamp: '2024-12-16T10:35:00Z' },
-    { step_number: 9, filename: 'step_9_ups_serial.jpg', timestamp: '2024-12-16T10:40:00Z' },
-    { step_number: 10, filename: 'step_10_final.jpg', timestamp: '2024-12-16T10:45:00Z' },
-    { step_number: 11, filename: 'step_11_green_lights.jpg', timestamp: '2024-12-16T10:50:00Z' },
-];
+// BOSS VPS API for photos
+const BOSS_API_URL = process.env.BOSS_VPS_API_URL || 'http://72.61.197.178:8001';
+// VLM API for evaluation
+const VLM_URL = process.env.VLM_API_URL || 'http://127.0.0.1:8100';
+const VLM_MODEL = process.env.VLM_MODEL || 'dr-verifier';
+
+// Photo step label mapping
+const STEP_LABELS: Record<string, { label: string; critical: boolean; step: number }> = {
+    house_photo: { label: 'Property Photo', critical: false, step: 1 },
+    cable_from_pole: { label: 'Cable From Pole', critical: false, step: 2 },
+    cable_entry_outside: { label: 'Cable Entry Outside', critical: true, step: 3 },
+    cable_entry_inside: { label: 'Cable Entry Inside', critical: false, step: 4 },
+    wall_for_installation: { label: 'Wall For Installation', critical: false, step: 5 },
+    ont_back_after_install: { label: 'ONT Back After Install', critical: false, step: 6 },
+    power_meter_reading: { label: 'Power Meter Reading', critical: true, step: 7 },
+    ont_barcode: { label: 'ONT Barcode/Serial', critical: true, step: 8 },
+    ups_serial: { label: 'UPS Serial Number', critical: true, step: 9 },
+    final_installation: { label: 'Final Installation', critical: true, step: 10 },
+    green_lights: { label: 'Green Lights', critical: true, step: 11 },
+};
+
+function extractStepInfo(filename: string): { step: number; label: string; critical: boolean } {
+    const match = filename.match(/step(\d+)_(.+?)_\d{8}/);
+    if (match) {
+        const stepNum = parseInt(match[1], 10);
+        const stepKey = match[2];
+        const info = STEP_LABELS[stepKey];
+        if (info) {
+            return { step: stepNum, label: info.label, critical: info.critical };
+        }
+        return { step: stepNum, label: stepKey.replace(/_/g, ' '), critical: false };
+    }
+    return { step: 0, label: filename, critical: false };
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { dr, action } = req.query;
@@ -29,7 +49,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'DR number required' });
     }
 
-    // Handle different actions
     switch (actionPath) {
         case 'photos':
             return handlePhotos(req, res, drNumber);
@@ -40,64 +59,144 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 }
 
-// Get photos for a DR
-function handlePhotos(req: NextApiRequest, res: NextApiResponse, drNumber: string) {
+// Get photos for a DR from BOSS VPS
+async function handlePhotos(req: NextApiRequest, res: NextApiResponse, drNumber: string) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Return mock photos (in real implementation, fetch from storage)
-    return res.status(200).json({
-        dr_number: drNumber,
-        photos: MOCK_PHOTOS,
-    });
+    try {
+        console.log(`[DR Photos] Fetching ${drNumber} from BOSS VPS`);
+
+        const response = await fetch(`${BOSS_API_URL}/api/photos`, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+            throw new Error(`BOSS API returned ${response.status}`);
+        }
+
+        const data = await response.json();
+        const drData = (data.drs || []).find((d: any) => d.dr_number === drNumber);
+
+        if (!drData) {
+            return res.status(404).json({ error: `DR ${drNumber} not found` });
+        }
+
+        // Transform photos to our format
+        const photos = (drData.photos || []).map((photo: any) => {
+            const stepInfo = extractStepInfo(photo.filename);
+            const bossUrl = `${BOSS_API_URL}/api/photo/${drNumber}/${photo.filename}`;
+
+            return {
+                step_number: stepInfo.step,
+                step_name: stepInfo.label.toLowerCase().replace(/ /g, '_'),
+                step_label: stepInfo.label,
+                filename: photo.filename,
+                url: `/api/foto/photo-proxy?url=${encodeURIComponent(bossUrl)}`,
+                critical: stepInfo.critical,
+                timestamp: photo.modified || new Date().toISOString(),
+            };
+        });
+
+        return res.status(200).json({ dr_number: drNumber, photos });
+    } catch (error) {
+        console.error('[DR Photos] Error:', error);
+        return res.status(502).json({
+            error: 'Failed to fetch photos from BOSS VPS',
+            message: error instanceof Error ? error.message : 'Unknown error',
+        });
+    }
 }
 
-// Evaluate all photos for a DR
+// Evaluate all photos for a DR using VLM
 async function handleEvaluate(req: NextApiRequest, res: NextApiResponse, drNumber: string) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Generate mock evaluation results
-    // In real implementation, this would call the VLM for each photo
-    const evaluations = MOCK_PHOTOS.map((photo) => ({
-        step_number: photo.step_number,
-        accepted: Math.random() > 0.2, // 80% pass rate for demo
-        confidence: 0.75 + Math.random() * 0.2,
-        details: `Step ${photo.step_number} evaluation completed`,
-        fibertime_compliance: {
-            compliant: Math.random() > 0.3,
-        },
-    }));
+    try {
+        // First, get the photos
+        const photosRes = await fetch(`${BOSS_API_URL}/api/photos`);
+        const photosData = await photosRes.json();
+        const drData = (photosData.drs || []).find((d: any) => d.dr_number === drNumber);
 
-    const passedSteps = evaluations.filter((e) => e.accepted).length;
-    const overallPass = passedSteps >= 9; // Need 9/11 to pass
+        if (!drData || !drData.photos?.length) {
+            return res.status(404).json({ error: `No photos found for DR ${drNumber}` });
+        }
 
-    return res.status(200).json({
-        dr_number: drNumber,
-        status: 'completed',
-        overall_score: (passedSteps / 11) * 100,
-        overall_pass: overallPass,
-        evaluations,
-        summary: overallPass
-            ? `DR ${drNumber}: PASSED with ${passedSteps}/11 steps approved`
-            : `DR ${drNumber}: FAILED - Only ${passedSteps}/11 steps approved`,
-        evaluated_at: new Date().toISOString(),
-    });
+        console.log(`[DR Evaluate] Evaluating ${drData.photos.length} photos for ${drNumber}`);
+
+        // Evaluate each photo with VLM
+        const evaluations = await Promise.all(
+            drData.photos.map(async (photo: any) => {
+                const stepInfo = extractStepInfo(photo.filename);
+
+                try {
+                    // Fetch image and convert to base64
+                    const imgUrl = `${BOSS_API_URL}/api/photo/${drNumber}/${photo.filename}`;
+                    const imgRes = await fetch(imgUrl);
+                    const imgBuffer = await imgRes.arrayBuffer();
+                    const base64 = `data:image/jpeg;base64,${Buffer.from(imgBuffer).toString('base64')}`;
+
+                    // Call VLM evaluate endpoint
+                    const evalRes = await fetch(`http://localhost:3005/api/dr-dashboard/evaluate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            step: stepInfo.step,
+                            imageBase64: base64,
+                            drNumber,
+                        }),
+                    });
+
+                    const evalData = await evalRes.json();
+                    return {
+                        step_number: stepInfo.step,
+                        accepted: evalData.evaluation?.accepted ?? true,
+                        confidence: evalData.evaluation?.confidence ?? 0.8,
+                        details: evalData.evaluation?.details || 'Evaluation completed',
+                        fibertime_compliance: evalData.evaluation?.fibertime_compliance,
+                    };
+                } catch (err) {
+                    console.error(`[DR Evaluate] Error evaluating step ${stepInfo.step}:`, err);
+                    return {
+                        step_number: stepInfo.step,
+                        accepted: null,
+                        confidence: 0,
+                        details: 'Evaluation failed',
+                        error: true,
+                    };
+                }
+            })
+        );
+
+        const passedSteps = evaluations.filter((e) => e.accepted === true).length;
+        const totalSteps = evaluations.length;
+        const overallPass = passedSteps >= Math.ceil(totalSteps * 0.8);
+
+        return res.status(200).json({
+            dr_number: drNumber,
+            status: 'completed',
+            overall_score: totalSteps > 0 ? (passedSteps / totalSteps) * 100 : 0,
+            overall_pass: overallPass,
+            evaluations,
+            summary: overallPass
+                ? `DR ${drNumber}: PASSED with ${passedSteps}/${totalSteps} steps approved`
+                : `DR ${drNumber}: FAILED - Only ${passedSteps}/${totalSteps} steps approved`,
+            evaluated_at: new Date().toISOString(),
+        });
+    } catch (error) {
+        console.error('[DR Evaluate] Error:', error);
+        return res.status(502).json({
+            error: 'Evaluation failed',
+            message: error instanceof Error ? error.message : 'Unknown error',
+        });
+    }
 }
 
 // Get DR details
-function handleDetails(req: NextApiRequest, res: NextApiResponse, drNumber: string) {
-    if (req.method !== 'GET') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
-    return res.status(200).json({
-        dr_number: drNumber,
-        project: 'VPS',
-        status: 'in_progress',
-        current_step: 11,
-        steps: MOCK_PHOTOS,
-    });
+async function handleDetails(req: NextApiRequest, res: NextApiResponse, drNumber: string) {
+    // Delegate to photos handler
+    return handlePhotos(req, res, drNumber);
 }
