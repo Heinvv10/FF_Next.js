@@ -11,10 +11,15 @@ import {
   executePythonEvaluation,
   PythonEvaluationError,
 } from '@/modules/foto-review/services/fotoPythonService';
+import {
+  executeVlmEvaluation,
+  VlmEvaluationError,
+} from '@/modules/foto-review/services/fotoVlmService';
 import { validateDrNumber } from '@/modules/foto-review/utils/drValidator';
 
-// Feature flag: Use Python backend or mock data
-const USE_PYTHON_BACKEND = process.env.USE_PYTHON_BACKEND === 'true';
+// Feature flags
+const USE_VLM_BACKEND = process.env.USE_VLM_BACKEND !== 'false'; // Default: true (VLM is primary)
+const USE_PYTHON_BACKEND = process.env.USE_PYTHON_BACKEND === 'true'; // Fallback option
 
 export default async function handler(
   req: NextApiRequest,
@@ -43,11 +48,58 @@ export default async function handler(
     const sanitizedDr = validation.sanitized!;
 
     let evaluation: EvaluationResult;
+    let evaluationMethod = 'mock';
 
-    if (USE_PYTHON_BACKEND) {
+    // Priority: VLM > Python > Mock
+    if (USE_VLM_BACKEND) {
+      console.log('[evaluate API] Using VLM backend for evaluation');
+      try {
+        evaluation = await executeVlmEvaluation(sanitizedDr);
+        evaluationMethod = 'vlm';
+        console.log('[evaluate API] VLM evaluation successful');
+      } catch (error) {
+        if (error instanceof VlmEvaluationError) {
+          console.error('[evaluate API] VLM evaluation error:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+          });
+
+          // If VLM fails and Python is enabled, fallback to Python
+          if (USE_PYTHON_BACKEND) {
+            console.log('[evaluate API] Falling back to Python backend');
+            try {
+              evaluation = await executePythonEvaluation(sanitizedDr);
+              evaluationMethod = 'python-fallback';
+              console.log('[evaluate API] Python fallback successful');
+            } catch (pythonError) {
+              // Both failed - return VLM error (primary method)
+              return res.status(500).json({
+                error: 'VLM evaluation failed',
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                fallback_error: pythonError instanceof Error ? pythonError.message : 'Python fallback also failed',
+              });
+            }
+          } else {
+            // No fallback available
+            return res.status(500).json({
+              error: 'VLM evaluation failed',
+              message: error.message,
+              code: error.code,
+              details: error.details,
+            });
+          }
+        } else {
+          throw error;
+        }
+      }
+    } else if (USE_PYTHON_BACKEND) {
       console.log('[evaluate API] Using Python backend for evaluation');
       try {
         evaluation = await executePythonEvaluation(sanitizedDr);
+        evaluationMethod = 'python';
         console.log('[evaluate API] Python evaluation successful');
       } catch (error) {
         if (error instanceof PythonEvaluationError) {
@@ -67,7 +119,7 @@ export default async function handler(
         throw error;
       }
     } else {
-      console.log('[evaluate API] Using mock evaluation data (Python backend disabled)');
+      console.log('[evaluate API] Using mock evaluation data (both VLM and Python backends disabled)');
       evaluation = generateMockEvaluation(sanitizedDr);
     }
 
@@ -79,9 +131,15 @@ export default async function handler(
     return res.status(200).json({
       success: true,
       data: savedEvaluation,
-      message: USE_PYTHON_BACKEND
-        ? 'AI evaluation completed and saved successfully'
-        : 'Mock evaluation completed and saved successfully (Python backend disabled)',
+      method: evaluationMethod,
+      message:
+        evaluationMethod === 'vlm'
+          ? 'AI evaluation completed successfully using VLM'
+          : evaluationMethod === 'python'
+          ? 'AI evaluation completed successfully using Python'
+          : evaluationMethod === 'python-fallback'
+          ? 'AI evaluation completed using Python (VLM fallback)'
+          : 'Mock evaluation completed (VLM and Python backends disabled)',
     });
   } catch (error) {
     console.error('Error evaluating DR:', error);
