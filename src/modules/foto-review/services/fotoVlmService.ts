@@ -104,29 +104,45 @@ export class VlmEvaluationError extends Error {
 }
 
 /**
- * Fetch photo URLs for a DR from database
+ * Fetch photo URLs for a DR from BOSS VPS API
  * @param drNumber - DR number (e.g., "DR1730550")
- * @returns Array of photo URLs
+ * @returns Array of photo URLs (direct BOSS API URLs for Ollama to access)
  */
 async function fetchDrPhotos(drNumber: string): Promise<string[]> {
+  const BOSS_API_URL = process.env.BOSS_VPS_API_URL || 'http://72.61.197.178:8001';
+
   try {
-    // Call the photos API to get DR photos
-    const response = await fetch(`/api/foto/photos?dr=${drNumber}`);
+    log.info('VlmService', `Fetching photos from BOSS API for ${drNumber}`);
+
+    // Fetch all DRs from BOSS VPS API
+    const response = await fetch(`${BOSS_API_URL}/api/photos`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch photos: ${response.statusText}`);
+      throw new Error(`BOSS API returned ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
 
-    // Extract photo URLs from the DR data
-    const drData = data.data?.find((dr: any) => dr.dr_number === drNumber);
+    // Find the specific DR
+    const drData = data.drs?.find((dr: any) => dr.dr_number === drNumber);
 
     if (!drData || !drData.photos || drData.photos.length === 0) {
-      throw new Error(`No photos found for DR ${drNumber}`);
+      throw new Error(`No photos found for DR ${drNumber} in BOSS API`);
     }
 
-    return drData.photos.map((photo: any) => photo.url);
+    // Return direct BOSS API URLs (Ollama can access these directly)
+    const photoUrls = drData.photos.map((photo: any) =>
+      `${BOSS_API_URL}/api/photo/${drNumber}/${photo.filename}`
+    );
+
+    log.info('VlmService', `Found ${photoUrls.length} photos for ${drNumber}`);
+
+    return photoUrls;
   } catch (error) {
     log.error('VlmService', `Failed to fetch DR photos: ${error}`);
     throw new VlmEvaluationError(
