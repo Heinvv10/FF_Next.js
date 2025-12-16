@@ -9,10 +9,12 @@ import { log } from '@/lib/logger';
 
 /**
  * VLM API configuration
+ * Uses Ollama with dr-verifier model (trained VLM for DR photo verification)
  */
-const VLM_API_BASE = process.env.VLM_API_URL || 'http://100.96.203.105:8100';
-const VLM_API_ENDPOINT = `${VLM_API_BASE}/v1/chat/completions`;
-const VLM_TIMEOUT_MS = 120000; // 2 minutes for image processing
+const VLM_API_BASE = process.env.VLM_API_URL || 'http://localhost:11434';
+const VLM_API_ENDPOINT = `${VLM_API_BASE}/api/chat`;
+const VLM_MODEL = process.env.VLM_MODEL || 'dr-verifier-finetuned';
+const VLM_TIMEOUT_MS = 180000; // 3 minutes for image processing
 
 /**
  * 11 QA Steps from DR Photo Verification Manual
@@ -182,31 +184,22 @@ Analyze all provided photos and evaluate against each QA step.`;
 async function callVlmApi(drNumber: string, photoUrls: string[]): Promise<any> {
   const prompt = buildEvaluationPrompt(drNumber);
 
-  // Build VLM API request
-  // Format: OpenAI-compatible chat completions API
+  // Build Ollama API request
+  // Ollama uses its own format with images as base64 or URLs
   const requestBody = {
-    model: 'vlm-photo-evaluator', // Model name from training
+    model: VLM_MODEL,
     messages: [
       {
         role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: prompt,
-          },
-          // Add each photo as an image content item
-          ...photoUrls.map(url => ({
-            type: 'image_url',
-            image_url: {
-              url: url,
-              detail: 'high', // Request high-detail analysis
-            },
-          })),
-        ],
+        content: prompt,
+        images: photoUrls, // Ollama accepts array of image URLs directly
       },
     ],
-    max_tokens: 2000,
-    temperature: 0.1, // Low temperature for consistent, factual evaluation
+    stream: false, // We want the full response at once
+    options: {
+      temperature: 0.1, // Low temperature for consistent evaluation
+      num_predict: 2000, // Max tokens
+    },
   };
 
   log.info('VlmService', `Calling VLM API for ${drNumber} with ${photoUrls.length} photos`);
@@ -264,12 +257,14 @@ async function callVlmApi(drNumber: string, photoUrls: string[]): Promise<any> {
  */
 function parseVlmResponse(drNumber: string, vlmResponse: any): EvaluationResult {
   try {
-    // Extract content from OpenAI-compatible response format
-    const content = vlmResponse.choices?.[0]?.message?.content;
+    // Extract content from Ollama response format
+    const content = vlmResponse.message?.content;
 
     if (!content) {
       throw new Error('No content in VLM response');
     }
+
+    log.debug('VlmService', `Raw VLM response: ${content.substring(0, 200)}...`);
 
     // Parse JSON from content (VLM should return JSON as instructed in prompt)
     let evaluationData: any;
@@ -371,14 +366,29 @@ export async function executeVlmEvaluation(
  * Check VLM service health
  * @returns true if VLM is reachable and healthy
  */
+/**
+ * Check VLM service health (Ollama)
+ * @returns true if Ollama is reachable and has the dr-verifier model
+ */
 export async function checkVlmHealth(): Promise<boolean> {
   try {
-    const response = await fetch(`${VLM_API_BASE}/health`, {
+    const response = await fetch(`${VLM_API_BASE}/api/tags`, {
       method: 'GET',
       signal: AbortSignal.timeout(5000),
     });
 
-    return response.ok;
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    const hasModel = data.models?.some((m: any) => m.name.includes('dr-verifier'));
+
+    if (!hasModel) {
+      log.warn('VlmService', `dr-verifier model not found in Ollama`);
+    }
+
+    return hasModel;
   } catch (error) {
     log.error('VlmService', `VLM health check failed: ${error}`);
     return false;
