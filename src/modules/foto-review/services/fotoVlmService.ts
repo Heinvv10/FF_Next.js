@@ -9,11 +9,11 @@ import { log } from '@/lib/logger';
 
 /**
  * VLM API configuration
- * Uses Ollama with dr-verifier model (trained VLM for DR photo verification)
+ * Uses MiniCPM-V-2_6 via vLLM with OpenAI-compatible API
  */
-const VLM_API_BASE = process.env.VLM_API_URL || 'http://localhost:11434';
-const VLM_API_ENDPOINT = `${VLM_API_BASE}/api/chat`;
-const VLM_MODEL = process.env.VLM_MODEL || 'dr-verifier-finetuned';
+const VLM_API_BASE = process.env.VLM_API_URL || 'http://100.96.203.105:8100';
+const VLM_API_ENDPOINT = `${VLM_API_BASE}/v1/chat/completions`;
+const VLM_MODEL = process.env.VLM_MODEL || 'openbmb/MiniCPM-V-2_6';
 const VLM_TIMEOUT_MS = 180000; // 3 minutes for image processing
 
 /**
@@ -250,24 +250,33 @@ async function callVlmApi(drNumber: string, photoUrls: string[]): Promise<any> {
 
   log.info('VlmService', `Successfully encoded ${base64Images.length}/${photoUrls.length} photos`);
 
-  // Build Ollama API request with base64 images
+  // Build OpenAI-compatible API request with base64 images
+  // MiniCPM-V-2_6 uses OpenAI format for vision models
   const requestBody = {
     model: VLM_MODEL,
     messages: [
       {
         role: 'user',
-        content: prompt,
-        images: base64Images, // Ollama requires base64-encoded images
+        content: [
+          {
+            type: 'text',
+            text: prompt,
+          },
+          // Add each base64 image as image_url content
+          ...base64Images.map(base64 => ({
+            type: 'image_url',
+            image_url: {
+              url: `data:image/jpeg;base64,${base64}`,
+            },
+          })),
+        ],
       },
     ],
-    stream: false, // We want the full response at once
-    options: {
-      temperature: 0.1, // Low temperature for consistent evaluation
-      num_predict: 2000, // Max tokens
-    },
+    max_tokens: 2000,
+    temperature: 0.1, // Low temperature for consistent evaluation
   };
 
-  log.info('VlmService', `Calling Ollama VLM API for ${drNumber}...`);
+  log.info('VlmService', `Calling MiniCPM-V-2_6 VLM API for ${drNumber}...`);
 
   try {
     const controller = new AbortController();
@@ -322,8 +331,8 @@ async function callVlmApi(drNumber: string, photoUrls: string[]): Promise<any> {
  */
 function parseVlmResponse(drNumber: string, vlmResponse: any): EvaluationResult {
   try {
-    // Extract content from Ollama response format
-    const content = vlmResponse.message?.content;
+    // Extract content from OpenAI-compatible response format
+    const content = vlmResponse.choices?.[0]?.message?.content;
 
     if (!content) {
       throw new Error('No content in VLM response');
@@ -432,12 +441,12 @@ export async function executeVlmEvaluation(
  * @returns true if VLM is reachable and healthy
  */
 /**
- * Check VLM service health (Ollama)
- * @returns true if Ollama is reachable and has the dr-verifier model
+ * Check VLM service health (vLLM with MiniCPM-V-2_6)
+ * @returns true if vLLM is reachable and has the MiniCPM-V-2_6 model
  */
 export async function checkVlmHealth(): Promise<boolean> {
   try {
-    const response = await fetch(`${VLM_API_BASE}/api/tags`, {
+    const response = await fetch(`${VLM_API_BASE}/v1/models`, {
       method: 'GET',
       signal: AbortSignal.timeout(5000),
     });
@@ -447,10 +456,10 @@ export async function checkVlmHealth(): Promise<boolean> {
     }
 
     const data = await response.json();
-    const hasModel = data.models?.some((m: any) => m.name.includes('dr-verifier'));
+    const hasModel = data.data?.some((m: any) => m.id === 'openbmb/MiniCPM-V-2_6');
 
     if (!hasModel) {
-      log.warn('VlmService', `dr-verifier model not found in Ollama`);
+      log.warn('VlmService', `MiniCPM-V-2_6 model not found in vLLM`);
     }
 
     return hasModel;
