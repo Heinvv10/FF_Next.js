@@ -421,18 +421,56 @@ export async function executeVlmEvaluation(
       batches.push(photoUrls.slice(i, i + BATCH_SIZE));
     }
 
-    log.info('VlmService', `Processing ${batches.length} batches of photos`);
+    log.info('VlmService', `Processing ${batches.length} batches in parallel`);
 
-    // Step 3: Evaluate each batch
-    const batchEvaluations: EvaluationResult[] = [];
+    // Step 3: Evaluate all batches in parallel (4x faster!)
+    const batchStartTime = Date.now();
 
-    for (let i = 0; i < batches.length; i++) {
-      log.info('VlmService', `Evaluating batch ${i + 1}/${batches.length} (${batches[i].length} photos)`);
+    const batchPromises = batches.map(async (batch, index) => {
+      const batchNum = index + 1;
+      const batchStart = Date.now();
 
-      const vlmResponse = await callVlmApi(drNumber, batches[i]);
-      const evaluation = parseVlmResponse(drNumber, vlmResponse);
-      batchEvaluations.push(evaluation);
-    }
+      log.info('VlmService', `Starting batch ${batchNum}/${batches.length} (${batch.length} photos)`);
+
+      try {
+        const vlmResponse = await callVlmApi(drNumber, batch);
+        const evaluation = parseVlmResponse(drNumber, vlmResponse);
+
+        const batchTime = Date.now() - batchStart;
+        log.info('VlmService', `Batch ${batchNum} completed in ${batchTime}ms`);
+
+        return evaluation;
+      } catch (error) {
+        const batchTime = Date.now() - batchStart;
+        log.error('VlmService', `Batch ${batchNum} failed after ${batchTime}ms: ${error}`);
+
+        // Return partial evaluation for failed batch (don't fail entire evaluation)
+        return {
+          dr_number: drNumber,
+          overall_status: 'FAIL' as const,
+          average_score: 0,
+          total_steps: batch.length,
+          passed_steps: 0,
+          step_results: batch.map((_, i) => ({
+            step_number: i + 1,
+            step_name: `batch_${batchNum}_photo_${i + 1}`,
+            step_label: `Batch ${batchNum} Photo ${i + 1}`,
+            passed: false,
+            score: 0,
+            comment: `Failed to evaluate: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          })),
+          feedback_sent: false,
+          evaluation_date: new Date(),
+          markdown_report: `Batch ${batchNum} failed: ${error}`,
+        };
+      }
+    });
+
+    // Wait for all batches to complete
+    const batchEvaluations = await Promise.all(batchPromises);
+
+    const totalBatchTime = Date.now() - batchStartTime;
+    log.info('VlmService', `All ${batches.length} batches completed in ${totalBatchTime}ms (parallel)`);
 
     // Step 4: Merge batch results
     const mergedEvaluation = mergeBatchEvaluations(drNumber, batchEvaluations);
