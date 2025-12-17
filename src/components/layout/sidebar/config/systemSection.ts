@@ -2,15 +2,22 @@
  * System section configuration
  */
 
-import { Settings, Download } from 'lucide-react';
+import { Settings, Download, FileDown } from 'lucide-react';
 import type { NavSection } from './types';
 
 export const systemSection: NavSection = {
   section: 'SYSTEM',
   items: [
     {
-      to: '/imports',
+      to: '/downloads',
       icon: Download,
+      label: 'Downloads',
+      shortLabel: 'Downloads',
+      permissions: [],
+    },
+    {
+      to: '/imports',
+      icon: FileDown,
       label: 'Imports',
       shortLabel: 'Imports',
       permissions: [],

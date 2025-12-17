@@ -99,6 +99,14 @@ export function AppRouterLayout({ children }: AppRouterLayoutProps) {
       };
     }
 
+    // Downloads
+    if (pathname.includes('downloads')) {
+      return {
+        title: 'Downloads',
+        breadcrumbs: ['Home', 'Downloads'],
+      };
+    }
+
     // Default
     return {
       title: 'FibreFlow',

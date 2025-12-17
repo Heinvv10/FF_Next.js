@@ -143,39 +143,6 @@ export function QFieldSyncDashboard() {
         />
       </div>
 
-      {/* Mobile App Download Section */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 mb-8 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-3">
-              <Download className="h-8 w-8" />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-1">VeloQA Image Eval App</h3>
-              <p className="text-white/90">
-                Android app for field image quality evaluation and DR submission reviews
-              </p>
-              <p className="text-sm text-white/75 mt-1">Version 1.2.0 • 8 MB</p>
-            </div>
-          </div>
-          <a
-            href="/veloqa-imageeval-v1.2.0.apk"
-            download="veloqa-imageeval-v1.2.0.apk"
-            className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center gap-2"
-          >
-            <Download className="h-5 w-5" />
-            Download APK
-          </a>
-        </div>
-        <div className="mt-4 p-3 bg-white/10 backdrop-blur-sm rounded-lg">
-          <p className="text-sm text-white/90">
-            <strong>Installation Instructions:</strong> After downloading, open the APK file on your Android device.
-            You may need to enable "Install from Unknown Sources" in your device settings.
-            The app requires Android 6.0 or higher.
-          </p>
-        </div>
-      </div>
-
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
