@@ -396,8 +396,8 @@ function parseVlmResponse(drNumber: string, vlmResponse: any): EvaluationResult 
 }
 
 /**
- * Execute VLM evaluation for a DR
- * Main entry point - fetches photos, calls VLM, parses results
+ * Execute VLM evaluation for a DR with batching to handle context limits
+ * Main entry point - fetches photos, calls VLM in batches, merges results
  *
  * @param drNumber - DR number to evaluate (e.g., "DR1730550")
  * @returns Evaluation results
@@ -412,15 +412,34 @@ export async function executeVlmEvaluation(
     const photoUrls = await fetchDrPhotos(drNumber);
     log.info('VlmService', `Fetched ${photoUrls.length} photos for ${drNumber}`);
 
-    // Step 2: Call VLM API
-    const vlmResponse = await callVlmApi(drNumber, photoUrls);
+    // Step 2: Batch photos to stay within context limits
+    // MiniCPM-V-2_6 has 4096 token limit, so process 4-5 photos at a time
+    const BATCH_SIZE = 5;
+    const batches: string[][] = [];
 
-    // Step 3: Parse response into our format
-    const evaluation = parseVlmResponse(drNumber, vlmResponse);
+    for (let i = 0; i < photoUrls.length; i += BATCH_SIZE) {
+      batches.push(photoUrls.slice(i, i + BATCH_SIZE));
+    }
 
-    log.info('VlmService', `VLM evaluation completed for ${drNumber}: ${evaluation.overall_status}`);
+    log.info('VlmService', `Processing ${batches.length} batches of photos`);
 
-    return evaluation;
+    // Step 3: Evaluate each batch
+    const batchEvaluations: EvaluationResult[] = [];
+
+    for (let i = 0; i < batches.length; i++) {
+      log.info('VlmService', `Evaluating batch ${i + 1}/${batches.length} (${batches[i].length} photos)`);
+
+      const vlmResponse = await callVlmApi(drNumber, batches[i]);
+      const evaluation = parseVlmResponse(drNumber, vlmResponse);
+      batchEvaluations.push(evaluation);
+    }
+
+    // Step 4: Merge batch results
+    const mergedEvaluation = mergeBatchEvaluations(drNumber, batchEvaluations);
+
+    log.info('VlmService', `VLM evaluation completed for ${drNumber}: ${mergedEvaluation.overall_status}`);
+
+    return mergedEvaluation;
   } catch (error) {
     log.error('VlmService', `VLM evaluation failed for ${drNumber}: ${error}`);
 
@@ -434,6 +453,52 @@ export async function executeVlmEvaluation(
       error
     );
   }
+}
+
+/**
+ * Merge multiple batch evaluation results into a single result
+ * @param drNumber - DR number
+ * @param batchEvaluations - Array of batch evaluation results
+ * @returns Merged evaluation result
+ */
+function mergeBatchEvaluations(
+  drNumber: string,
+  batchEvaluations: EvaluationResult[]
+): EvaluationResult {
+  if (batchEvaluations.length === 1) {
+    return batchEvaluations[0];
+  }
+
+  // Merge step results from all batches
+  const allSteps = batchEvaluations.flatMap(e => e.step_results);
+
+  // Count passed steps
+  const passedCount = allSteps.filter(s => s.passed).length;
+
+  // Calculate average score
+  const avgScore = allSteps.reduce((sum, s) => sum + s.score, 0) / allSteps.length;
+
+  // Determine overall status
+  const passRate = passedCount / allSteps.length;
+  const overallStatus = passRate >= 0.7 ? 'PASS' : 'FAIL';
+
+  // Combine feedback
+  const feedback = batchEvaluations
+    .map(e => e.markdown_report)
+    .filter(Boolean)
+    .join('\n\n---\n\n');
+
+  return {
+    dr_number: drNumber,
+    overall_status: overallStatus,
+    average_score: Math.round(avgScore * 10) / 10,
+    total_steps: allSteps.length,
+    passed_steps: passedCount,
+    step_results: allSteps,
+    feedback_sent: false,
+    evaluation_date: new Date(),
+    markdown_report: feedback,
+  };
 }
 
 /**
