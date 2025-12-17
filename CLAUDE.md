@@ -1,1291 +1,304 @@
 # CLAUDE.md - AI Assistant Context Guide
 
 ## Project Overview
-**FibreFlow Next.js** - A modern Next.js application for fiber network project management, successfully migrated from React/Vite.
-
-### ✅ Migration Complete!
-**Successfully migrated to Next.js with Clerk Authentication**
-- Next.js 14+ with App Router now in production
-- Clerk authentication fully integrated
-- Previous React/Vite app archived for reference
+**FibreFlow Next.js** - A fiber network project management application
+- **Framework**: Next.js 14+ with App Router
+- **Auth**: Clerk (fully integrated)
+- **Database**: Neon PostgreSQL (direct SQL)
+- **Storage**: Firebase Storage (files/images)
 
 ## Essential Directory Structure
+```
+src/
+├── modules/        # Modular features (Lego blocks)
+│   ├── wa-monitor/ # WhatsApp monitor (fully isolated)
+│   └── rag/        # Contractor health monitoring
+├── components/     # Shared UI (AppLayout is standard)
+├── services/       # API services
+└── lib/           # Utilities
 
-### Core Application
-- `src/` - Main React application code
-  - `modules/` - **Modular features ("Lego blocks" - self-contained, plug-and-play)**
-    - `rag/` - RAG (Red/Amber/Green) contractor health monitoring
-    - Each module has: types/, services/, utils/, components/
-  - `components/` - **Shared UI components (AppLayout is the standard layout)**
-    - `layout/` - Layout components (AppLayout, Header, Sidebar, Footer)
-    - `layout/index.ts` - Single source of truth for layout imports
-  - `services/` - Shared API services
-  - `lib/` - Shared utilities and helpers
-- `api/` - Backend API endpoints and server logic
-- `public/` - Static assets and public files
-- `scripts/` - Build scripts, database utilities, and tools
-- `SOW/` - Statement of Work import functionality (active feature)
-
-### Database & Infrastructure
-- `neon/` - **Neon PostgreSQL database**
-  - **Project**: FF_React (Neon Project ID: sparkling-bar-47287977)
-  - **Database**: ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech
-  - **Connection**: postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb
-  - Uses @neondatabase/serverless client for direct SQL queries
-  - No ORM - direct SQL with template literals
-  - **⚠️ CRITICAL: This is the ONLY database - ALL environments MUST use this:**
-    - ✅ Local development: ep-dry-night-a9qyh4sj
-    - ✅ VPS Production: ep-dry-night-a9qyh4sj
-    - ✅ VPS Dev: ep-dry-night-a9qyh4sj
-    - ✅ WA Monitor: ep-dry-night-a9qyh4sj
-    - ❌ DO NOT USE: ep-damp-credit-a857vku0 (old/incorrect database)
-  - Database configuration and connection setup
-- `scripts/migrations/` - Custom database migration scripts
-  - Migration runner and SQL files
-  - Database setup and seeding utilities
-
-## 🚨 CRITICAL: Database Tables - DO NOT CONFUSE!
-
-**FibreFlow uses TWO SEPARATE drop tables for different purposes:**
-
-### 1. `drops` Table - SOW Import Data
-**Purpose:** Stores drops imported from SOW Excel/CSV files
-**Used by:** SOW import scripts, Fiber Stringing page, SOW List page
-**API:** `/api/sow/drops`, `/api/sow/fibre`
-**Projects:** All projects (Lawley, Mohadin, etc.)
-**Import scripts:** `/scripts/sow-import/`
-**Example drop:** DR1734268 (imported from Excel)
-
-**Key columns:**
-- `drop_number` (VARCHAR)
-- `pole_number` (VARCHAR)
-- `project_id` (UUID)
-- `installation_date` (DATE)
-- `address` (TEXT)
-- `customer_name` (VARCHAR)
-
-### 2. `qa_photo_reviews` Table - WA Monitor WhatsApp Data
-**Purpose:** Stores drops from WhatsApp QA photo review process
-**Used by:** WA Monitor dashboard, WhatsApp feedback system
-**API:** `/api/wa-monitor-drops`, `/api/wa-monitor-daily-drops`
-**Projects:** Lawley, Velo Test, Mohadin
-**Source:** WhatsApp groups via `realtime_drop_monitor.py`
-**Example drop:** DR1752169 (from WhatsApp message)
-
-**Key columns:**
-- `drop_number` (VARCHAR)
-- `review_date` (TIMESTAMP)
-- `user_name` (VARCHAR)
-- `completed_photos` (INTEGER)
-- `outstanding_photos` (INTEGER)
-- `project` (VARCHAR)
-- `assigned_agent` (VARCHAR)
-- `completed` (BOOLEAN)
-- `incomplete` (BOOLEAN)
-- `feedback_sent` (TIMESTAMP)
-- 12 QA photo step columns (`step_01_house_photo`, etc.)
-
-### ⚠️ When Querying Drop Data:
-
-**For SOW/Project Drops:**
-```sql
-SELECT * FROM drops WHERE project_id = '...'
+scripts/           # Build scripts & database tools
+SOW/              # Statement of Work import
+neon/             # Database configuration
+docs/             # Documentation & logs
 ```
 
-**For WA Monitor/WhatsApp QA Drops:**
-```sql
-SELECT * FROM qa_photo_reviews WHERE project = 'Lawley'
-```
+## 🚨 CRITICAL: Database Configuration
 
-**NEVER mix these tables!** They have different schemas, purposes, and data sources.
-
-**📚 REQUIRED READING:**
-- **Database Tables Reference:** `docs/DATABASE_TABLES.md` ⭐ **READ THIS FIRST**
-- WA Monitor module docs: `src/modules/wa-monitor/README.md`
-- SOW import docs: `SOW/docs/importlog.md`
-
-### Development & Testing
-- `tests/` - Test suites and e2e tests
-- `docs/` - Documentation
-  - `docs/CHANGELOG.md` - **Daily work log and deployment tracking**
-  - `docs/TRACKING_SYSTEM.md` - **Complete guide to tracking system**
-  - `docs/page-logs/` - **Page development logs tracking all changes with timestamps**
-  - `docs/PROGRESS.md` - Project phase completion tracking
-
-### Deployment & Production
-- `vercel/` - **Vercel deployment management** (See `vercel/CLAUDE.md` for deployment protocol)
-  - `vercel/docs/` - Deployment guides and checklists
-  - `vercel/scripts/` - Automated deployment scripts
-  - Complete environment variables reference
-  - Troubleshooting guides
-- `docs/VPS/` - **VPS deployment documentation** (Hostinger Lithuania server)
-  - `DEPLOYMENT.md` - Complete deployment guide
-  - `QUICK_REFERENCE.md` - One-liner commands
-  - `DEPLOYMENT_HISTORY.md` - Deployment logs
-
-### AI Assistant Helpers
-- `.agent-os/` - AI agent configuration and project specs
-- `.antihall/` - Anti-hallucination validation system (prevents AI from referencing non-existent code)
-
-## Archived Content
-Non-essential files have been moved to `../FF_React_Archive/` to keep the codebase clean:
-- Migration scripts (one-time fixes)
-- Temporary files and test outputs
-- Legacy code (ForgeFlow-v2-FF2)
-- `archive/old-layouts/` - Old layout components (MainLayout, simple Layout) replaced by AppLayout
-
-## 🚨 CRITICAL: How to Start the Server
-
-### ✅ ALWAYS USE THIS METHOD (Production Mode):
-```bash
-# Step 1: Build the application (REQUIRED FIRST)
-npm run build
-
-# Step 2: Start the server on port 3005
-PORT=3005 npm start
-```
-**Access the app at: http://localhost:3005**
-
-### ❌ DO NOT USE Development Mode:
-```bash
-npm run dev  # ⚠️ WILL FAIL - Has Watchpack bug
-```
-
-### Why This Works:
-- **Known Bug**: The development server has a Watchpack bug due to nested package.json files in the `neon/` directory
-- **Solution**: Production mode bypasses the file watcher entirely
-- **Affects**: Both Next.js 14 and 15
-- **Stability**: Production mode is 100% stable for local development
-
-### If You Need to Make Code Changes:
-1. Make your code changes
-2. Stop the server (Ctrl+C)
-3. Rebuild: `npm run build`
-4. Restart: `PORT=3005 npm start`
-
-## Key Commands
-
-### Development
-```bash
-# PRODUCTION MODE (RECOMMENDED - Works reliably)
-npm run build        # Build for production
-PORT=3005 npm start  # Start production server
-
-# DEVELOPMENT MODE (Currently has Watchpack bug)
-npm run dev          # ⚠️ Has known issues - use production mode instead
-
-# Other commands
-npm run lint         # Run ESLint
-npm run type-check   # TypeScript type checking
-```
-
-### Database
-```bash
-npm run db:migrate   # Run custom migration scripts
-npm run db:seed      # Seed database with initial data
-npm run db:validate  # Validate database schema and connections
-npm run db:setup     # Initial database setup
-npm run db:test      # Run database tests
-```
-
-### Testing
-```bash
-npm test            # Run Vitest tests
-npm run test:e2e    # Run Playwright e2e tests
-```
-
-### AI Validation
-```bash
-npm run antihall    # Run anti-hallucination validator
-```
-
-## Tech Stack
-
-### Current Stack (Production) ✅
-- **Framework**: Next.js 14+ with App Router
-- **Frontend**: React 18, TypeScript, TailwindCSS
-- **Authentication**: Clerk (complete integration)
-- **Security**: Arcjet (bot protection, rate limiting, attack detection)
-- **Database**: Neon PostgreSQL (serverless client, direct SQL)
-- **File Storage**: Firebase Storage (for PDFs, images - see `docs/ARCHITECTURE_STORAGE.md`)
-- **API**: Next.js API Routes (App Router)
-- **Testing**: Vitest, Playwright
-- **Deployment**: Vercel (optimized SSR/ISR)
-
-### Legacy Stack (Archived/Migrated)
-- **Framework**: React 18 + Vite (archived for reference)
-- **Backend**: Express server (replaced by Next.js API routes)
-- **Authentication**: Firebase Auth (replaced by Clerk)
-- **Database**: Firebase Firestore (migrated to Neon PostgreSQL)
-- **Note**: Firebase Storage still used for file uploads (intentional hybrid architecture)
-
-## Important Notes for AI Assistants
-
-### Migration Context ✅
-- **Migration Complete**: Next.js app is now the production application
-- **Clerk Integration**: All authentication uses Clerk (Firebase Auth fully replaced)
-- **Single Codebase**: Next.js app is the active codebase
-- **Legacy Reference**: Previous React/Vite app archived for reference only
-
-### Development Guidelines
-1. Always check existing code patterns before implementing new features
-2. Database uses Neon serverless client with direct SQL queries (no ORM)
-3. SOW import functionality is an active feature - keep related files
-4. Use the antihall validator to verify code references exist
-5. Archive directory (`../FF_React_Archive/`) contains old/temporary files if needed for reference
-6. **All new features**: Implement in Next.js app (current production)
-7. **Authentication**: Use Clerk patterns exclusively (Firebase Auth removed)
-8. **API Routes**: Use Next.js App Router API routes (Express server retired)
-
-### API Response Standards
-
-**CRITICAL**: All API endpoints MUST use standardized response formats for consistency.
-
-#### Standard Response Format
-Use the `apiResponse` helper from `lib/apiResponse.ts`:
-
-```typescript
-import { apiResponse } from '@/lib/apiResponse';
-
-// Success response (200)
-return apiResponse.success(res, data, 'Optional message');
-
-// Created response (201)
-return apiResponse.created(res, data, 'Resource created successfully');
-
-// Error responses
-return apiResponse.notFound(res, 'Resource', id);
-return apiResponse.validationError(res, { field: 'Error message' });
-return apiResponse.unauthorized(res);
-return apiResponse.internalError(res, error);
-```
-
-#### Response Structure
-All responses follow this format:
-```typescript
-// Success
-{
-  success: true,
-  data: {...},           // The actual data
-  message?: string,      // Optional success message
-  meta: {
-    timestamp: string    // ISO timestamp
-  }
-}
-
-// Error
-{
-  success: false,
-  error: {
-    code: string,        // Error code enum
-    message: string,     // Human-readable message
-    details?: any        // Optional error details
-  },
-  meta: {
-    timestamp: string
-  }
-}
-```
-
-#### Frontend API Service Pattern
-Frontend services must handle the standard response format:
-
-```typescript
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || error.error || `HTTP ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.data || data;  // Unwrap { success: true, data: {...} }
-}
-```
-
-**Why This Matters**:
-- Inconsistent response formats cause frontend parsing errors
-- The `data.data || data` pattern handles both wrapped and unwrapped responses
-- Standardization prevents 405 errors and mysterious failures
-- See `src/services/contractor/contractorApiService.ts` for reference implementation
-
-**Best Practice**: Always use `apiResponse` helper in new APIs. When modifying existing APIs that use manual `{ success: true, data: ... }`, consider migrating to the helper for maintainability.
-
-### SOW Import Process (Step 1 after Project Creation)
-**Important**: After creating a new project, import SOW data using the proven scripts in `/scripts/sow-import/`:
-
-#### For Fibre Data Import:
-```bash
-# Edit the script to set your PROJECT_ID and file path, then run:
-node /home/louisdup/VF/Apps/FF_React/scripts/sow-import/import-fibre-louissep15.cjs
-
-# Verify the import:
-node /home/louisdup/VF/Apps/FF_React/scripts/sow-import/verify-fibre-louissep15.cjs
-```
-
-**Script Features**:
-- Uses `pg` library (NOT @neondatabase/serverless) - proven to be more reliable for batch operations
-- Batch processing (500 records per batch for fibre)
-- Automatic deduplication by segment_id
-- Multi-value INSERT with ON CONFLICT handling
-- Performance: ~260 segments/second
-
-**Data Visibility in UI**:
-- `/sow` - SOW Dashboard
-- `/fiber-stringing` - Fiber Stringing Dashboard
-- `/sow/list` - SOW List page
-- API: `/api/sow/fibre?projectId={PROJECT_ID}`
-
-**Similar scripts available for**:
-- Poles: `/scripts/sow-import/run-import.cjs`
-- Drops: `/scripts/sow-import/run-import-drops.cjs`
-- See `/SOW/docs/importlog.md` for detailed import history and results
-
-### Coding Standards
-1. **File Size Limit**: Keep files under 300 lines (enforces better organization)
-2. **Component Structure**:
-   - Components should be < 200 lines
-   - Extract business logic to custom hooks
-   - Keep only UI logic in components
-3. **Type Organization**: Group types by module (e.g., `types/procurement/base.types.ts`)
-4. **Service Pattern**: Domain-focused services, split large services into operations
-5. **Custom Hooks**: Use for data fetching, business logic, and reusable UI state
-
-### API Route Naming Conventions
-
-**CRITICAL**: Next.js requires consistent dynamic parameter names throughout a route hierarchy.
-
-#### The Rule
-If you have both a file and directory with dynamic parameters at the same level, they MUST use the same parameter name:
-
-```bash
-# ❌ WRONG - Will cause build error
-pages/api/contractors/[id].ts
-pages/api/contractors/[id]/documents.ts     # OK - uses 'id'
-pages/api/contractors/[contractorId]/       # ERROR - conflicts with [id].ts
-
-# ✅ CORRECT - Consistent parameter names
-pages/api/contractors/[contractorId].ts
-pages/api/contractors/[contractorId]/documents.ts
-pages/api/contractors/[contractorId]/teams.ts
-```
-
-#### Build Error Message
-```
-Error: You cannot use different slug names for the same dynamic path ('contractorId' !== 'id')
-```
-
-#### Current Standard Parameter Names
-Maintain consistency across the codebase:
-- **Contractors**: `[contractorId]` - `pages/api/contractors/[contractorId].ts`
-- **Projects**: `[projectId]` - `pages/api/projects/[projectId].ts`
-- **Suppliers**: `[supplierId]` - `pages/api/suppliers/[supplierId].ts`
-- **Clients**: `[id]` - `pages/api/clients/[id].ts` (no subdirectories)
-- **Staff**: No dynamic routes at this level
-
-#### Accessing Parameters in Handlers
-Use destructuring with rename to maintain backward compatibility:
-
-```typescript
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Destructure with rename - keeps internal code using 'id'
-  const { contractorId: id } = req.query;
-
-  // Rest of code can continue using 'id' variable
-  const contractor = await service.getById(id);
-}
-```
-
-**When creating new API routes**: Use descriptive parameter names (e.g., `[projectId]`, `[contractorId]`) instead of generic `[id]` to avoid future conflicts.
-
-### Page Layout Patterns
-
-#### Standard Layout (with Sidebar)
-
-Most pages use the standard `AppLayout` component which includes:
-- Left sidebar navigation
-- Header with user menu
-- Footer
-
-```tsx
-import { AppLayout } from '@/components/layout';
-
-export default function MyPage() {
-  return (
-    <AppLayout>
-      {/* Page content */}
-    </AppLayout>
-  );
-}
-```
-
-#### Disabling Layout (Fullscreen Pages)
-
-Some pages need to display without the sidebar for better UX (e.g., foto-review, fullscreen dashboards). Use the `getLayout` pattern:
-
-```tsx
-import type { ReactElement } from 'react';
-
-function FotoReviewPage() {
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Full-width page content without sidebar */}
-    </div>
-  );
-}
-
-// This function overrides the default layout
-FotoReviewPage.getLayout = function getLayout(page: ReactElement) {
-  return page;  // Returns just the page without any wrapper
-};
-
-export default FotoReviewPage;
-```
-
-**Current Pages Without Sidebar:**
-- `/foto-review` - Photo review interface (maximizes screen space for photos)
-
-**When to Remove Sidebar:**
-- Photo/image-heavy interfaces
-- Data visualization dashboards
-- External-facing pages
-- Mobile-optimized views
-- Focus-mode workflows
-
-### ⚠️ CRITICAL: Vercel Deployment Issue with Nested Dynamic Routes
-
-**PROBLEM**: Vercel's Pages Router does NOT properly deploy nested dynamic routes when both a file and directory exist at the same level.
-
-#### The Issue
-```bash
-# This structure causes 404 errors in production (works locally):
-pages/api/contractors/[contractorId].ts          # ✓ Deployed
-pages/api/contractors/[contractorId]/            # ✗ NOT deployed
-pages/api/contractors/[contractorId]/onboarding/stages.ts  # ✗ Returns 404
-
-# Result: Routes build locally but return 404 in production
-```
-
-#### The Solution: Use Flattened Routes
-```bash
-# Instead of nested routes, use query parameters:
-pages/api/contractors-onboarding-stages.ts
-# Access: /api/contractors-onboarding-stages?contractorId={id}
-
-pages/api/contractors-onboarding-stages-update.ts
-# Access: /api/contractors-onboarding-stages-update?contractorId={id}&stageId={id}
-```
-
-#### Verified Pattern (Works in Production)
-Follow the existing **documents pattern**:
-- ✅ `/api/contractors-documents?contractorId={id}`
-- ✅ `/api/contractors-documents-upload?contractorId={id}`
-- ✅ `/api/contractors-documents-update?contractorId={id}&docId={id}`
-- ✅ `/api/contractors-documents-verify?contractorId={id}&docId={id}`
-
-#### When to Use Flattened Routes
-**ALWAYS** use flattened routes when:
-1. Creating new API endpoints under an entity that already has a top-level file (e.g., `[contractorId].ts`)
-2. The route needs to work in Vercel production
-3. You want to avoid mysterious 404 errors that only appear in production
-
-#### Historical Context
-- **Oct 29, 2025** (commit c110676): Fixed documents routes by flattening
-- **Oct 31, 2025** (commit 4dafd63): Fixed onboarding routes by flattening
-- Pattern confirmed working in production for both cases
-
-**REMEMBER**: If it works locally but returns 404 in production, check for nested dynamic routes!
-
-### 📝 Page Development Logging
-**IMPORTANT**: After making changes to any page, create or update the corresponding log in `docs/page-logs/`
-
-1. **When to Log**: Document all significant changes, bug fixes, or feature additions to pages
-2. **Log Format**: Use timestamp format: `Month DD, YYYY - HH:MM AM/PM`
-3. **What to Include**:
-   - Problem description
-   - Solution implemented with file:line references
-   - Testing results
-   - Related API endpoints
-4. **Example**: See `docs/page-logs/dashboard.md` for reference
-5. **Index**: Update `docs/page-logs/README.md` when creating new page logs
-
-This practice ensures knowledge retention and helps debug similar issues quickly.
-
-## Modular Architecture ("Lego Block" Pattern)
-
-### Design Philosophy
-FibreFlow uses a modular architecture where features are self-contained, plug-and-play modules. Each module is like a Lego block - independent, reusable, and easy to debug or remove.
-
-### Module Structure
-Modules live in `src/modules/` and follow this structure:
-
-```
-src/modules/{module-name}/
-├── types/                    # TypeScript interfaces and types
-│   └── {module}.types.ts
-├── services/                 # Business logic and API services
-│   ├── {module}Service.ts    # Core business logic
-│   └── {module}ApiService.ts # Frontend API client
-├── utils/                    # Helper functions and utilities
-│   └── {module}Rules.ts      # Business rules/calculations
-├── components/               # UI components (React)
-│   ├── {Module}Dashboard.tsx
-│   ├── {Module}Card.tsx
-│   └── index.ts              # Component exports
-└── hooks/                    # Custom React hooks (optional)
-    └── use{Module}.ts
-```
-
-### Examples
-
-#### WA Monitor Module (Fully Isolated) 🔒
-The **WA Monitor** is the **gold standard** for module isolation - completely self-contained with zero dependencies on main app:
-
-```
-src/modules/wa-monitor/
-├── lib/                      # Internal utilities (isolated)
-│   └── apiResponse.ts        # Frozen copy - no external deps
-├── types/wa-monitor.types.ts
-├── services/
-│   ├── waMonitorService.ts
-│   └── waMonitorApiService.ts
-├── utils/waMonitorHelpers.ts
-├── components/
-│   ├── WaMonitorDashboard.tsx
-│   ├── QaReviewCard.tsx
-│   └── index.ts
-├── hooks/useWaMonitorStats.ts
-├── tests/integration.test.ts  # Independent testing
-├── API_CONTRACT.md            # Frozen API specs
-└── ISOLATION_GUIDE.md         # Development workflow
-```
-
-**Status:** ✅ **Fully Isolated** - Can operate independently, can be extracted to microservice
-**API Endpoints:** `pages/api/wa-monitor-*.ts`
-**Testing:** `npm run test:wa-monitor`
-
-#### RAG Module (Standard Modular)
-The RAG (Red/Amber/Green) contractor health monitoring demonstrates standard modular pattern:
-
-```
-src/modules/rag/
-├── types/rag.types.ts
-├── services/
-│   ├── ragCalculationService.ts
-│   └── ragApiService.ts
-├── utils/ragRules.ts
-└── components/
-    ├── RagDashboard.tsx
-    ├── RagStatusBadge.tsx
-    └── index.ts
-```
-
-**API Endpoint:** `pages/api/contractors-rag.ts`
-**Page Route:** `app/contractors/rag-dashboard/page.tsx`
-
-### Benefits of Modular Architecture
-1. **Easy Debugging**: Issues are isolated to specific modules
-2. **Maintainability**: Each module has clear boundaries and responsibilities
-3. **Reusability**: Modules can be used across different parts of the app
-4. **Team Collaboration**: Multiple developers can work on different modules
-5. **Testing**: Modules can be tested independently
-6. **Documentation**: Each module is self-documenting with clear structure
-
-### When to Create a Module
-Create a new module when building:
-- Complex features with multiple components
-- Features with business logic that might be reused
-- Features that might be removed/disabled in the future
-- Features that need independent testing
-- Features with their own data model and API endpoints
-
-### Module Integration
-Modules integrate with the main app through:
-1. **API Routes**: Flattened routes in `pages/api/`
-2. **Page Routes**: Routes in `app/` that import module components
-3. **Navigation**: Links added to sidebar config
-4. **Shared Services**: Can use shared utilities from `src/lib/` and `src/utils/`
-
-**Note:** Fully isolated modules (like WA Monitor) do NOT use shared services - they internalize all dependencies for complete independence.
-
-## WhatsApp Monitor (WA Monitor) Integration
-
-### 🔒 Module Isolation Status
-
-**Status:** ✅ **FULLY ISOLATED** (November 24, 2025)
-
-The WA Monitor module is **completely isolated** from the main FibreFlow application and can operate independently:
-
-- ✅ **Zero dependencies** on main app utilities (`@/lib/*`)
-- ✅ **Zero dependencies** on main app services (`@/services/*`)
-- ✅ **Frozen API contracts** - documented in `src/modules/wa-monitor/API_CONTRACT.md`
-- ✅ **Independent testing** - `npm run test:wa-monitor`
-- ✅ **Self-contained** - can be extracted to microservice if needed
-
-**Key Documentation:**
-- **`src/modules/wa-monitor/API_CONTRACT.md`** - Frozen API specifications
-- **`src/modules/wa-monitor/ISOLATION_GUIDE.md`** - Development workflow & branch strategy
-- **`src/modules/wa-monitor/README.md`** - Module overview
-
-**Before working on WA Monitor:** Read `ISOLATION_GUIDE.md` for proper development workflow.
-
-### System Overview
-The WA Monitor module displays real-time QA photo review submissions from WhatsApp groups. It's an external integration with data flowing from VPS → Database → Dashboard.
-
-**Version:** 2.0 - Refactored (November 9, 2025)
-**Architecture:** Modular, Config-Driven, Prod/Dev Separation, **Fully Isolated**
-
-### Architecture v2.0
-
-```
-WhatsApp Groups
-    ↓
-VPS Server (72.60.17.245)
-    ├── WhatsApp Bridge (Go) - Captures messages via whatsmeow
-    │   └── SQLite: /opt/velo-test-monitor/services/whatsapp-bridge/store/messages.db
-    │
-    ├── Drop Monitor - PRODUCTION (/opt/wa-monitor/prod/)
-    │   ├── Service: wa-monitor-prod
-    │   ├── Config: config/projects.yaml (4 projects)
-    │   └── Logs: logs/wa-monitor-prod.log
-    │
-    └── Drop Monitor - DEVELOPMENT (/opt/wa-monitor/dev/)
-        ├── Service: wa-monitor-dev
-        ├── Config: config/projects.yaml (1 project: Velo Test)
-        └── Logs: logs/wa-monitor-dev.log
-    ↓
-Neon PostgreSQL (qa_photo_reviews table)
-    ↓
-FibreFlow Dashboard (/wa-monitor)
-    ├── API: /api/wa-monitor-daily-drops
-    ├── Auto-refresh: 30 seconds
-    └── Displays: Daily submissions by project
-    ↓
-SharePoint Sync (Nightly at 8pm SAST)
-```
-
-**Key Features:**
-- ✅ **Dual-Monitoring:** Velo Test monitored by BOTH prod and dev for comparison testing
-- ✅ **Config-Driven:** Edit YAML file instead of Python code
-- ✅ **5-Minute Project Addition:** Down from 4 hours
-- ✅ **Modular Code:** Separate modules for config, database, monitoring
-
-### Database Schema
-**Table**: `qa_photo_reviews`
-
-Key columns:
-- `drop_number` - Drop ID (e.g., DR1751832)
-- `project` - Project name (Lawley, Mohadin, Velo Test)
-- `whatsapp_message_date` - **Actual WhatsApp message timestamp** (source of truth for daily counts)
-- `created_at` - When database entry was created (may differ from message date)
-- `review_date` - Date of QA review
-- `step_01_house_photo` through `step_12_customer_signature` - QA checklist
-
-### Dashboard Features
-- Real-time display of today's submissions by project
-- Accurate daily counts using `whatsapp_message_date` (not `created_at`)
-- Avoids counting historical batch processing as "today's submissions"
-- Auto-refresh every 30 seconds
-- Export to CSV
-
-### API Endpoints
-- **GET** `/api/wa-monitor-drops` - Get all drops with summary
-- **GET** `/api/wa-monitor-daily-drops` - Get today's submissions by project
-- **POST** `/api/wa-monitor-sync-sharepoint` - Sync to SharePoint
-- **POST** `/api/wa-monitor-send-feedback` - Send QA feedback to WhatsApp groups
-
-### Important Notes
-1. **Data Source**: VPS-hosted WhatsApp bridge (`/opt/velo-test-monitor/`)
-2. **Accurate Counting**: Uses `whatsapp_message_date` to avoid historical batch processing inflation
-3. **VPS Updates**: Changes to drop monitor require VPS SSH access and service restart
-4. **Documentation**: See `docs/WA_MONITOR_DATA_FLOW_REPORT.md` for complete investigation
-
-### 🚨 Common Issue: "Send Feedback" Button Not Working
-
-**PROBLEM:** Users click **"Send Feedback" button** on WA Monitor drop cards but get error
-
-**Symptoms:**
-- Click "Send Feedback" button → Error appears
-- Message: "Failed to send feedback: Failed to send WhatsApp message"
-- Error details: "Not connected to WhatsApp"
-- Browser console: 500 error on `/api/wa-monitor-send-feedback`
-
-**Quick Fix (5 minutes):**
-
-```bash
-ssh root@72.60.17.245
-systemctl restart whatsapp-bridge-prod
-tail -30 /opt/velo-test-monitor/logs/whatsapp-bridge.log
-# Look for: "✓ Connected to WhatsApp!"
-```
-
-**Root Cause:** WhatsApp Bridge service disconnected from WhatsApp servers
-
-**Full troubleshooting guide:** `src/modules/wa-monitor/TROUBLESHOOTING.md`
-
-### ⚠️ CRITICAL: Do NOT "Fix" localhost in Code
-
-**File:** `pages/api/wa-monitor-send-feedback.ts`
-
-**DANGER:** The code has unused variables (`WHATSAPP_SENDER_URL`, `WHATSAPP_BRIDGE_URL`) but fetch() calls use `localhost:8081` and `localhost:8080`.
-
-**This looks like a bug - BUT IT'S NOT!**
-
-- ✅ App runs ON the VPS where WhatsApp services also run
-- ✅ `localhost:8081` = `72.60.17.245:8081` (same machine)
-- ✅ Faster and more secure than external IP
-- ✅ **The variables are unused intentionally - DO NOT use them in fetch() calls**
-
-**If you change localhost to variables:** You risk breaking working code for no benefit.
-
-**See:** `src/modules/wa-monitor/TROUBLESHOOTING.md` → "CRITICAL WARNING" section
-
-### Monitored Groups
-- **Lawley**: 120363418298130331@g.us (Lawley Activation 3)
-- **Mohadin**: 120363421532174586@g.us (Mohadin Activations)
-- **Velo Test**: 120363421664266245@g.us (Velo Test group)
-- **Mamelodi**: 120363408849234743@g.us (Mamelodi POP1 Activations)
-
-### Adding a New WhatsApp Group (v2.0 - 5 Minutes!)
-
-**Process Time:** 5 minutes (down from 4 hours in v1.0)
-
-**Prerequisites:**
-- WhatsApp bridge is in the group (number 064 041 2391)
-- Group JID (find using: `tail -100 /opt/velo-test-monitor/logs/whatsapp-bridge.log | grep "Chat="`)
-
-**Steps:**
-
-**1. Test in Dev First (Recommended):**
-```bash
-ssh root@72.60.17.245
-nano /opt/wa-monitor/dev/config/projects.yaml
-
-# Add project in YAML format:
-# - name: NewProject
-#   enabled: true
-#   group_jid: "XXXXXXXXXX@g.us"
-#   description: "NewProject description"
-
-systemctl restart wa-monitor-dev
-tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log
-# Verify it's monitoring the new group
-```
-
-**2. Deploy to Production:**
-```bash
-nano /opt/wa-monitor/prod/config/projects.yaml
-# Add same project
-
-/opt/wa-monitor/prod/restart-monitor.sh  # ✅ Use safe restart (clears cache)
-tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log
-# Verify production is monitoring
-```
-
-**3. Verify:**
-- Post test drop to group
-- Check dashboard: https://app.fibreflow.app/wa-monitor
-- Update `CLAUDE.md` - "Monitored Groups" section
-
-**That's it! ✅**
-
-**Detailed Guide:** See `docs/WA_MONITOR_ADD_PROJECT_5MIN.md`
-
-### Dual-Monitoring Setup (Velo Test)
-
-**Velo Test group is monitored by BOTH prod and dev services:**
-
-**Production Config:**
-```yaml
-# /opt/wa-monitor/prod/config/projects.yaml
-- name: Velo Test
-  enabled: true
-  group_jid: "120363421664266245@g.us"
-  description: "Velo Test group"
-```
-
-**Dev Config:**
-```yaml
-# /opt/wa-monitor/dev/config/projects.yaml
-- name: Velo Test
-  enabled: true
-  group_jid: "120363421664266245@g.us"
-  description: "Velo Test group (dev testing)"
-```
-
-**Use Cases:**
-1. **Compare behavior:** Test dev changes against prod baseline
-2. **Debug issues:** Reproduce in dev without affecting prod
-3. **Validate:** Ensure dev behaves identically before promoting
-
-**Compare Logs:**
-```bash
-# Terminal 1: Production
-tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log | grep "Velo Test"
-
-# Terminal 2: Development
-tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log | grep "Velo Test"
-```
-
-Both services process the same messages from the same group!
-
-### VPS Management (v2.0)
-
-### ⚠️ CRITICAL: ALWAYS Use Safe Restart Script for Production
-
-**WHY:** Python caches .pyc bytecode. Plain `systemctl restart` uses stale cache, causing old buggy code to run even after updating source files.
-
-**ALWAYS USE (Production):**
-```bash
-ssh root@72.60.17.245
-/opt/wa-monitor/prod/restart-monitor.sh  # ✅ Clears cache automatically
-```
-
-**NEVER USE (Production):**
-```bash
-systemctl restart wa-monitor-prod  # ❌ Keeps stale .pyc cache - WRONG!
-```
-
-**Service Commands:**
-```bash
-# Check both services status
-ssh root@72.60.17.245
-systemctl status wa-monitor-prod wa-monitor-dev
-
-# View production logs
-tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log
-
-# View dev logs
-tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log
-
-# Restart PRODUCTION (use safe script)
-/opt/wa-monitor/prod/restart-monitor.sh  # ✅ ALWAYS use this
-
-# Restart DEV (regular restart OK for dev)
-systemctl restart wa-monitor-dev
-
-# Check WhatsApp bridge
-ps aux | grep whatsapp-bridge
-
-# Compare prod/dev behavior (same group)
-# Terminal 1:
-tail -f /opt/wa-monitor/prod/logs/wa-monitor-prod.log | grep "Velo Test"
-# Terminal 2:
-tail -f /opt/wa-monitor/dev/logs/wa-monitor-dev.log | grep "Velo Test"
-```
-
-**Quick Verification:**
-```bash
-# Verify both services running
-ssh root@72.60.17.245 "systemctl is-active wa-monitor-prod wa-monitor-dev"
-# Should show: active, active
-
-# Check configs
-cat /opt/wa-monitor/prod/config/projects.yaml
-cat /opt/wa-monitor/dev/config/projects.yaml
-```
-
-**📖 Read More:** See `docs/wa-monitor/PYTHON_CACHE_ISSUE.md` for full explanation of Python cache problem
-
-**🔍 Why This Matters:**
-Python caches compiled bytecode (`.pyc` files). Using plain `systemctl restart` keeps the old cache, so your bug fixes don't actually run - the monitor continues executing old buggy code even though source files are updated. This caused LID bugs to persist for 2 days (Nov 11-13, 2025) despite being fixed in code.
-
-### ✅ RESOLVED: Resubmission Handler LID Bug (Nov 13, 2025)
-
-**Status:** ✅ FIXED - Code updated & cache cleared
-
-**Problem (Was):** When drops were **resubmitted** (posted again), the monitor resolved LIDs correctly but didn't update `submitted_by` in the database. This caused @mentions to show LID numbers instead of contact names.
-
-**Root Cause:** Python bytecode cache. Code was fixed Nov 11, but `systemctl restart` kept stale `.pyc` cache, so old buggy code continued running until Nov 13 when safe restart script was used.
-
-**Resolution (Nov 13 @ 10:08):**
-1. Used `/opt/wa-monitor/prod/restart-monitor.sh` to clear cache
-2. Fixed all LIDs in database manually:
-   - DR1111113 (Velo Test) - LID → 27640412391
-   - DR1734381 (Lawley) - LID → 27608088270
-   - DR1857337 (Mohadin) - LID → 27734107589
-
-**How to Check for LIDs:**
-If you see LID numbers in feedback, fix manually in database:
-```bash
-# 1. Find drops with LIDs (should be 0 after Nov 12 cleanup)
-psql $DATABASE_URL -c "
-  SELECT drop_number, submitted_by, LENGTH(submitted_by) as len
-  FROM qa_photo_reviews
-  WHERE submitted_by IS NOT NULL AND LENGTH(submitted_by) > 11;
-"
-
-# 2. Look up LID in WhatsApp database on VPS
-ssh root@72.60.17.245
-sqlite3 /opt/velo-test-monitor/services/whatsapp-bridge/store/whatsapp.db \
-  "SELECT lid, pn FROM whatsmeow_lid_map WHERE lid = 'PASTE_LID_HERE';"
-
-# 3. Update database with phone number
-psql $DATABASE_URL -c "
-  UPDATE qa_photo_reviews
-  SET user_name = 'PHONE_NUMBER', submitted_by = 'PHONE_NUMBER', updated_at = NOW()
-  WHERE drop_number = 'DR_NUMBER';
-"
-```
-
-**Prevention:** ALWAYS use `/opt/wa-monitor/prod/restart-monitor.sh` after code changes (see `docs/wa-monitor/PYTHON_CACHE_ISSUE.md`)
-
-**All Affected Drops Fixed:**
-- Nov 12: DR470114, DR1857292, DR1734207, DR1734242, DR1857265
-- Nov 13: DR1111113, DR1734381, DR1857337
-
-### ✅ RESOLVED: UNIQUE Constraint Blocked Cross-Table Independence (Dec 3, 2025)
-
-**Status:** ✅ FIXED - Schema changed, affected drops restored
-
-**Problem:** Drops posted to BOTH Marketing group AND Lawley group only appeared in one table (`marketing_activations`), missing from `qa_photo_reviews`.
-
-**Root Cause:** Database had a UNIQUE constraint on `drop_number` alone in `qa_photo_reviews` table, preventing same drop from existing twice (even for different purposes: Marketing activation vs QA review).
-
-**Error in Logs:**
-```
-ERROR: duplicate key value violates unique constraint "qa_photo_reviews_drop_number_key"
-DETAIL:  Key (drop_number)=(DR1733755) already exists.
-```
-
-**Resolution (Dec 3, 2025):**
-1. **Dropped problematic constraint:**
-   ```sql
-   ALTER TABLE qa_photo_reviews DROP CONSTRAINT qa_photo_reviews_drop_number_key;
-   ```
-2. **Manually inserted 4 affected drops:**
-   - DR1752104 (Nov 26) - Marketing 12:47, Lawley 13:42
-   - DR1733787 (Dec 1) - Marketing 14:26, Lawley 15:28
-   - DR1733755 (Dec 2) - Marketing 11:23, Lawley 11:28
-   - DR1733714 (Dec 2) - Marketing 13:03, Lawley 13:24
-
-**Why This Happened:**
-- Marketing groups are new (added recently)
-- Drops rarely posted to both group types
-- Monitor code was already fixed Dec 1 for project-aware logic
-- But database schema constraint blocked the fix from working!
-
-**Business Logic:**
-- `marketing_activations` and `qa_photo_reviews` are INDEPENDENT tables
-- A drop CAN and SHOULD exist in both if posted to both group types
-- Marketing tracks field activations, QA tracks photo reviews
-- These are separate workflows for the same installation
-
-**Remaining Constraint (Correct):**
-```sql
-CONSTRAINT qa_photo_reviews_drop_number_review_date_key UNIQUE (drop_number, review_date)
-```
-This prevents true duplicates (same drop on same day) while allowing cross-table independence.
-
-**Full Details:** See `docs/wa-monitor/DATABASE_SCHEMA_FIX_DEC2025.md`
-
-### 🚨 CRITICAL: Database Configuration
-
-**THE APP AND DROP MONITOR MUST USE THE SAME DATABASE**
-
-**Correct Database (ALWAYS):**
+**Single Database for ALL Environments:**
 ```
 postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb
 ```
+- ✅ Use: `ep-dry-night-a9qyh4sj`
+- ❌ Never use: `ep-damp-credit-a857vku0` (old/incorrect)
 
-**Configuration Files That MUST Match:**
+### Two Drop Tables - DO NOT CONFUSE!
 
-1. **Drop Monitor Script** (Line 66):
-   ```python
-   # /opt/velo-test-monitor/services/realtime_drop_monitor.py
-   NEON_DB_URL = os.getenv('NEON_DATABASE_URL', 'postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require')
-   ```
+**1. `drops` Table** - SOW imports from Excel
+- API: `/api/sow/drops`, `/api/sow/fibre`
+- Import scripts: `/scripts/sow-import/`
 
-2. **Drop Monitor Systemd Service**:
-   ```bash
-   # /etc/systemd/system/drop-monitor.service
-   Environment="NEON_DATABASE_URL=postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require"
-   ```
+**2. `qa_photo_reviews` Table** - WhatsApp QA data
+- API: `/api/wa-monitor-drops`, `/api/wa-monitor-daily-drops`
+- Source: WhatsApp groups via server monitor
 
-3. **Production App Environment**:
-   ```bash
-   # /var/www/fibreflow/.env.production
-   DATABASE_URL=postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require&channel_binding=require
-   ```
+**Query Examples:**
+```sql
+-- SOW drops
+SELECT * FROM drops WHERE project_id = '...';
 
-4. **WhatsApp Bridge SQLite Path** (Line 65):
-   ```python
-   # /opt/velo-test-monitor/services/realtime_drop_monitor.py
-   MESSAGES_DB_PATH = os.getenv('WHATSAPP_DB_PATH', '/opt/velo-test-monitor/services/whatsapp-bridge/store/messages.db')
-   ```
-
-**Verification Commands:**
-```bash
-# 1. Check drop monitor database connection
-ssh root@72.60.17.245 "grep 'NEON_DB_URL' /opt/velo-test-monitor/services/realtime_drop_monitor.py"
-
-# 2. Check systemd environment
-ssh root@72.60.17.245 "cat /etc/systemd/system/drop-monitor.service | grep Environment"
-
-# 3. Check production app environment
-ssh root@72.60.17.245 "grep 'DATABASE_URL' /var/www/fibreflow/.env.production"
-
-# 4. Test dashboard shows drops
-curl https://app.fibreflow.app/api/wa-monitor-daily-drops | jq .
+-- WhatsApp QA drops
+SELECT * FROM qa_photo_reviews WHERE project = 'Lawley';
 ```
 
-**After ANY Database Configuration Change:**
+**Documentation:**
+- `docs/DATABASE_TABLES.md` - Complete schema reference
+- `src/modules/wa-monitor/README.md` - WA Monitor details
+
+## 🚨 Starting the Server
+
+**ALWAYS use production mode locally:**
 ```bash
-# 1. Restart drop monitor
-ssh root@72.60.17.245 "systemctl daemon-reload && systemctl restart drop-monitor"
-
-# 2. Rebuild and restart production app
-ssh root@72.60.17.245 "cd /var/www/fibreflow && npm run build && pm2 restart fibreflow-prod"
-
-# 3. Verify both are using same database
-ssh root@72.60.17.245 "psql 'postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require' -c 'SELECT COUNT(*) FROM qa_photo_reviews;'"
+npm run build
+PORT=3005 npm start
+# Access at http://localhost:3005
 ```
 
-**Common Issue:** If dashboard shows different data than drop monitor logs, they're using different databases. Check all 4 configuration files above.
+**DO NOT use dev mode** - Has Watchpack bug from nested package.json in neon/
+
+## Key Commands
+```bash
+# Development
+npm run build && PORT=3005 npm start  # Local development
+npm run lint                          # ESLint
+npm run type-check                    # TypeScript checking
+
+# Database
+npm run db:migrate                    # Run migrations
+npm run db:seed                       # Seed data
+
+# Testing
+npm test                             # Vitest
+npm run test:e2e                     # Playwright
+npm run antihall                     # Validate code references
+```
+
+## Development Guidelines
+
+### API Response Standards
+Use `apiResponse` helper from `lib/apiResponse.ts`:
+```typescript
+import { apiResponse } from '@/lib/apiResponse';
+
+return apiResponse.success(res, data);
+return apiResponse.notFound(res, 'Resource', id);
+return apiResponse.internalError(res, error);
+```
+
+### SOW Import Process
+After creating a project, import data:
+```bash
+# Edit script with PROJECT_ID, then:
+node scripts/sow-import/import-fibre-louissep15.cjs
+node scripts/sow-import/verify-fibre-louissep15.cjs
+```
+
+### Coding Standards
+- Files < 300 lines, components < 200 lines
+- Extract business logic to hooks
+- Type organization by module
+- Domain-focused services
+
+### API Route Naming
+**Consistent dynamic parameters required:**
+```bash
+# ✅ CORRECT
+pages/api/contractors/[contractorId].ts
+pages/api/contractors/[contractorId]/documents.ts
+
+# ❌ WRONG - Conflicts
+pages/api/contractors/[id].ts
+pages/api/contractors/[contractorId]/documents.ts
+```
+
+### Page Layouts
+```tsx
+// Standard layout with sidebar
+import { AppLayout } from '@/components/layout';
+
+export default function MyPage() {
+  return <AppLayout>{/* content */}</AppLayout>;
+}
+
+// Fullscreen without sidebar
+FotoReviewPage.getLayout = (page) => page;
+```
+
+### ⚠️ Vercel Nested Routes Issue
+**Nested dynamic routes fail in production!** Use flattened routes:
+```bash
+# ❌ FAILS in production
+pages/api/contractors/[contractorId]/onboarding/stages.ts
+
+# ✅ WORKS everywhere
+pages/api/contractors-onboarding-stages.ts?contractorId={id}
+```
+
+## Modular Architecture
+
+Each module in `src/modules/` is self-contained:
+```
+module-name/
+├── types/          # TypeScript interfaces
+├── services/       # Business logic & API
+├── utils/         # Helpers
+├── components/    # UI components
+└── hooks/         # Custom hooks
+```
+
+**WA Monitor** - Fully isolated module (zero dependencies)
+- Can be extracted to microservice
+- See: `src/modules/wa-monitor/ISOLATION_GUIDE.md`
+
+## WhatsApp Monitor (WA Monitor)
+
+**Status:** ✅ FULLY ISOLATED MODULE
+
+### Quick Reference
+- **Dashboard:** `/wa-monitor`
+- **API:** `/api/wa-monitor-*`
+- **Table:** `qa_photo_reviews`
+- **Services:** `wa-monitor-prod`, `wa-monitor-dev`
+
+### Common Issues & Fixes
+
+**"Send Feedback" button not working:**
+```bash
+ssh louis@100.96.203.105
+systemctl restart whatsapp-bridge-prod
+```
+
+**Add new WhatsApp group (5 minutes):**
+```bash
+ssh louis@100.96.203.105
+nano /opt/wa-monitor/prod/config/projects.yaml
+# Add group in YAML format
+/opt/wa-monitor/prod/restart-monitor.sh  # ✅ Use safe restart
+```
+
+**⚠️ CRITICAL: Always use safe restart for production:**
+```bash
+/opt/wa-monitor/prod/restart-monitor.sh  # ✅ Clears Python cache
+# NOT: systemctl restart wa-monitor-prod  # ❌ Keeps stale cache
+```
+
+### Monitored Groups
+- **Lawley**: 120363418298130331@g.us
+- **Mohadin**: 120363421532174586@g.us
+- **Velo Test**: 120363421664266245@g.us
+- **Mamelodi**: 120363408849234743@g.us
+
+**Full Documentation:**
+- `src/modules/wa-monitor/README.md`
+- `src/modules/wa-monitor/TROUBLESHOOTING.md`
 
 ## Arcjet Security
 
-### Overview
+API protection with rate limiting and bot detection:
+- **Location:** `src/lib/arcjet.ts`
+- **Levels:** ajStrict (30/min), aj (100/min), ajGenerous (300/min)
 
-FibreFlow uses **Arcjet** for API security, bot protection, and rate limiting. Arcjet provides developer-first security that ships with your code.
-
-**Features Implemented:**
-- ✅ AI-powered bot detection (local inference)
-- ✅ Distributed rate limiting (no Redis infrastructure needed)
-- ✅ Attack protection (SQL injection, XSS, etc.)
-- ✅ Native Next.js integration
-
-**Why Arcjet:**
-- Solves in-memory rate limiting issues across dual VPS instances (prod + dev)
-- No bot protection existed before
-- Open-source SDK (Apache 2.0 license)
-- Free tier sufficient for current usage
-
-### Configuration
-
-**Location:** `src/lib/arcjet.ts`
-
-**Protection Levels:**
-1. **ajStrict** (30 req/min) - Sensitive endpoints (contractors, auth)
-2. **aj** (100 req/min) - Standard endpoints (default)
-3. **ajGenerous** (300 req/min) - Public endpoints (health checks)
-4. **ajWaMonitor** (60 req/min) - WhatsApp integration endpoints
-
-### Protected Endpoints
-
-**Strict Protection:**
-- `/api/contractors/[contractorId]` - Contractor CRUD
-
-**WA Monitor Protection:**
-- `/api/wa-monitor-daily-drops` - Dashboard data
-
-**Standard Protection:**
-- `/api/sow/drops` - SOW drops data
-
-### Setup
-
-**Environment Variable:**
-```bash
-ARCJET_KEY=ajkey_your_key_here
-```
-
-**Protect New Endpoint:**
 ```typescript
 import { withArcjetProtection, aj } from '@/lib/arcjet';
-
-async function handler(req, res) {
-  // Your API logic
-}
-
 export default withArcjetProtection(handler, aj);
 ```
 
-**Full Documentation:** `docs/ARCJET_SETUP.md`
-
-**Dashboard:** https://arcjet.com (login to view analytics)
-
-**Model:** Open Core (SDK open source, backend service proprietary)
-
-### VPS Deployment
-
-Add to both production and dev environments:
-
-```bash
-# Production
-nano /var/www/fibreflow/.env.production
-# Add: ARCJET_KEY=ajkey_...
-
-# Development
-nano /var/www/fibreflow-dev/.env.production
-# Add: ARCJET_KEY=ajkey_...
-```
-
-Graceful degradation: If `ARCJET_KEY` not set, protection is skipped with a warning.
-
 ## Deployment Architecture
 
-### Two Deployment Environments
-
-FibreFlow uses a **dual environment setup** on VPS for professional development workflow:
-
-| Environment | URL | Branch | Port | PM2 Process | Purpose |
-|-------------|-----|--------|------|-------------|---------|
-| **Production** | https://app.fibreflow.app | `master` | 3005 | `fibreflow-prod` | Live production site |
-| **Development** | https://dev.fibreflow.app | `develop` | 3006 | `fibreflow-dev` | Testing & QA before production |
-
-**VPS Infrastructure:**
-- **Server**: Hostinger VPS (Lithuania) - 72.60.17.245
-- **OS**: Ubuntu 24.04 LTS
-- **Node.js**: v20.19.5
-- **Process Manager**: PM2 v6.0.13
-- **Web Server**: Nginx v1.24.0 (reverse proxy)
-- **SSL**: Let's Encrypt (auto-renewal enabled)
-
-**Directory Structure:**
-```
-/var/www/
-├── fibreflow/          → Production (master branch, port 3005)
-├── fibreflow-dev/      → Development (develop branch, port 3006)
-└── ecosystem.config.js → PM2 configuration for both processes
-```
-
-### 🚀 Professional Deployment Workflow
-
-**CRITICAL: Always deploy to DEV first, test, then promote to PRODUCTION.**
-
-#### Git Branch Strategy
-```
-feature/new-feature  →  develop  →  master
-     (local)          (dev site)   (production)
-```
-
-#### Step-by-Step Workflow
-
-**1. Local Development**
+### 🚀 Velocity Server (New Infrastructure)
+**Server Access:**
 ```bash
-# Create feature branch from develop
-git checkout develop
-git pull origin develop
-git checkout -b feature/my-new-feature
-
-# Develop locally
-npm run build
-PORT=3005 npm start
-# Test at http://localhost:3005
+ssh louis@100.96.203.105    # via Tailscale (recommended)
+ssh louis@192.168.1.150     # via LAN (same network)
+# Password: VeloAdmin2025! (or use SSH key)
 ```
 
-**2. Deploy to Development (Testing)**
+**Server Specs:**
+- **GPU:** NVIDIA RTX 5090
+- **RAM:** 128GB
+- **Storage:** 500GB SSD
+- **OS:** Ubuntu Server
+- **Tailnet:** velof2025.github
+
+### Dual Environment Setup
+| Environment | URL | Branch | Port | PM2 Process |
+|------------|-----|--------|------|-------------|
+| **Production** | app.fibreflow.app | `master` | 3005 | `fibreflow-prod` |
+| **Development** | dev.fibreflow.app | `develop` | 3006 | `fibreflow-dev` |
+
+### Deployment Workflow
+1. **Local:** Create feature branch from develop
+2. **Dev:** Merge to develop → Deploy to dev.fibreflow.app
+3. **Test:** Verify on dev environment
+4. **Prod:** Merge to master → Deploy to app.fibreflow.app
+
+### Deployment Commands
 ```bash
-# Commit and push to develop branch
-git add .
-git commit -m "feat: description of changes"
-git checkout develop
-git merge feature/my-new-feature
-git push origin develop
-
-# Deploy to DEV environment
-sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \
-  "cd /var/www/fibreflow-dev && git pull && npm ci && npm run build && pm2 restart fibreflow-dev"
-
-# Test at https://dev.fibreflow.app
-```
-
-**3. Test on Development**
-- ✅ Verify all features work
-- ✅ Check for console errors
-- ✅ Test user flows
-- ✅ Verify API endpoints
-- ✅ Check responsive design
-
-**4. Promote to Production (Go Live)**
-```bash
-# Only after dev testing passes!
-git checkout master
-git merge develop
-git push origin master
-
-# Deploy to PRODUCTION
-sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \
-  "cd /var/www/fibreflow && git pull && npm ci && npm run build && pm2 restart fibreflow-prod"
-
-# Verify at https://app.fibreflow.app
-```
-
-### 🤖 AI Assistant Guidelines
-
-**When implementing features, Claude Code MUST:**
-
-1. **Always work on feature branches** - Never commit directly to `master` or `develop`
-2. **Deploy to dev.fibreflow.app first** - Test all changes on dev before production
-3. **Wait for user confirmation** - Only deploy to production after user approves dev testing
-4. **Document changes** - Update relevant logs in `docs/page-logs/` and `docs/CHANGELOG.md`
-
-**Deployment Command Shortcuts:**
-
-```bash
-# Deploy to DEV (for testing)
-sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \
+# Deploy to DEV (test first!)
+ssh louis@100.96.203.105 \
   "cd /var/www/fibreflow-dev && git pull && npm ci && npm run build && pm2 restart fibreflow-dev"
 
 # Deploy to PRODUCTION (after dev testing)
-sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \
+ssh louis@100.96.203.105 \
   "cd /var/www/fibreflow && git pull && npm ci && npm run build && pm2 restart fibreflow-prod"
 ```
 
-### VPS Management Commands
-
+### Server Quick Reference
 ```bash
-# SSH into VPS
-ssh root@72.60.17.245
-
-# View PM2 processes
-pm2 list
-pm2 logs fibreflow-prod
-pm2 logs fibreflow-dev
-
-# Restart processes
-pm2 restart fibreflow-prod
-pm2 restart fibreflow-dev
-pm2 restart all
-
-# Monitor resources
-pm2 monit
-
-# View Nginx logs
-tail -f /var/log/nginx/fibreflow-access.log
-tail -f /var/log/nginx/fibreflow-dev-access.log
+ssh louis@100.96.203.105
+pm2 list                          # View processes
+pm2 logs fibreflow-prod          # View logs
+pm2 restart fibreflow-prod       # Restart production
 ```
 
-### Environment Variables
-
-Both environments share the same backend services:
-- **Database**: Neon PostgreSQL (cloud)
-- **Authentication**: Clerk
-- **File Storage**: Firebase Storage
-
-Environment files:
-- **Production**: `/var/www/fibreflow/.env.production`
-- **Development**: `/var/www/fibreflow-dev/.env.production`
-
-### VPS Documentation
-
-Detailed documentation available in:
-- Complete guide: `docs/VPS/DEPLOYMENT.md`
-- Quick reference: `docs/VPS/QUICK_REFERENCE.md`
-- Deployment history: `docs/VPS/DEPLOYMENT_HISTORY.md`
+### Additional Services
+| Service | Port | URL |
+|---------|------|-----|
+| **Portainer** | 9443 | https://100.96.203.105:9443 |
+| **Grafana** | 3000 | http://100.96.203.105:3000 |
+| **Ollama** | 11434 | http://100.96.203.105:11434 |
+| **Qdrant** | 6333 | http://100.96.203.105:6333 |
 
 ### Rollback Process
-
-If production deployment fails:
-
 ```bash
-# SSH into VPS
-ssh root@72.60.17.245
-
-# Rollback production to previous commit
+ssh louis@100.96.203.105
 cd /var/www/fibreflow
-git log --oneline -5  # Find last working commit
+git log --oneline -5
 git reset --hard <commit-hash>
-npm ci
-npm run build
+npm ci && npm run build
 pm2 restart fibreflow-prod
 ```
+
+## Important Notes
+
+- **Server**: Now hosted on Velocity Server (migrated from old VPS)
+- **Migration Complete**: Next.js in production, React/Vite archived
+- **Authentication**: Clerk only (Firebase Auth removed)
+- **Database**: Direct SQL with Neon serverless client (no ORM)
+- **Archive**: `../FF_React_Archive/` has old files for reference
+- **Full Server Docs**: `~/VF/server/LOUIS_VELOCITY_SERVER_ACCESS.md`
+
+### Page Development Logging
+After changes, update `docs/page-logs/{page-name}.md` with:
+- Timestamp (Month DD, YYYY - HH:MM AM/PM)
+- Problem description
+- Solution with file:line references
+- Testing results
+
+### AI Assistant Guidelines
+1. Always work on feature branches
+2. Deploy to dev.fibreflow.app first
+3. Wait for user confirmation before production
+4. Document changes in page logs
+5. Use antihall validator for code verification
+6. Prefer editing existing files over creating new ones
