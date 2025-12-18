@@ -2,6 +2,20 @@
 
 A modern Next.js application for fiber network project management.
 
+## 🌟 Fork Information
+
+**Fork**: VeloF2025/FF_Next.js
+**Upstream**: VelocityFibre/FF_Next.js
+**Purpose**: Feature Expansion Development
+
+This fork is dedicated to developing major feature enhancements for FibreFlow:
+- **Stock Control** - Inventory and stock management
+- **Fleet Management** - Vehicle tracking and management
+- **Ticketing System** - Support/work order tickets
+- **Asset Register** - Asset tracking and lifecycle
+
+See `docs/feature-expansion/README.md` for detailed planning and roadmap.
+
 ## 🚀 Quick Start
 
 ### 🚨 IMPORTANT: Always Use Production Mode for Local Development
