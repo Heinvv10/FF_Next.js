@@ -1,5 +1,5 @@
 // POST /api/foto-reviews/[jobId]/send-to-whatsapp
-// Proxy to antigravity API - Send feedback to WhatsApp
+// Send feedback to WhatsApp using direct foto/feedback API
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { apiResponse } from '@/lib/apiResponse';
@@ -28,28 +28,60 @@ export default async function handler(
       return apiResponse.validationError(res, { jobId: 'Job ID is required' });
     }
 
-    // Forward to antigravity API
-    const url = `${ANTIGRAVITY_API_URL}/api/queue/${jobId}/send-to-whatsapp`;
-    const response = await fetch(url, {
+    // Get job details from Antigravity API to extract DR number and feedback
+    const jobUrl = `${ANTIGRAVITY_API_URL}/api/queue/status/${jobId}`;
+    const jobResponse = await fetch(jobUrl);
+
+    if (!jobResponse.ok) {
+      if (jobResponse.status === 404) {
+        return apiResponse.notFound(res, 'Job', jobId);
+      }
+      throw new Error(`Failed to fetch job details: ${jobResponse.statusText}`);
+    }
+
+    const jobData = await jobResponse.json();
+
+    // Extract the required fields
+    const dr_number = jobData.dr_number;
+    const message = jobData.edited_feedback || jobData.original_feedback;
+    const project = jobData.project;
+
+    if (!dr_number) {
+      throw new Error('Job is missing DR number');
+    }
+
+    if (!message) {
+      throw new Error('Job is missing feedback message');
+    }
+
+    // Call the direct foto/feedback API (which has WhatsApp integration working)
+    const feedbackUrl = '/api/foto/feedback';
+    const feedbackResponse = await fetch(`${req.headers.host ? 'http://' + req.headers.host : ''}${feedbackUrl}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        ...req.body,
-        sent_by: 'system', // TODO: Replace with userId when auth is re-enabled
+        dr_number,
+        message,
+        project,
       }),
     });
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return apiResponse.notFound(res, 'Job', jobId);
-      }
-      throw new Error(`Antigravity API error: ${response.statusText}`);
+    if (!feedbackResponse.ok) {
+      const errorData = await feedbackResponse.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || errorData.message || 'Failed to send feedback');
     }
 
-    const data = await response.json();
-    return apiResponse.success(res, data);
+    const feedbackData = await feedbackResponse.json();
+
+    // Return success response in the format expected by frontend
+    return apiResponse.success(res, {
+      success: true,
+      sent_at: new Date().toISOString(),
+      message: 'Feedback sent to WhatsApp successfully',
+      details: feedbackData,
+    });
   } catch (error) {
     console.error('Error sending to WhatsApp:', error);
     return apiResponse.internalError(res, error);
