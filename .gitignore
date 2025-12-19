@@ -108,6 +108,3 @@ tests/e2e/.auth/
 # Firebase service account keys (SENSITIVE!)
 *firebase*adminsdk*.json
 serviceAccountKey.json
-
-# AI/Automation output directories (runtime state only)
-runtime-state/
