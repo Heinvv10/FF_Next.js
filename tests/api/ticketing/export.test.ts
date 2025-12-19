@@ -4,19 +4,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
 import handler from '../../../pages/api/ticketing/exports-tickets';
 import { getAuth } from '@clerk/nextjs/server';
-import { neon } from '@neondatabase/serverless';
+import { mockSql } from '../../../vitest.setup';
 
 // Mock dependencies
 vi.mock('@clerk/nextjs/server');
-vi.mock('@neondatabase/serverless');
 
 describe('GET /api/ticketing/export (Export Tickets)', () => {
-  let mockSql: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSql = vi.fn();
-    (neon as any).mockReturnValue(mockSql);
+    mockSql.mockReset();
+    mockSql.mockResolvedValue([]);
   });
 
   describe('HTTP Method Validation', () => {
@@ -30,7 +27,7 @@ describe('GET /api/ticketing/export (Export Tickets)', () => {
       expect(res._getStatusCode()).toBe(405);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Method Not Allowed'),
+        error: { code: 'METHOD_NOT_ALLOWED' },
       });
     });
 
@@ -69,7 +66,7 @@ describe('GET /api/ticketing/export (Export Tickets)', () => {
       expect(res._getStatusCode()).toBe(401);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Authentication required'),
+        error: { code: 'UNAUTHORIZED' },
       });
     });
 
@@ -150,7 +147,7 @@ describe('GET /api/ticketing/export (Export Tickets)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Invalid format'),
+        error: expect.objectContaining({ message: expect.stringContaining('Invalid format') }),
       });
     });
 
@@ -504,7 +501,7 @@ describe('GET /api/ticketing/export (Export Tickets)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Maximum limit'),
+        error: expect.objectContaining({ message: expect.stringContaining('Maximum limit') }),
       });
     });
 
@@ -849,7 +846,7 @@ describe('GET /api/ticketing/export (Export Tickets)', () => {
       expect(res._getStatusCode()).toBe(500);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.any(String),
+        error: expect.objectContaining({ code: expect.any(String) }),
       });
     });
 

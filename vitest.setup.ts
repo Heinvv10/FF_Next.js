@@ -4,12 +4,12 @@ import '@testing-library/jest-dom';
 // Mock environment variables
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
 
-// Mock @neondatabase/serverless
+// Global mock SQL function that can be configured by tests
+export const mockSql = vi.fn().mockResolvedValue([]);
+
+// Mock @neondatabase/serverless - returns the global mockSql function
 vi.mock('@neondatabase/serverless', () => ({
-  neon: vi.fn(() => {
-    const sqlFunction = vi.fn().mockResolvedValue([]);
-    return sqlFunction;
-  }),
+  neon: vi.fn(() => mockSql),
 }));
 
 // Mock @/lib/apiResponse for API route tests
@@ -19,8 +19,8 @@ vi.mock('@/lib/apiResponse', () => {
   };
   return {
     apiResponse: {
-      success: (res: any, data: any, message?: string) => {
-        mockResponse(res, 200, {
+      success: (res: any, data: any, message?: string, statusCode = 200) => {
+        mockResponse(res, statusCode, {
           success: true,
           data,
           ...(message && { message }),
@@ -132,6 +132,16 @@ vi.mock('@/lib/apiResponse', () => {
           success: false,
           error: {
             code: 'DATABASE_ERROR',
+            message,
+          },
+          meta: { timestamp: new Date().toISOString() },
+        });
+      },
+      conflict: (res: any, message = 'Resource conflict') => {
+        mockResponse(res, 409, {
+          success: false,
+          error: {
+            code: 'CONFLICT',
             message,
           },
           meta: { timestamp: new Date().toISOString() },

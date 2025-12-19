@@ -4,19 +4,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
 import handler from '../../../pages/api/ticketing/tickets';
 import { getAuth } from '@clerk/nextjs/server';
-import { neon } from '@neondatabase/serverless';
+import { mockSql } from '../../../vitest.setup';
 
 // Mock dependencies
 vi.mock('@clerk/nextjs/server');
-vi.mock('@neondatabase/serverless');
 
 describe('GET /api/ticketing (List Tickets)', () => {
-  let mockSql: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSql = vi.fn();
-    (neon as any).mockReturnValue(mockSql);
+    mockSql.mockReset();
+    mockSql.mockResolvedValue([]);
   });
 
   describe('Authentication', () => {
@@ -30,10 +27,9 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(401);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('Authentication required'),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('UNAUTHORIZED');
     });
 
     it('should accept authenticated requests', async () => {
@@ -528,7 +524,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       expect(res._getStatusCode()).toBe(500);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.any(String),
+        error: expect.objectContaining({ code: expect.any(String) }),
       });
     });
 

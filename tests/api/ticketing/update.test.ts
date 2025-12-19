@@ -4,19 +4,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
 import handler from '../../../pages/api/ticketing/tickets-[id]';
 import { getAuth } from '@clerk/nextjs/server';
-import { neon } from '@neondatabase/serverless';
+import { mockSql } from '../../../vitest.setup';
 
 // Mock dependencies
 vi.mock('@clerk/nextjs/server');
-vi.mock('@neondatabase/serverless');
 
 describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
-  let mockSql: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSql = vi.fn();
-    (neon as any).mockReturnValue(mockSql);
+    mockSql.mockReset();
+    mockSql.mockResolvedValue([]);
   });
 
   describe('Authentication', () => {
@@ -25,7 +22,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -36,7 +33,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
       expect(res._getStatusCode()).toBe(401);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Authentication required'),
+        error: { code: 'UNAUTHORIZED' },
       });
     });
 
@@ -47,7 +44,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -69,7 +66,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-999' },
+        query: { id: 'TICK-999' },
         body: {
           status: 'in_progress',
         },
@@ -80,14 +77,14 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
       expect(res._getStatusCode()).toBe(404);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('not found'),
+        error: { code: 'NOT_FOUND' },
       });
     });
 
     it('should require valid ticket ID format', async () => {
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'invalid-id' },
+        query: { id: 'invalid-id' },
         body: {
           status: 'in_progress',
         },
@@ -98,7 +95,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Invalid ticket ID'),
+        error: expect.objectContaining({ message: expect.stringContaining('Invalid ticket ID') }),
       });
     });
   });
@@ -119,7 +116,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -142,7 +139,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           priority: 'critical',
         },
@@ -164,7 +161,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           assigned_to: 'user_456',
         },
@@ -188,7 +185,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
           priority: 'high',
@@ -218,7 +215,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           metadata: {
             custom_field: 'updated_value',
@@ -242,7 +239,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           tags: ['urgent', 'customer-complaint'],
         },
@@ -263,7 +260,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
     it('should reject invalid status values', async () => {
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'invalid_status',
         },
@@ -274,7 +271,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('status'),
+        error: expect.objectContaining({ message: expect.stringContaining('status') }),
       });
     });
 
@@ -286,7 +283,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
         const { req, res } = createMocks({
           method: 'PATCH',
-          query: { ticketId: 'TICK-001' },
+          query: { id: 'TICK-001' },
           body: { status },
         });
 
@@ -299,7 +296,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
     it('should reject invalid priority values', async () => {
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           priority: 'invalid_priority',
         },
@@ -318,7 +315,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
         const { req, res } = createMocks({
           method: 'PATCH',
-          query: { ticketId: 'TICK-001' },
+          query: { id: 'TICK-001' },
           body: { priority },
         });
 
@@ -339,7 +336,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -361,7 +358,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'resolved',
           resolution_note: 'Fixed the issue',
@@ -386,7 +383,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'closed',
         },
@@ -417,7 +414,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           priority: 'critical',
         },
@@ -441,7 +438,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           assigned_to: 'user_456',
         },
@@ -471,7 +468,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           billable_type: 'adhoc',
           estimated_hours: 3,
@@ -496,7 +493,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           estimated_hours: 5,
         },
@@ -519,7 +516,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           actual_hours: 4,
         },
@@ -548,7 +545,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -572,7 +569,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -597,7 +594,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -611,7 +608,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
     it('should reject empty update body', async () => {
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {},
       });
 
@@ -620,7 +617,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('No fields to update'),
+        error: expect.objectContaining({ message: expect.stringContaining('No fields to update') }),
       });
     });
 
@@ -629,7 +626,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           id: 'TICK-999', // Read-only
           created_at: new Date().toISOString(), // Read-only
@@ -655,7 +652,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -666,7 +663,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
       expect(res._getStatusCode()).toBe(500);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.any(String),
+        error: expect.objectContaining({ code: expect.any(String) }),
       });
     });
 
@@ -678,7 +675,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -696,7 +693,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -728,7 +725,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
           expected_version: 1,
@@ -761,7 +758,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
         body: {
           status: 'in_progress',
         },
@@ -785,7 +782,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
     it('should reject unsupported HTTP methods', async () => {
       const { req, res } = createMocks({
         method: 'PUT',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -793,7 +790,7 @@ describe('PATCH /api/ticketing/[ticketId] (Update Ticket)', () => {
       expect(res._getStatusCode()).toBe(405);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Method Not Allowed'),
+        error: { code: 'METHOD_NOT_ALLOWED' },
       });
     });
   });

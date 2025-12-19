@@ -35,7 +35,7 @@ export default async function handler(
     return handleDeleteTicket(req, res, id);
   }
 
-  return apiResponse.methodNotAllowed(res, ['GET', 'PATCH', 'DELETE']);
+  return apiResponse.methodNotAllowed(res, req.method!, ['GET', 'PATCH', 'DELETE']);
 }
 
 async function handleGetTicket(

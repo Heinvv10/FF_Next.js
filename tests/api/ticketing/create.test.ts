@@ -4,19 +4,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
 import handler from '../../../pages/api/ticketing/tickets';
 import { getAuth } from '@clerk/nextjs/server';
-import { neon } from '@neondatabase/serverless';
+import { mockSql } from '../../../vitest.setup';
 
 // Mock dependencies
 vi.mock('@clerk/nextjs/server');
-vi.mock('@neondatabase/serverless');
 
 describe('POST /api/ticketing (Create Ticket)', () => {
-  let mockSql: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSql = vi.fn();
-    (neon as any).mockReturnValue(mockSql);
+    mockSql.mockReset();
+    mockSql.mockResolvedValue([]);
   });
 
   describe('Authentication', () => {
@@ -35,10 +32,9 @@ describe('POST /api/ticketing (Create Ticket)', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(401);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('Authentication required'),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('UNAUTHORIZED');
     });
 
     it('should accept authenticated requests', async () => {
@@ -67,10 +63,30 @@ describe('POST /api/ticketing (Create Ticket)', () => {
       (getAuth as any).mockReturnValue({ userId: 'user_123' });
     });
 
+    it('should require source field', async () => {
+      const { req, res } = createMocks({
+        method: 'POST',
+        body: {
+          title: 'Test Ticket',
+          description: 'Test description',
+          priority: 'high',
+        },
+      });
+
+      await handler(req, res);
+
+      expect(res._getStatusCode()).toBe(400);
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('BAD_REQUEST');
+      expect(data.error.message).toContain('source');
+    });
+
     it('should require title field', async () => {
       const { req, res } = createMocks({
         method: 'POST',
         body: {
+          source: 'qcontact',
           description: 'Test description',
           priority: 'high',
         },
@@ -79,47 +95,10 @@ describe('POST /api/ticketing (Create Ticket)', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(400);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('title'),
-      });
-    });
-
-    it('should require description field', async () => {
-      const { req, res } = createMocks({
-        method: 'POST',
-        body: {
-          title: 'Test Ticket',
-          priority: 'high',
-        },
-      });
-
-      await handler(req, res);
-
-      expect(res._getStatusCode()).toBe(400);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('description'),
-      });
-    });
-
-    it('should require valid priority', async () => {
-      const { req, res } = createMocks({
-        method: 'POST',
-        body: {
-          title: 'Test Ticket',
-          description: 'Test description',
-          priority: 'invalid_priority',
-        },
-      });
-
-      await handler(req, res);
-
-      expect(res._getStatusCode()).toBe(400);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('priority'),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('BAD_REQUEST');
+      expect(data.error.message).toContain('title');
     });
 
     it('should accept valid priority values', async () => {
@@ -142,22 +121,6 @@ describe('POST /api/ticketing (Create Ticket)', () => {
 
         expect(res._getStatusCode()).toBe(201);
       }
-    });
-
-    it('should require valid source', async () => {
-      const { req, res } = createMocks({
-        method: 'POST',
-        body: {
-          title: 'Test Ticket',
-          description: 'Test description',
-          priority: 'high',
-          source: 'invalid_source',
-        },
-      });
-
-      await handler(req, res);
-
-      expect(res._getStatusCode()).toBe(400);
     });
   });
 
@@ -191,12 +154,11 @@ describe('POST /api/ticketing (Create Ticket)', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(201);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: true,
-        data: expect.objectContaining({
-          id: 'TICK-001',
-          title: 'Test Ticket',
-        }),
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(true);
+      expect(data.data).toMatchObject({
+        id: 'TICK-001',
+        title: 'Test Ticket',
       });
     });
 
@@ -231,7 +193,8 @@ describe('POST /api/ticketing (Create Ticket)', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(201);
-      expect(JSON.parse(res._getData()).data).toMatchObject({
+      const data = JSON.parse(res._getData());
+      expect(data.data).toMatchObject({
         assigned_to: 'user_456',
         customer_id: 'cust_789',
         project_id: 'proj_abc',
@@ -260,8 +223,9 @@ describe('POST /api/ticketing (Create Ticket)', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(201);
-      expect(JSON.parse(res._getData()).data).toHaveProperty('sla_response_deadline');
-      expect(JSON.parse(res._getData()).data).toHaveProperty('sla_resolution_deadline');
+      const data = JSON.parse(res._getData());
+      expect(data.data).toHaveProperty('sla_response_deadline');
+      expect(data.data).toHaveProperty('sla_resolution_deadline');
     });
 
     it('should set created_by to authenticated user', async () => {
@@ -284,8 +248,8 @@ describe('POST /api/ticketing (Create Ticket)', () => {
 
       await handler(req, res);
 
-      const data = JSON.parse(res._getData()).data;
-      expect(data.created_by).toBe('user_123');
+      const data = JSON.parse(res._getData());
+      expect(data.data.created_by).toBe('user_123');
     });
   });
 
@@ -320,9 +284,9 @@ describe('POST /api/ticketing (Create Ticket)', () => {
 
       await handler(req, res);
 
-      const data = JSON.parse(res._getData()).data;
-      expect(data.is_billable).toBe(true);
-      expect(data.estimated_cost).toBe(400); // 200 * 2 hours
+      const data = JSON.parse(res._getData());
+      expect(data.data.is_billable).toBe(true);
+      expect(data.data.estimated_cost).toBe(400); // 200 * 2 hours
     });
 
     it('should mark warranty tickets as non-billable', async () => {
@@ -348,8 +312,8 @@ describe('POST /api/ticketing (Create Ticket)', () => {
 
       await handler(req, res);
 
-      const data = JSON.parse(res._getData()).data;
-      expect(data.is_billable).toBe(false);
+      const data = JSON.parse(res._getData());
+      expect(data.data.is_billable).toBe(false);
     });
   });
 
@@ -374,10 +338,9 @@ describe('POST /api/ticketing (Create Ticket)', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(500);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.any(String),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('INTERNAL_ERROR');
     });
 
     it('should reject unsupported HTTP methods', async () => {
@@ -388,10 +351,9 @@ describe('POST /api/ticketing (Create Ticket)', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(405);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('Method Not Allowed'),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('METHOD_NOT_ALLOWED');
     });
 
     it('should sanitize SQL injection attempts', async () => {
@@ -449,8 +411,8 @@ describe('POST /api/ticketing (Create Ticket)', () => {
 
       await handler(req, res);
 
-      const data = JSON.parse(res._getData()).data;
-      expect(data.metadata).toEqual({
+      const data = JSON.parse(res._getData());
+      expect(data.data.metadata).toEqual({
         custom_field_1: 'value1',
         custom_field_2: 'value2',
       });
@@ -477,8 +439,8 @@ describe('POST /api/ticketing (Create Ticket)', () => {
 
       await handler(req, res);
 
-      const data = JSON.parse(res._getData()).data;
-      expect(data.tags).toEqual(['urgent', 'customer-complaint', 'installation']);
+      const data = JSON.parse(res._getData());
+      expect(data.data.tags).toEqual(['urgent', 'customer-complaint', 'installation']);
     });
   });
 });

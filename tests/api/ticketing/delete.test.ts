@@ -4,19 +4,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
 import handler from '../../../pages/api/ticketing/tickets-[id]';
 import { getAuth } from '@clerk/nextjs/server';
-import { neon } from '@neondatabase/serverless';
+import { mockSql } from '../../../vitest.setup';
 
 // Mock dependencies
 vi.mock('@clerk/nextjs/server');
-vi.mock('@neondatabase/serverless');
 
 describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
-  let mockSql: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSql = vi.fn();
-    (neon as any).mockReturnValue(mockSql);
+    mockSql.mockReset();
+    mockSql.mockResolvedValue([]);
   });
 
   describe('Authentication', () => {
@@ -25,7 +22,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -33,7 +30,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
       expect(res._getStatusCode()).toBe(401);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Authentication required'),
+        error: { code: 'UNAUTHORIZED' },
       });
     });
 
@@ -45,7 +42,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -70,7 +67,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -94,7 +91,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -112,7 +109,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -120,7 +117,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
       expect(res._getStatusCode()).toBe(403);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('not authorized'),
+        error: { code: 'FORBIDDEN' },
       });
     });
   });
@@ -135,7 +132,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-999' },
+        query: { id: 'TICK-999' },
       });
 
       await handler(req, res);
@@ -143,14 +140,14 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
       expect(res._getStatusCode()).toBe(404);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('not found'),
+        error: { code: 'NOT_FOUND' },
       });
     });
 
     it('should require valid ticket ID format', async () => {
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'invalid-id' },
+        query: { id: 'invalid-id' },
       });
 
       await handler(req, res);
@@ -158,7 +155,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Invalid ticket ID'),
+        error: expect.objectContaining({ message: expect.stringContaining('Invalid ticket ID') }),
       });
     });
   });
@@ -186,7 +183,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -212,7 +209,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -237,7 +234,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -266,7 +263,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', force: 'true' },
+        query: { id: 'TICK-001', force: 'true' },
       });
 
       await handler(req, res);
@@ -288,7 +285,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', force: 'true' },
+        query: { id: 'TICK-001', force: 'true' },
       });
 
       await handler(req, res);
@@ -296,7 +293,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
       expect(res._getStatusCode()).toBe(403);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Admin access required'),
+        error: expect.objectContaining({ message: expect.stringContaining('Admin access required') }),
       });
     });
   });
@@ -318,7 +315,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -339,7 +336,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -361,7 +358,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -386,7 +383,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -394,7 +391,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Cannot delete closed ticket'),
+        error: expect.objectContaining({ message: expect.stringContaining('Cannot delete closed ticket') }),
       });
     });
 
@@ -410,7 +407,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -435,7 +432,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', override: 'true' },
+        query: { id: 'TICK-001', override: 'true' },
       });
 
       await handler(req, res);
@@ -461,7 +458,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -469,7 +466,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Cannot delete ticket with approved billing'),
+        error: expect.objectContaining({ message: expect.stringContaining('Cannot delete ticket with approved billing') }),
       });
     });
 
@@ -486,7 +483,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -505,7 +502,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -513,7 +510,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
       expect(res._getStatusCode()).toBe(500);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.any(String),
+        error: expect.objectContaining({ code: expect.any(String) }),
       });
     });
 
@@ -524,7 +521,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -551,7 +548,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', force: 'true' },
+        query: { id: 'TICK-001', force: 'true' },
       });
 
       await handler(req, res);
@@ -576,7 +573,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -608,7 +605,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', force: 'true' },
+        query: { id: 'TICK-001', force: 'true' },
       });
 
       await handler(req, res);
@@ -625,7 +622,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
     it('should reject unsupported HTTP methods', async () => {
       const { req, res } = createMocks({
         method: 'PUT',
-        query: { ticketId: 'TICK-001' },
+        query: { id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -633,7 +630,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
       expect(res._getStatusCode()).toBe(405);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Method Not Allowed'),
+        error: { code: 'METHOD_NOT_ALLOWED' },
       });
     });
   });
@@ -663,7 +660,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', restore: 'true' },
+        query: { id: 'TICK-001', restore: 'true' },
       });
 
       await handler(req, res);
@@ -678,7 +675,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', restore: 'true' },
+        query: { id: 'TICK-001', restore: 'true' },
       });
 
       await handler(req, res);
@@ -686,7 +683,7 @@ describe('DELETE /api/ticketing/[ticketId] (Delete Ticket)', () => {
       expect(res._getStatusCode()).toBe(404);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('not found'),
+        error: { code: 'NOT_FOUND' },
       });
     });
   });

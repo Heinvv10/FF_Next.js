@@ -4,19 +4,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
 import handler from '../../../pages/api/ticketing/tickets-notes';
 import { getAuth } from '@clerk/nextjs/server';
-import { neon } from '@neondatabase/serverless';
+import { mockSql } from '../../../vitest.setup';
 
 // Mock dependencies
 vi.mock('@clerk/nextjs/server');
-vi.mock('@neondatabase/serverless');
 
 describe('Ticket Notes API', () => {
-  let mockSql: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSql = vi.fn();
-    (neon as any).mockReturnValue(mockSql);
+    mockSql.mockReset();
+    mockSql.mockResolvedValue([]);
   });
 
   describe('Authentication', () => {
@@ -25,7 +22,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -33,7 +30,7 @@ describe('Ticket Notes API', () => {
       expect(res._getStatusCode()).toBe(401);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Authentication required'),
+        error: { code: 'UNAUTHORIZED' },
       });
     });
 
@@ -44,7 +41,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -80,7 +77,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -106,7 +103,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -129,7 +126,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -143,7 +140,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -157,7 +154,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'INVALID' },
+        query: { ticket_id: 'INVALID' },
       });
 
       await handler(req, res);
@@ -184,7 +181,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: 'This is a new note',
         },
@@ -200,7 +197,7 @@ describe('Ticket Notes API', () => {
     it('should require content', async () => {
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {},
       });
 
@@ -209,14 +206,14 @@ describe('Ticket Notes API', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('content'),
+        error: expect.objectContaining({ message: expect.stringContaining('content') }),
       });
     });
 
     it('should reject empty content', async () => {
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: '',
         },
@@ -237,7 +234,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: '  Trimmed content  ',
         },
@@ -259,7 +256,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: 'Test note',
         },
@@ -282,7 +279,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: 'Internal note',
           is_internal: true,
@@ -305,7 +302,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: 'Test note',
         },
@@ -335,7 +332,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001', noteId: 'note_123' },
+        query: { ticket_id: 'TICK-001', noteId: 'note_123' },
         body: {
           content: 'Updated content',
         },
@@ -353,7 +350,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001', noteId: 'note_123' },
+        query: { ticket_id: 'TICK-001', noteId: 'note_123' },
         body: {
           content: 'Updated content',
         },
@@ -364,7 +361,7 @@ describe('Ticket Notes API', () => {
       expect(res._getStatusCode()).toBe(403);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('not authorized'),
+        error: { code: 'FORBIDDEN' },
       });
     });
 
@@ -386,7 +383,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001', noteId: 'note_123' },
+        query: { ticket_id: 'TICK-001', noteId: 'note_123' },
         body: {
           content: 'Updated by admin',
         },
@@ -408,7 +405,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001', noteId: 'note_123' },
+        query: { ticket_id: 'TICK-001', noteId: 'note_123' },
         body: {
           content: 'Updated content',
         },
@@ -425,7 +422,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'PATCH',
-        query: { ticketId: 'TICK-001', noteId: 'note_999' },
+        query: { ticket_id: 'TICK-001', noteId: 'note_999' },
         body: {
           content: 'Updated content',
         },
@@ -448,7 +445,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', noteId: 'note_123' },
+        query: { ticket_id: 'TICK-001', noteId: 'note_123' },
       });
 
       await handler(req, res);
@@ -465,7 +462,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', noteId: 'note_123' },
+        query: { ticket_id: 'TICK-001', noteId: 'note_123' },
       });
 
       await handler(req, res);
@@ -486,7 +483,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', noteId: 'note_123' },
+        query: { ticket_id: 'TICK-001', noteId: 'note_123' },
       });
 
       await handler(req, res);
@@ -499,7 +496,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', noteId: 'note_999' },
+        query: { ticket_id: 'TICK-001', noteId: 'note_999' },
       });
 
       await handler(req, res);
@@ -519,7 +516,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'DELETE',
-        query: { ticketId: 'TICK-001', noteId: 'note_123' },
+        query: { ticket_id: 'TICK-001', noteId: 'note_123' },
       });
 
       await handler(req, res);
@@ -541,7 +538,7 @@ describe('Ticket Notes API', () => {
       const { req, res } = createMocks({
         method: 'DELETE',
         query: {
-          ticketId: 'TICK-001',
+          ticket_id: 'TICK-001',
           noteId: 'note_123',
           force: 'true',
         },
@@ -576,7 +573,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -611,7 +608,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -640,7 +637,7 @@ describe('Ticket Notes API', () => {
       const { req, res } = createMocks({
         method: 'GET',
         query: {
-          ticketId: 'TICK-001',
+          ticket_id: 'TICK-001',
           internal_only: 'true',
         },
       });
@@ -674,7 +671,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: 'Note with attachment',
           attachments: [
@@ -695,7 +692,7 @@ describe('Ticket Notes API', () => {
     it('should validate attachment URLs', async () => {
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: 'Note with invalid attachment',
           attachments: [
@@ -715,7 +712,7 @@ describe('Ticket Notes API', () => {
     it('should limit attachment size', async () => {
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: 'Note',
           attachments: Array.from({ length: 11 }, (_, i) => ({
@@ -730,7 +727,7 @@ describe('Ticket Notes API', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Maximum 10 attachments'),
+        error: expect.objectContaining({ message: expect.stringContaining('Maximum 10 attachments') }),
       });
     });
   });
@@ -751,7 +748,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: 'Hey @user_456, can you check this?',
         },
@@ -775,7 +772,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'POST',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
         body: {
           content: 'Hey @user_456',
         },
@@ -797,7 +794,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -805,7 +802,7 @@ describe('Ticket Notes API', () => {
       expect(res._getStatusCode()).toBe(500);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.any(String),
+        error: expect.objectContaining({ code: expect.any(String) }),
       });
     });
 
@@ -816,7 +813,7 @@ describe('Ticket Notes API', () => {
 
       const { req, res } = createMocks({
         method: 'GET',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -834,7 +831,7 @@ describe('Ticket Notes API', () => {
     it('should reject unsupported methods', async () => {
       const { req, res } = createMocks({
         method: 'PUT',
-        query: { ticketId: 'TICK-001' },
+        query: { ticket_id: 'TICK-001' },
       });
 
       await handler(req, res);
@@ -842,7 +839,7 @@ describe('Ticket Notes API', () => {
       expect(res._getStatusCode()).toBe(405);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Method Not Allowed'),
+        error: { code: 'METHOD_NOT_ALLOWED' },
       });
     });
   });

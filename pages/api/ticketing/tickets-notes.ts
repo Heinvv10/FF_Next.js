@@ -25,7 +25,7 @@ export default async function handler(
     return handleCreateNote(req, res, userId);
   }
 
-  return apiResponse.methodNotAllowed(res, ['GET', 'POST']);
+  return apiResponse.methodNotAllowed(res, req.method!, ['GET', 'POST']);
 }
 
 async function handleGetNotes(

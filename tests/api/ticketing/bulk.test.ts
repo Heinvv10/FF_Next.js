@@ -2,21 +2,18 @@
 // Integration tests for POST /api/ticketing/bulk (bulk operations)
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
-import handler from '../../../pages/api/ticketing/tickets';
+import handler from '../../../pages/api/ticketing/tickets-bulk';
 import { getAuth } from '@clerk/nextjs/server';
-import { neon } from '@neondatabase/serverless';
+import { mockSql } from '../../../vitest.setup';
 
 // Mock dependencies
 vi.mock('@clerk/nextjs/server');
-vi.mock('@neondatabase/serverless');
 
 describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
-  let mockSql: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSql = vi.fn();
-    (neon as any).mockReturnValue(mockSql);
+    mockSql.mockReset();
+    mockSql.mockResolvedValue([]);
   });
 
   describe('Authentication', () => {
@@ -37,7 +34,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
       expect(res._getStatusCode()).toBe(401);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Authentication required'),
+        error: { code: 'UNAUTHORIZED' },
       });
     });
 
@@ -83,7 +80,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('action'),
+        error: expect.objectContaining({ message: expect.stringContaining('action') }),
       });
     });
 
@@ -101,7 +98,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('ticket_ids'),
+        error: expect.objectContaining({ message: expect.stringContaining('ticket_ids') }),
       });
     });
 
@@ -135,7 +132,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Maximum 100 tickets'),
+        error: expect.objectContaining({ message: expect.stringContaining('Maximum 100 tickets') }),
       });
     });
   });
@@ -165,7 +162,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
 
       expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData());
-      expect(data.data.updated_count).toBe(3);
+      expect(data.data.summary.success).toBe(3);
     });
 
     it('should validate status value', async () => {
@@ -231,7 +228,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
 
       expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData());
-      expect(data.data.updated_count).toBe(2);
+      expect(data.data.summary.success).toBe(2);
     });
 
     it('should unassign tickets when assigned_to is null', async () => {
@@ -279,7 +276,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
 
       expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData());
-      expect(data.data.updated_count).toBe(2);
+      expect(data.data.summary.success).toBe(2);
     });
 
     it('should recalculate SLA for priority changes', async () => {
@@ -375,7 +372,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
 
       expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData());
-      expect(data.data.deleted_count).toBe(2);
+      expect(data.data.summary.success).toBe(2);
     });
 
     it('should require admin role for hard delete', async () => {
@@ -393,7 +390,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
       expect(res._getStatusCode()).toBe(403);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Admin access required'),
+        error: expect.objectContaining({ message: expect.stringContaining('Admin access required') }),
       });
     });
   });
@@ -422,7 +419,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
 
       expect(res._getStatusCode()).toBe(207); // Multi-Status
       const data = JSON.parse(res._getData());
-      expect(data.data.updated_count).toBe(1);
+      expect(data.data.summary.success).toBe(1);
       expect(data.data.failed_count).toBe(1);
       expect(data.data.failed_ids).toContain('TICK-002');
     });
@@ -512,7 +509,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Invalid action'),
+        error: expect.objectContaining({ message: expect.stringContaining('Invalid action') }),
       });
     });
 
@@ -661,7 +658,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
       expect(res._getStatusCode()).toBe(500);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.any(String),
+        error: expect.objectContaining({ code: expect.any(String) }),
       });
     });
 
@@ -737,7 +734,7 @@ describe('POST /api/ticketing/bulk (Bulk Operations)', () => {
       expect(res._getStatusCode()).toBe(405);
       expect(JSON.parse(res._getData())).toMatchObject({
         success: false,
-        error: expect.stringContaining('Method Not Allowed'),
+        error: { code: 'METHOD_NOT_ALLOWED' },
       });
     });
   });

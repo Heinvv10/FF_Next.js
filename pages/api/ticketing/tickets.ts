@@ -30,7 +30,7 @@ export default async function handler(
     return handleCreateTicket(req, res, userId);
   }
 
-  return apiResponse.methodNotAllowed(res, ['GET', 'POST']);
+  return apiResponse.methodNotAllowed(res, req.method!, ['GET', 'POST']);
 }
 
 async function handleGetTickets(
