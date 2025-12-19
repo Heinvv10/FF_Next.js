@@ -26,7 +26,14 @@
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_take_screenshot",
       "mcp__playwright__browser_network_requests",
-      "SlashCommand(/auto)"
+      "SlashCommand(/auto)",
+      "Bash(npm ci:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm test:*)",
+      "Bash(head:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": [],
@@ -35,5 +42,14 @@
       "C:\\tmp",
       "C:\\c\\Jarvis\\AI Workspace"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "context7",
+    "sequential-thinking",
+    "memory",
+    "Ref",
+    "playwright",
+    "claude-prompts"
+  ]
 }

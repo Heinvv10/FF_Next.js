@@ -59,16 +59,27 @@ export function TicketingDashboard() {
       setLoading(true);
 
       // Fetch my dashboard stats
-      const statsRes = await fetch(`/api/ticketing/dashboard/my-stats`);
+      const statsRes = await fetch(`/api/ticketing/tickets-stats`);
       const statsData = await statsRes.json();
-      setDashboardStats(statsData.data);
+      if (statsData.success) {
+        setDashboardStats(statsData.data);
+      }
 
       // Fetch aggregated view
-      const viewRes = await fetch(`/api/ticketing/tickets?limit=10`);
+      const viewRes = await fetch(`/api/ticketing/tickets?per_page=10`);
       const viewData = await viewRes.json();
-      setAggregatedView(viewData.data);
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      if (viewData.success) {
+        setAggregatedView({
+          tickets: viewData.data.data || [],
+          total: viewData.data.total || 0,
+          by_source: {},
+          by_status: {},
+          by_priority: {},
+          sla_metrics: { at_risk: 0, breached: 0, on_track: 0 },
+        });
+      }
+    } catch {
+      // Error loading dashboard data - show fallback UI
     } finally {
       setLoading(false);
     }

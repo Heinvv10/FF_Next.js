@@ -152,7 +152,7 @@ export class DRLookupService {
    * Converts to uppercase, removes spaces/dashes
    */
   private static normalizeDRNumber(drNumber: string): string {
-    return drNumber.toUpperCase().replace(/[\s\-]/g, '');
+    return drNumber.toUpperCase().replace(/[\s-]/g, '');
   }
 
   /**
@@ -167,7 +167,7 @@ export class DRLookupService {
     }
 
     // Remove common prefixes that might be mistaken for DR
-    const cleaned = input.replace(/^(DROP|D|R)[\s\-]*/i, '');
+    const cleaned = input.replace(/^(DROP|D|R)[\s-]*/i, '');
     if (cleaned !== input) {
       suggestions.push(`DR${cleaned.toUpperCase()}`);
     }
@@ -333,6 +333,14 @@ export class DRLookupService {
     }
 
     return drResults;
+  }
+
+  /**
+   * Validate DR number format (async wrapper for validateDRFormat)
+   * Used by tests and API endpoints
+   */
+  static async validateDR(drNumber: string): Promise<DRValidationResult> {
+    return this.validateDRFormat(drNumber);
   }
 
   /**

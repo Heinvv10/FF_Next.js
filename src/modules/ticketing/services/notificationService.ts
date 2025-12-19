@@ -543,4 +543,117 @@ export class NotificationService {
 
     await sql.query(updateQuery, [userId]);
   }
+
+  /**
+   * Send a ticket-specific notification based on event type
+   * Convenience method that wraps sendNotification with ticket context
+   */
+  static async sendTicketNotification(params: {
+    ticket_id: string;
+    ticket_uid: string;
+    event: 'created' | 'status_changed' | 'assigned' | 'sla_warning' | 'sla_breach' | 'comment_added';
+    recipient_id: string;
+    recipient_email?: string;
+    recipient_phone?: string;
+    ticket_title: string;
+    priority: NotificationPriority;
+    old_status?: string;
+    new_status?: string;
+    assigned_to_name?: string;
+    sla_deadline?: Date;
+    time_remaining_minutes?: number;
+  }): Promise<NotificationResult> {
+    const eventMessages: Record<string, { subject: string; message: string }> = {
+      created: {
+        subject: `New Ticket: ${params.ticket_uid}`,
+        message: `A new ticket has been created: "${params.ticket_title}" with ${params.priority} priority.`,
+      },
+      status_changed: {
+        subject: `Ticket ${params.ticket_uid} Status Updated`,
+        message: `Ticket "${params.ticket_title}" status changed from "${params.old_status}" to "${params.new_status}".`,
+      },
+      assigned: {
+        subject: `Ticket ${params.ticket_uid} Assigned`,
+        message: `You have been assigned to ticket "${params.ticket_title}"${params.assigned_to_name ? ` by ${params.assigned_to_name}` : ''}.`,
+      },
+      sla_warning: {
+        subject: `⚠️ SLA Warning: ${params.ticket_uid}`,
+        message: `Ticket "${params.ticket_title}" SLA deadline approaching! ${params.time_remaining_minutes} minutes remaining.`,
+      },
+      sla_breach: {
+        subject: `🚨 SLA Breached: ${params.ticket_uid}`,
+        message: `URGENT: Ticket "${params.ticket_title}" has breached its SLA deadline. Immediate action required.`,
+      },
+      comment_added: {
+        subject: `New Comment: ${params.ticket_uid}`,
+        message: `A new comment has been added to ticket "${params.ticket_title}".`,
+      },
+    };
+
+    const { subject, message } = eventMessages[params.event] || {
+      subject: `Ticket Update: ${params.ticket_uid}`,
+      message: `Ticket "${params.ticket_title}" has been updated.`,
+    };
+
+    // Determine channels based on event type and priority
+    const channels: NotificationChannel[] = ['in_app'];
+    if (params.recipient_email) channels.push('email');
+    if (params.priority === 'urgent' && params.recipient_phone) {
+      channels.push('sms');
+    }
+
+    return this.sendNotification({
+      recipient_id: params.recipient_id,
+      recipient_email: params.recipient_email,
+      recipient_phone: params.recipient_phone,
+      subject,
+      message,
+      channels,
+      priority: params.priority,
+      ticket_id: params.ticket_id,
+      metadata: {
+        event: params.event,
+        ticket_uid: params.ticket_uid,
+        old_status: params.old_status,
+        new_status: params.new_status,
+        sla_deadline: params.sla_deadline?.toISOString(),
+        time_remaining_minutes: params.time_remaining_minutes,
+      },
+    });
+  }
+
+  /**
+   * Get notification preferences for a user
+   */
+  static async getNotificationPreferences(userId: string): Promise<{
+    user_id: string;
+    email_enabled: boolean;
+    sms_enabled: boolean;
+    whatsapp_enabled: boolean;
+    in_app_enabled: boolean;
+    quiet_hours_start?: string;
+    quiet_hours_end?: string;
+  } | null> {
+    const query = `
+      SELECT
+        user_id,
+        email_enabled,
+        sms_enabled,
+        whatsapp_enabled,
+        in_app_enabled,
+        quiet_hours_start,
+        quiet_hours_end
+      FROM notification_preferences
+      WHERE user_id = $1
+      LIMIT 1
+    `;
+
+    const result = await sql.query(query, [userId]);
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return result.rows[0];
+  }
 }
