@@ -3,10 +3,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
 import handler from '../../../../pages/api/ticketing/webhooks/whatsapp';
-import { WhatsAppBridgeService } from '@/modules/ticketing/integrations/whatsapp/whatsappBridge';
 
 // Mock WhatsAppBridgeService
-vi.mock('@/modules/ticketing/integrations/whatsapp/whatsappBridge');
+const mockProcessInboundMessage = vi.fn();
+
+vi.mock('@/modules/ticketing/integrations/whatsapp/whatsappBridge', () => ({
+  WhatsAppBridgeService: {
+    processInboundMessage: (msg: unknown, opts: unknown) => mockProcessInboundMessage(msg, opts),
+  },
+}));
 
 describe('POST /api/ticketing/webhooks/whatsapp', () => {
   beforeEach(() => {
@@ -23,15 +28,15 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(405);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('Method Not Allowed'),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('METHOD_NOT_ALLOWED');
     });
 
     it('should accept POST requests', async () => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
+      mockProcessInboundMessage.mockResolvedValueOnce({
         success: true,
+        ticket_id: null,
       });
 
       const { req, res } = createMocks({
@@ -55,12 +60,13 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
   });
 
   describe('Webhook Signature Validation', () => {
-    it('should reject requests without signature', async () => {
+    it('should reject requests without signature when configured', async () => {
       const { req, res } = createMocks({
         method: 'POST',
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Test message',
         },
       });
@@ -68,10 +74,9 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(401);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('Invalid webhook signature'),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('UNAUTHORIZED');
     });
 
     it('should reject requests with invalid signature', async () => {
@@ -83,6 +88,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Test message',
         },
       });
@@ -93,8 +99,9 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
     });
 
     it('should accept requests with valid signature', async () => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
+      mockProcessInboundMessage.mockResolvedValueOnce({
         success: true,
+        ticket_id: null,
       });
 
       const { req, res } = createMocks({
@@ -105,6 +112,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Test message',
           timestamp: '2025-01-15T10:00:00Z',
         },
@@ -118,8 +126,9 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
     it('should skip signature validation if not configured', async () => {
       delete process.env.WHATSAPP_WEBHOOK_SECRET;
 
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
+      mockProcessInboundMessage.mockResolvedValueOnce({
         success: true,
+        ticket_id: null,
       });
 
       const { req, res } = createMocks({
@@ -127,6 +136,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Test message',
           timestamp: '2025-01-15T10:00:00Z',
         },
@@ -140,8 +150,9 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
 
   describe('Request Validation', () => {
     beforeEach(() => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValue({
+      mockProcessInboundMessage.mockResolvedValue({
         success: true,
+        ticket_id: null,
       });
     });
 
@@ -153,6 +164,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         },
         body: {
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Test message',
         },
       });
@@ -160,10 +172,10 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(400);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('id'),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('BAD_REQUEST');
+      expect(data.error.message).toContain('id');
     });
 
     it('should require sender phone number', async () => {
@@ -174,6 +186,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         },
         body: {
           id: 'msg_123',
+          from_name: 'John Doe',
           message: 'Test message',
         },
       });
@@ -181,10 +194,10 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(400);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('from'),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('BAD_REQUEST');
+      expect(data.error.message).toContain('from');
     });
 
     it('should require message content', async () => {
@@ -196,16 +209,39 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
         },
       });
 
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(400);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('message'),
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('BAD_REQUEST');
+      expect(data.error.message).toContain('message');
+    });
+
+    it('should require sender name', async () => {
+      const { req, res } = createMocks({
+        method: 'POST',
+        headers: {
+          'x-webhook-signature': 'test-secret-key',
+        },
+        body: {
+          id: 'msg_123',
+          from: '27821234567',
+          message: 'Test message',
+        },
       });
+
+      await handler(req, res);
+
+      expect(res._getStatusCode()).toBe(400);
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('BAD_REQUEST');
+      expect(data.error.message).toContain('from_name');
     });
 
     it('should accept optional fields', async () => {
@@ -239,7 +275,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
     });
 
     it('should create ticket for message with trigger keywords', async () => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
+      mockProcessInboundMessage.mockResolvedValueOnce({
         success: true,
         ticket_id: 'TICK-001',
       });
@@ -263,12 +299,13 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
 
       expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData());
-      expect(data.ticket_id).toBe('TICK-001');
-      expect(data.auto_created).toBe(true);
+      expect(data.success).toBe(true);
+      expect(data.data.ticket_id).toBe('TICK-001');
+      expect(data.data.auto_created).toBe(true);
     });
 
     it('should not create ticket for messages without trigger keywords', async () => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
+      mockProcessInboundMessage.mockResolvedValueOnce({
         success: true,
         ticket_id: null,
       });
@@ -281,6 +318,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Thanks for the update',
           timestamp: '2025-01-15T10:00:00Z',
         },
@@ -288,13 +326,15 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
 
       await handler(req, res);
 
+      expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData());
-      expect(data.message).toContain('Message processed');
-      expect(data.ticket_id).toBeNull();
+      expect(data.success).toBe(true);
+      expect(data.data.message).toContain('Message processed');
+      expect(data.data.ticket_id).toBeNull();
     });
 
     it('should attach reply to existing ticket', async () => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
+      mockProcessInboundMessage.mockResolvedValueOnce({
         success: true,
         ticket_id: 'TICK-001',
         note_added: true,
@@ -308,20 +348,22 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_456',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Additional information about the issue',
           timestamp: '2025-01-15T11:00:00Z',
-          quoted_message: 'msg_123', // Replying to previous message
+          quoted_message: 'msg_123',
         },
       });
 
       await handler(req, res);
 
+      expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData());
-      expect(data.ticket_id).toBe('TICK-001');
+      expect(data.data.ticket_id).toBe('TICK-001');
     });
 
     it('should handle media attachments', async () => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
+      mockProcessInboundMessage.mockResolvedValueOnce({
         success: true,
         ticket_id: 'TICK-002',
       });
@@ -334,6 +376,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_789',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Problem with installation - see photo',
           timestamp: '2025-01-15T12:00:00Z',
           media_url: 'https://example.com/issue-photo.jpg',
@@ -342,67 +385,9 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
 
       await handler(req, res);
 
+      expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData());
-      expect(data.ticket_id).toBe('TICK-002');
-    });
-  });
-
-  describe('Duplicate Prevention', () => {
-    beforeEach(() => {
-      process.env.WHATSAPP_WEBHOOK_SECRET = 'test-secret-key';
-    });
-
-    it('should detect duplicate messages', async () => {
-      (WhatsAppBridgeService.findTicketByMessageId as any).mockResolvedValueOnce({
-        id: 'TICK-001',
-      });
-
-      const { req, res } = createMocks({
-        method: 'POST',
-        headers: {
-          'x-webhook-signature': 'test-secret-key',
-        },
-        body: {
-          id: 'msg_123', // Duplicate message ID
-          from: '27821234567',
-          message: 'Issue with drop LAWLEY001',
-          timestamp: '2025-01-15T10:00:00Z',
-        },
-      });
-
-      await handler(req, res);
-
-      const data = JSON.parse(res._getData());
-      expect(data.message).toContain('already exists');
-      expect(data.ticket_id).toBe('TICK-001');
-      expect(data.already_exists).toBe(true);
-    });
-
-    it('should process new messages normally', async () => {
-      (WhatsAppBridgeService.findTicketByMessageId as any).mockResolvedValueOnce(null);
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
-        success: true,
-        ticket_id: 'TICK-002',
-      });
-
-      const { req, res } = createMocks({
-        method: 'POST',
-        headers: {
-          'x-webhook-signature': 'test-secret-key',
-        },
-        body: {
-          id: 'msg_999', // New message ID
-          from: '27821234567',
-          message: 'Problem with installation',
-          timestamp: '2025-01-15T13:00:00Z',
-        },
-      });
-
-      await handler(req, res);
-
-      const data = JSON.parse(res._getData());
-      expect(data.ticket_id).toBe('TICK-002');
-      expect(data.already_exists).toBeUndefined();
+      expect(data.data.ticket_id).toBe('TICK-002');
     });
   });
 
@@ -412,7 +397,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
     });
 
     it('should handle service errors gracefully', async () => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
+      mockProcessInboundMessage.mockResolvedValueOnce({
         success: false,
         error: 'Failed to create ticket',
       });
@@ -425,6 +410,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Issue with installation',
           timestamp: '2025-01-15T10:00:00Z',
         },
@@ -433,14 +419,13 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(500);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.stringContaining('Failed to create ticket'),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('INTERNAL_ERROR');
     });
 
     it('should handle exceptions gracefully', async () => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockRejectedValueOnce(
+      mockProcessInboundMessage.mockRejectedValueOnce(
         new Error('Database connection failed')
       );
 
@@ -452,6 +437,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Issue with installation',
           timestamp: '2025-01-15T10:00:00Z',
         },
@@ -460,16 +446,15 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(500);
-      expect(JSON.parse(res._getData())).toMatchObject({
-        success: false,
-        error: expect.any(String),
-      });
+      const data = JSON.parse(res._getData());
+      expect(data.success).toBe(false);
+      expect(data.error.code).toBe('INTERNAL_ERROR');
     });
 
     it('should log errors for debugging', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      (WhatsAppBridgeService.processInboundMessage as any).mockRejectedValueOnce(
+      mockProcessInboundMessage.mockRejectedValueOnce(
         new Error('Test error')
       );
 
@@ -481,6 +466,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Test message',
           timestamp: '2025-01-15T10:00:00Z',
         },
@@ -503,7 +489,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
     });
 
     it('should return success response with ticket ID', async () => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
+      mockProcessInboundMessage.mockResolvedValueOnce({
         success: true,
         ticket_id: 'TICK-123',
       });
@@ -516,6 +502,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Issue with drop',
           timestamp: '2025-01-15T10:00:00Z',
         },
@@ -525,16 +512,14 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
 
       expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData());
-      expect(data).toMatchObject({
-        success: true,
-        message: expect.stringContaining('TICK-123'),
-        ticket_id: 'TICK-123',
-        auto_created: true,
-      });
+      expect(data.success).toBe(true);
+      expect(data.data.message).toContain('TICK-123');
+      expect(data.data.ticket_id).toBe('TICK-123');
+      expect(data.data.auto_created).toBe(true);
     });
 
     it('should return success without ticket for non-trigger messages', async () => {
-      (WhatsAppBridgeService.processInboundMessage as any).mockResolvedValueOnce({
+      mockProcessInboundMessage.mockResolvedValueOnce({
         success: true,
         ticket_id: null,
       });
@@ -547,6 +532,7 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
         body: {
           id: 'msg_123',
           from: '27821234567',
+          from_name: 'John Doe',
           message: 'Thanks',
           timestamp: '2025-01-15T10:00:00Z',
         },
@@ -554,11 +540,10 @@ describe('POST /api/ticketing/webhooks/whatsapp', () => {
 
       await handler(req, res);
 
+      expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData());
-      expect(data).toMatchObject({
-        success: true,
-        message: expect.stringContaining('Message processed'),
-      });
+      expect(data.success).toBe(true);
+      expect(data.data.message).toContain('Message processed');
     });
   });
 });

@@ -24,4 +24,13 @@ export default defineConfig({
       '@/pages': path.resolve(__dirname, './pages'),
     },
   },
+  server: {
+    deps: {
+      inline: [/@\/lib/],
+    },
+  },
+  optimizeDeps: {
+    include: [],
+    exclude: ['@/lib/apiResponse'],
+  },
 });
