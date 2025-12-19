@@ -33,7 +33,11 @@
       "Bash(npx tsc:*)",
       "Bash(npm test:*)",
       "Bash(head:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git config:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": [],

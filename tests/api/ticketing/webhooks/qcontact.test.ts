@@ -1,8 +1,8 @@
-// pages/api/ticketing/webhooks/__tests__/qcontact.test.ts
+// tests/api/ticketing/webhooks/qcontact.test.ts
 // Integration tests for POST /api/ticketing/webhooks/qcontact
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
-import handler from '../qcontact';
+import handler from '../../../../pages/api/ticketing/webhooks/qcontact';
 import { QContactClient } from '@/modules/ticketing/integrations/qcontact/qcontactClient';
 
 // Mock QContactClient

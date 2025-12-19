@@ -1,8 +1,8 @@
-// pages/api/ticketing/__tests__/delete.test.ts
-// Integration tests for DELETE /api/ticketing/[ticketId] (delete ticket)
+// tests/api/ticketing/delete.test.ts
+// Integration tests for DELETE /api/ticketing/tickets-[id] (delete ticket)
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
-import handler from '../[ticketId]';
+import handler from '../../../pages/api/ticketing/tickets-[id]';
 import { getAuth } from '@clerk/nextjs/server';
 import { neon } from '@neondatabase/serverless';
 

@@ -1,8 +1,8 @@
-// pages/api/ticketing/__tests__/list.test.ts
+// tests/api/ticketing/list.test.ts
 // Integration tests for GET /api/ticketing (list tickets)
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
-import handler from '../index';
+import handler from '../../../pages/api/ticketing/tickets';
 import { getAuth } from '@clerk/nextjs/server';
 import { neon } from '@neondatabase/serverless';
 

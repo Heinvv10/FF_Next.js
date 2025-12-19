@@ -1,8 +1,8 @@
-// pages/api/ticketing/__tests__/notes.test.ts
+// tests/api/ticketing/notes.test.ts
 // Integration tests for ticket notes/comments API
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
-import handler from '../[ticketId]/notes';
+import handler from '../../../pages/api/ticketing/tickets-notes';
 import { getAuth } from '@clerk/nextjs/server';
 import { neon } from '@neondatabase/serverless';
 

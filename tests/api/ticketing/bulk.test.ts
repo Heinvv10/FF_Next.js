@@ -1,8 +1,8 @@
-// pages/api/ticketing/__tests__/bulk.test.ts
+// tests/api/ticketing/bulk.test.ts
 // Integration tests for POST /api/ticketing/bulk (bulk operations)
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
-import handler from '../bulk';
+import handler from '../../../pages/api/ticketing/tickets';
 import { getAuth } from '@clerk/nextjs/server';
 import { neon } from '@neondatabase/serverless';
 

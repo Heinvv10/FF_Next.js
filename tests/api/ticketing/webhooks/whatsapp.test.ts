@@ -1,8 +1,8 @@
-// pages/api/ticketing/webhooks/__tests__/whatsapp.test.ts
+// tests/api/ticketing/webhooks/whatsapp.test.ts
 // Integration tests for POST /api/ticketing/webhooks/whatsapp
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
-import handler from '../whatsapp';
+import handler from '../../../../pages/api/ticketing/webhooks/whatsapp';
 import { WhatsAppBridgeService } from '@/modules/ticketing/integrations/whatsapp/whatsappBridge';
 
 // Mock WhatsAppBridgeService

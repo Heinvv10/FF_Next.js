@@ -1,8 +1,8 @@
-// pages/api/ticketing/__tests__/export.test.ts
-// Integration tests for GET /api/ticketing/export
+// tests/api/ticketing/export.test.ts
+// Integration tests for GET /api/ticketing/exports-tickets
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
-import handler from '../export';
+import handler from '../../../pages/api/ticketing/exports-tickets';
 import { getAuth } from '@clerk/nextjs/server';
 import { neon } from '@neondatabase/serverless';
 

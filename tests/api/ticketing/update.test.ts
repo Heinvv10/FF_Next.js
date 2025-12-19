@@ -1,8 +1,8 @@
-// pages/api/ticketing/__tests__/update.test.ts
-// Integration tests for PATCH /api/ticketing/[ticketId] (update ticket)
+// tests/api/ticketing/update.test.ts
+// Integration tests for PATCH /api/ticketing/tickets-[id] (update ticket)
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMocks } from 'node-mocks-http';
-import handler from '../[ticketId]';
+import handler from '../../../pages/api/ticketing/tickets-[id]';
 import { getAuth } from '@clerk/nextjs/server';
 import { neon } from '@neondatabase/serverless';
 
