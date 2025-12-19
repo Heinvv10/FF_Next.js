@@ -1,0 +1,293 @@
+# Project Expertise - Auto-updated by expert-self-improve hook
+# Last updated: 2025-12-18T15:46:53.575Z
+# Version: 3
+
+expertise:
+  project: fibreflow-nextjs
+  domain: full-stack-fiber-network-management
+  version: 3
+  last_updated: 2025-12-18T15:46:53.575Z
+  stack:
+    language: typescript
+    runtime: node
+    framework: next.js-14-app-router
+    auth: clerk
+    database: neon-postgresql
+    storage: firebase-storage
+    orm: none
+    testing: vitest-playwright
+    deployment: velocity-server
+  key_locations:
+    src: src
+    components: src/components
+    services: src/services
+    lib: src/lib
+    modules: src/modules
+    database: neon
+    migrations: neon/migrations
+    scripts: scripts
+    sow_import: SOW
+    docs: docs
+    tests: tests
+    claude: .claude
+    agents: .claude/agents
+    protocols: ~/.claude/protocols
+    memories: ~/.claude/memories
+    wa_monitor: src/modules/wa-monitor
+    rag: src/modules/rag
+    api: pages/api/foto-reviews/[jobId]
+  critical_files:
+    - neon/config/database.ts
+    - neon/config/pool.ts
+    - src/lib/apiResponse.ts
+    - src/components/layout/AppLayout.tsx
+    - src/modules/wa-monitor/README.md
+    - src/modules/wa-monitor/API_CONTRACT.md
+    - src/modules/wa-monitor/ISOLATION_GUIDE.md
+  patterns:
+    - name: Local development
+      when: running locally
+      command: npm run build && PORT=3005 npm start
+      notes: |
+        ALWAYS use production mode locally (not npm run dev)
+        Watchpack bug exists in dev mode due to nested package.json in neon/
+    - name: API response pattern
+      when: creating API routes
+      implementation: |
+        import { apiResponse } from '@/lib/apiResponse';
+
+        // Success
+        return apiResponse.success(res, data);
+
+        // Not found
+        return apiResponse.notFound(res, 'Resource', id);
+
+        // Error
+        return apiResponse.internalError(res, error);
+    - name: Database connection
+      when: querying database
+      implementation: |
+        import { neon } from '@neondatabase/serverless';
+        const sql = neon(process.env.DATABASE_URL);
+        const result = await sql`SELECT * FROM table WHERE id = ${id}`;
+      notes: Use direct SQL, NOT an ORM
+    - name: Page layout standard
+      when: creating pages
+      implementation: |
+        import { AppLayout } from '@/components/layout';
+
+        export default function MyPage() {
+          return <AppLayout>{/* content */}</AppLayout>;
+        }
+
+        // Fullscreen without sidebar:
+        MyPage.getLayout = (page) => page;
+    - name: Modular architecture
+      when: creating features
+      structure: |
+        src/modules/module-name/
+        ├── types/          # TypeScript interfaces
+        ├── services/       # Business logic & API
+        ├── utils/          # Helpers
+        ├── components/     # UI components
+        └── hooks/          # Custom hooks
+      notes: Each module is self-contained "Lego block"
+    - name: SOW import process
+      when: importing project data
+      workflow: |
+        1. Create project in UI
+        2. Edit script: scripts/sow-import/import-fibre-{name}.cjs
+        3. Run: node scripts/sow-import/import-fibre-{name}.cjs
+        4. Verify: node scripts/sow-import/verify-fibre-{name}.cjs
+  anti_patterns:
+    - name: Using npm run dev
+      why_bad: Watchpack bug causes issues due to nested package.json
+      what_to_do: Use npm run build && PORT=3005 npm start
+    - name: Nested dynamic routes on Vercel
+      why_bad: Fails in production (Vercel limitation)
+      example_wrong: pages/api/contractors/[contractorId]/onboarding/stages.ts
+      example_correct: pages/api/contractors-onboarding-stages.ts?contractorId={id}
+      what_to_do: Use flattened routes with query params
+    - name: Wrong database endpoint
+      why_bad: Uses old/incorrect database
+      wrong: ep-damp-credit-a857vku0
+      correct: ep-dry-night-a9qyh4sj
+      what_to_do: Always verify DATABASE_URL points to ep-dry-night-a9qyh4sj
+    - name: Confusing drop tables
+      why_bad: Two separate drop tables with different purposes
+      tables:
+        - name: drops
+          purpose: SOW imports from Excel
+          api: /api/sow/drops, /api/sow/fibre
+        - name: qa_photo_reviews
+          purpose: WhatsApp QA data
+          api: /api/wa-monitor-drops, /api/wa-monitor-daily-drops
+      what_to_do: Check docs/DATABASE_TABLES.md before querying
+    - name: Breaking WA Monitor isolation
+      why_bad: Module is fully isolated and can be extracted to microservice
+      what_to_do: Read src/modules/wa-monitor/ISOLATION_GUIDE.md before changes
+    - name: Direct systemctl restart for WA Monitor
+      why_bad: Keeps stale Python bytecode cache
+      wrong: systemctl restart wa-monitor-prod
+      correct: /opt/wa-monitor/prod/restart-monitor.sh
+      what_to_do: Always use safe restart script
+  commands:
+    dev: npm run build && PORT=3005 npm start
+    build: npm run build
+    lint: npm run lint
+    type_check: npm run type-check
+    db_migrate: npm run db:migrate
+    db_seed: npm run db:seed
+    test: npm test
+    test_e2e: npm run test:e2e
+    test_wa_monitor: npm run test:wa-monitor
+    antihall: npm run antihall
+    deploy_dev: ssh louis@100.96.203.105 "cd /var/www/fibreflow-dev && git pull && npm ci && npm run build && pm2 restart
+      fibreflow-dev"
+    deploy_prod: ssh louis@100.96.203.105 "cd /var/www/fibreflow && git pull && npm ci && npm run build && pm2 restart
+      fibreflow-prod"
+  deployment:
+    server:
+      name: Velocity Server
+      access:
+        - ssh louis@100.96.203.105
+        - ssh louis@192.168.1.150
+      password: VeloAdmin2025!
+    environments:
+      production:
+        url: https://app.fibreflow.app
+        branch: master
+        port: 3005
+        pm2: fibreflow-prod
+        path: /var/www/fibreflow
+      development:
+        url: https://dev.fibreflow.app
+        branch: develop
+        port: 3006
+        pm2: fibreflow-dev
+        path: /var/www/fibreflow-dev
+    workflow:
+      - Create feature branch from develop
+      - Merge to develop → Deploy to dev.fibreflow.app
+      - Test on dev environment
+      - Merge to master → Deploy to app.fibreflow.app
+  modules:
+    wa_monitor:
+      status: production-ready
+      isolation: fully-isolated
+      path: src/modules/wa-monitor
+      purpose: WhatsApp QA drop monitoring
+      table: qa_photo_reviews
+      api: /api/wa-monitor-*
+      dashboard: /wa-monitor
+      agent:
+        location: /opt/wa-monitor/prod/ on VPS
+        restart: /opt/wa-monitor/prod/restart-monitor.sh
+        config: /opt/wa-monitor/prod/config/projects.yaml
+      projects:
+        - Lawley
+        - Mohadin
+        - Mamelodi
+        - Velo Test
+      docs:
+        - src/modules/wa-monitor/README.md
+        - src/modules/wa-monitor/API_CONTRACT.md
+        - src/modules/wa-monitor/ISOLATION_GUIDE.md
+        - src/modules/wa-monitor/TROUBLESHOOTING.md
+      notes: |
+        - Zero dependencies on main app
+        - Can be extracted to microservice
+        - Always use safe restart script (clears Python cache)
+    rag:
+      status: active
+      path: src/modules/rag
+      purpose: Contractor health monitoring
+  database:
+    provider: Neon PostgreSQL
+    endpoint: ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech
+    connection: direct-sql
+    client: "@neondatabase/serverless"
+    critical_tables:
+      - drops
+      - qa_photo_reviews
+      - poles
+      - sow_fibre
+    schema_docs: docs/DATABASE_TABLES.md
+  coding_standards:
+    file_size: max 300 lines
+    component_size: max 200 lines
+    refactoring: extract business logic to hooks
+    types: organize by module
+    services: domain-focused
+    api_routes:
+      - Use consistent dynamic parameter names
+      - Use apiResponse helper for all responses
+      - Flatten nested routes (avoid Vercel issues)
+    page_development:
+      - Update docs/page-logs/{page-name}.md after changes
+      - Include timestamp, problem, solution, testing
+  security:
+    auth: Clerk (Firebase Auth removed)
+    api_protection: Arcjet (rate limiting + bot detection)
+    arcjet_levels:
+      - ajStrict: 30 req/min
+      - aj: 100 req/min
+      - ajGenerous: 300 req/min
+  migration_context:
+    status: Migration complete
+    from: React 18 + Vite + Firebase Auth
+    to: Next.js 14 + App Router + Clerk
+    archive: ../FF_React_Archive/
+    notes: React/Vite app archived for reference only
+  important_notes:
+    - Server hosted on Velocity Server (migrated from old VPS)
+    - Use production mode locally (npm run build && PORT=3005 npm start)
+    - Database endpoint MUST be ep-dry-night-a9qyh4sj
+    - Two drop tables: drops (SOW) vs qa_photo_reviews (WhatsApp)
+    - WA Monitor is fully isolated module
+    - Always deploy to dev first, then production
+    - Use antihall validator for code verification
+    - Prefer editing existing files over creating new ones
+  pai_integration:
+    validation:
+      dgts_threshold: 0.35
+      nlnh_confidence: 0.8
+      quality_gates:
+        - NO_CONSOLE_LOG
+        - PROPER_ERROR_HANDLING
+        - TYPE_SAFETY
+        - DATABASE_ENDPOINT_VALIDATION
+    protocols:
+      - dgts-validation.md
+      - nlnh-protocol.md
+      - doc-driven-tdd.md
+      - playwright-testing.md
+      - antihall-validator.md
+      - zero-tolerance-quality.md
+      - forbidden-commands.md
+    specialized_agents:
+      - typescript-strict-enforcer
+      - react-best-practices-enforcer
+      - nextjs-optimization-enforcer
+      - testing-coverage-enforcer
+      - complexity-manager
+      - wa-monitor-specialist
+      - database-guardian
+  update_history:
+    - version: 3
+      date: 2025-12-18T15:46:53.575Z
+      changes: "Added locations: api; Files modified: 1 (ts)"
+    - version: 1
+      date: 2025-12-18T15:07:21.637Z
+      changes: Auto-generated initial expertise file
+    - version: 2
+      date: 2025-12-18T15:32:00.000Z
+      changes: |
+        PAI-enhanced with complete FibreFlow context:
+        - Added deployment workflow (Velocity Server)
+        - Added WA Monitor module details
+        - Added database configuration (correct endpoint)
+        - Added coding standards and patterns
+        - Added anti-patterns and critical notes
+        - Added specialized agents
+        - Added PAI integration protocols

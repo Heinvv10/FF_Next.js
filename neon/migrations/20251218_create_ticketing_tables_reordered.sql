@@ -1,0 +1,14 @@
+-- =====================================================
+-- FibreFlow Ticketing Module - Database Schema
+-- =====================================================
+-- Created: 2025-12-18
+-- Purpose: Complete ticketing system with 7 sources, billing automation, SLA management
+-- Tables: 12 total (tickets, ticket_notes, ticket_attachments, ticket_history,
+--         ticket_tags, sla_configs, client_contracts, project_guarantees,
+--         billable_fee_schedule, ticket_billing, ticket_assignment_history, notification_log)
+-- =====================================================
+
+-- =====================================================
+-- TABLE 1: tickets
+-- Core ticket data with immutable UIDs
+-- =====================================================

@@ -1,0 +1,66 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "bunx",
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
+      "description": "Real-time documentation for 33K+ libraries."
+    },
+    "sequential-thinking": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "bunx",
+        "-y",
+        "@modelcontextprotocol/server-sequentialthinking"
+      ],
+      "description": "Structured reasoning for complex problems."
+    },
+    "memory": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "bunx",
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "description": "Persistent knowledge graph across sessions."
+    },
+    "Ref": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "bunx",
+        "-y",
+        "@refdotai/mcp"
+      ],
+      "description": "Documentation search"
+    },
+    "playwright": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "bunx",
+        "-y",
+        "@playwright/mcp@latest",
+        "--extension"
+      ],
+      "description": "Browser automation and testing"
+    },
+    "claude-prompts": {
+      "command": "node.exe",
+      "args": [
+        "C:/Users/HeinvanVuuren/claude-prompts-mcp/server/dist/index.js"
+      ],
+      "env": {
+        "MCP_SERVER_ROOT": "C:/Users/HeinvanVuuren/claude-prompts-mcp/server",
+        "MCP_PROMPTS_CONFIG_PATH": "C:/Users/HeinvanVuuren/claude-prompts-mcp/server/prompts/promptsConfig.json"
+      },
+      "description": "PAI prompt enhancement system"
+    }
+  }
+}

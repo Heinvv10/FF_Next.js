@@ -1,0 +1,439 @@
+project:
+  name: FF_Next.js
+  complexity: 8
+  languages:
+    typescript: 100
+  frameworks:
+    - nextjs
+    - react
+    - clerk
+  build_tools:
+    - npm
+  testing_frameworks:
+    - vitest
+    - playwright
+  databases:
+    - neon-postgresql
+  architecture_pattern: modular-lego-blocks
+  research_enabled: true
+
+mcp_integration:
+  context7:
+    auto_invoke_when:
+      - writing code with external libraries
+      - checking API patterns
+      - framework-specific implementation
+      - Next.js specific features (App Router, Image, etc.)
+    usage: use context7 for [library] [version] documentation
+
+  memory:
+    auto_invoke_when:
+      - session start (recall project patterns)
+      - session end (store learnings)
+      - referencing past decisions
+      - after solving complex bugs
+    usage: automatic entity storage/retrieval
+
+  sequential_thinking:
+    auto_invoke_when:
+      - complex architectural decisions
+      - multi-step debugging
+      - trade-off analysis
+      - database migration planning
+    usage: step-by-step reasoning chains
+
+  playwright:
+    auto_invoke_when:
+      - E2E testing required
+      - UI validation
+      - browser automation
+      - WA Monitor dashboard testing
+    usage: test execution and screenshots
+
+  github:
+    auto_invoke_when:
+      - PR operations
+      - issue management
+      - code search
+      - deployment verification
+    usage: repository automation
+
+agents:
+  # TypeScript/Code Quality Agents
+  - name: typescript-strict-enforcer
+    type: code-quality-reviewer
+    description: Enforces TypeScript strict mode and type safety
+    mcp_servers:
+      - context7
+      - memory
+    validation:
+      dgts:
+        threshold: 0.35
+        custom_patterns:
+          - id: TS_ANY_TYPE
+            severity: CRITICAL
+            regex: \bany\b(?!\s*\()
+            description: TypeScript 'any' type usage (strict mode violation)
+            category: type_safety
+          - id: TS_NO_EXPLICIT_TYPE
+            severity: MAJOR
+            regex: (const|let)\s+\w+\s*=(?!\s*\()
+            description: Missing explicit type annotation
+            category: type_safety
+      nlnh:
+        confidence_threshold: 0.85
+      quality_gates:
+        - TYPE_CHECK_REQUIRED
+        - NO_ANY_TYPES
+        - EXPLICIT_TYPES_PREFERRED
+
+  - name: react-best-practices-enforcer
+    type: code-implementer
+    description: Enforces React best practices and hooks rules
+    mcp_servers:
+      - context7
+      - memory
+    validation:
+      dgts:
+        threshold: 0.3
+        custom_patterns:
+          - id: REACT_MISSING_KEY
+            severity: MAJOR
+            regex: \.map\(.*?\)\s*\n.*?<.*?>(?!.*?key=)
+            description: Missing key prop in mapped elements
+            category: react_rules
+          - id: REACT_INLINE_FUNCTION
+            severity: MINOR
+            regex: onClick=\{.*?=>
+            description: Inline function in JSX (consider useCallback)
+            category: performance
+      nlnh:
+        confidence_threshold: 0.8
+      quality_gates:
+        - HOOKS_RULES
+        - COMPONENT_STRUCTURE
+        - PROPS_VALIDATION
+
+  - name: nextjs-optimization-enforcer
+    type: performance-optimizer
+    description: Enforces Next.js performance best practices (App Router)
+    mcp_servers:
+      - context7
+      - memory
+    validation:
+      dgts:
+        threshold: 0.3
+        custom_patterns:
+          - id: NEXTJS_IMG_TAG
+            severity: MAJOR
+            regex: <img\s+
+            description: Using <img> instead of Next.js Image component
+            category: performance
+          - id: NEXTJS_LINK_TAG
+            severity: MAJOR
+            regex: <a\s+href=
+            description: Using <a> instead of Next.js Link component
+            category: performance
+          - id: NEXTJS_CLIENT_ONLY
+            severity: MINOR
+            regex: '^"use client"'
+            description: Unnecessary client component (consider server component)
+            category: performance
+      nlnh:
+        confidence_threshold: 0.8
+      quality_gates:
+        - SSR_VALIDATION
+        - IMAGE_OPTIMIZATION
+        - APP_ROUTER_PATTERNS
+
+  # Testing & Quality Agents
+  - name: testing-coverage-enforcer
+    type: test-coverage-validator
+    description: Enforces test coverage standards (Vitest + Playwright)
+    mcp_servers:
+      - playwright
+      - memory
+    validation:
+      dgts:
+        threshold: 0.4
+        custom_patterns:
+          - id: TEST_NO_ASSERTIONS
+            severity: CRITICAL
+            regex: (test|it)\(['"].*?['"].*?\).*?\{(?!.*?(expect|assert))
+            description: Test without assertions
+            category: test_quality
+          - id: TEST_MISSING_CLEANUP
+            severity: MAJOR
+            regex: (beforeEach|afterEach)
+            description: Missing test cleanup
+            category: test_quality
+      nlnh:
+        confidence_threshold: 0.9
+      quality_gates:
+        - COVERAGE_80_PERCENT
+        - NO_FAKE_TESTS
+        - E2E_FOR_CRITICAL_PATHS
+
+  - name: complexity-manager
+    type: code-refactoring-optimizer
+    description: Manages complexity and architecture (max 300 lines/file, 200 lines/component)
+    mcp_servers:
+      - sequential-thinking
+      - memory
+    validation:
+      dgts:
+        threshold: 0.4
+        custom_patterns:
+          - id: COMPLEXITY_LARGE_FILE
+            severity: MAJOR
+            regex: ^.{30000,}$
+            description: File exceeds 300 lines (split into smaller modules)
+            category: complexity
+          - id: COMPLEXITY_LARGE_COMPONENT
+            severity: MAJOR
+            regex: (export\s+default\s+function|const\s+\w+\s*=\s*\(\))[\s\S]{20000,}
+            description: Component exceeds 200 lines (extract logic to hooks)
+            category: complexity
+      nlnh:
+        confidence_threshold: 0.9
+      quality_gates:
+        - ARCHITECTURE_VALIDATION
+        - DOCUMENTATION_REQUIRED
+        - EXTRACT_TO_MODULES
+
+  # FibreFlow-Specific Agents
+  - name: database-guardian
+    type: data-validator
+    description: Validates database operations and ensures correct Neon endpoint usage
+    mcp_servers:
+      - memory
+      - sequential-thinking
+    validation:
+      dgts:
+        threshold: 0.4
+        custom_patterns:
+          - id: DB_WRONG_ENDPOINT
+            severity: CRITICAL
+            regex: ep-damp-credit-a857vku0
+            description: Using wrong database endpoint (must use ep-dry-night-a9qyh4sj)
+            category: database
+          - id: DB_MISSING_ERROR_HANDLING
+            severity: MAJOR
+            regex: await\s+sql`[^`]+`(?!\s*\.catch)
+            description: Missing error handling for database query
+            category: database
+          - id: DB_SQL_INJECTION
+            severity: CRITICAL
+            regex: sql`.*?\$\{[^}]+\}.*?`
+            description: Potential SQL injection (use parameterized queries)
+            category: security
+      nlnh:
+        confidence_threshold: 0.95
+      quality_gates:
+        - CORRECT_DATABASE_ENDPOINT
+        - ERROR_HANDLING_REQUIRED
+        - NO_SQL_INJECTION
+        - VERIFY_TABLE_EXISTS
+    responsibilities:
+      - Verify DATABASE_URL points to ep-dry-night-a9qyh4sj
+      - Distinguish between drops (SOW) vs qa_photo_reviews (WhatsApp) tables
+      - Check docs/DATABASE_TABLES.md before querying unknown tables
+      - Validate all database operations have error handling
+      - Ensure parameterized queries (no SQL injection)
+
+  - name: wa-monitor-specialist
+    type: module-maintainer
+    description: Expert in WA Monitor module (isolated architecture specialist)
+    mcp_servers:
+      - memory
+      - sequential-thinking
+    validation:
+      dgts:
+        threshold: 0.35
+        custom_patterns:
+          - id: WA_MONITOR_BREAKS_ISOLATION
+            severity: CRITICAL
+            regex: from\s+['"]@/lib/|from\s+['"]@/services/
+            description: WA Monitor importing from main app (breaks isolation)
+            category: architecture
+            scope: src/modules/wa-monitor/**
+          - id: WA_MONITOR_MISSING_CONTRACT
+            severity: MAJOR
+            regex: /api/wa-monitor
+            description: Check API_CONTRACT.md before modifying WA Monitor API
+            category: api
+      nlnh:
+        confidence_threshold: 0.9
+      quality_gates:
+        - ISOLATION_MAINTAINED
+        - API_CONTRACT_FOLLOWED
+        - SAFE_RESTART_USED
+    responsibilities:
+      - Maintain zero dependencies on main app (@/lib/*, @/services/*)
+      - Verify changes against API_CONTRACT.md
+      - Read ISOLATION_GUIDE.md before modifications
+      - Remind to use /opt/wa-monitor/prod/restart-monitor.sh (not systemctl)
+      - Validate qa_photo_reviews table operations
+      - Check TROUBLESHOOTING.md for common issues
+
+  - name: api-route-validator
+    type: api-standards-enforcer
+    description: Ensures API routes follow FibreFlow conventions (apiResponse helper, flat routes)
+    mcp_servers:
+      - context7
+      - memory
+    validation:
+      dgts:
+        threshold: 0.3
+        custom_patterns:
+          - id: API_NO_RESPONSE_HELPER
+            severity: MAJOR
+            regex: res\.(status|json)\((?!.*apiResponse)
+            description: Not using apiResponse helper
+            category: api_standards
+            scope: pages/api/**
+          - id: API_NESTED_DYNAMIC_ROUTE
+            severity: CRITICAL
+            regex: /api/\[.*?\]/.*?/\[.*?\]
+            description: Nested dynamic routes fail on Vercel (flatten routes)
+            category: deployment
+            scope: pages/api/**
+          - id: API_INCONSISTENT_PARAM_NAME
+            severity: MINOR
+            regex: \[id\]|\[userId\]|\[contractorId\]
+            description: Use consistent parameter names across routes
+            category: api_standards
+      nlnh:
+        confidence_threshold: 0.85
+      quality_gates:
+        - API_RESPONSE_HELPER_USED
+        - FLAT_ROUTES_ONLY
+        - CONSISTENT_PARAM_NAMES
+    responsibilities:
+      - Enforce apiResponse helper usage (src/lib/apiResponse.ts)
+      - Prevent nested dynamic routes (Vercel limitation)
+      - Validate parameter name consistency
+      - Check Arcjet protection applied where needed
+
+  - name: deployment-validator
+    type: deployment-safety-checker
+    description: Validates deployment workflow (dev-first, then prod)
+    mcp_servers:
+      - github
+      - memory
+    validation:
+      dgts:
+        threshold: 0.4
+        custom_patterns:
+          - id: DEPLOY_SKIP_DEV
+            severity: CRITICAL
+            regex: deploy.*prod(?!.*after.*dev)
+            description: Deploying to production without dev testing
+            category: deployment
+          - id: DEPLOY_WRONG_BRANCH
+            severity: CRITICAL
+            regex: git\s+push.*master(?!.*from.*develop)
+            description: Pushing to master without merging from develop
+            category: deployment
+      nlnh:
+        confidence_threshold: 0.95
+      quality_gates:
+        - DEV_TESTED_FIRST
+        - CORRECT_BRANCH_WORKFLOW
+        - PM2_RESTART_VERIFIED
+    responsibilities:
+      - Enforce dev → prod deployment workflow
+      - Verify branch strategy (feature → develop → master)
+      - Check pm2 process restart after deployment
+      - Remind to clear browser cache after frontend changes
+      - Validate Velocity Server SSH access
+
+  - name: clerk-auth-specialist
+    type: authentication-enforcer
+    description: Ensures proper Clerk authentication usage (no Firebase Auth)
+    mcp_servers:
+      - context7
+      - memory
+    validation:
+      dgts:
+        threshold: 0.4
+        custom_patterns:
+          - id: AUTH_FIREBASE_USAGE
+            severity: CRITICAL
+            regex: firebase.*auth
+            description: Using Firebase Auth (deprecated - use Clerk)
+            category: authentication
+          - id: AUTH_MISSING_CLERK_CHECK
+            severity: MAJOR
+            regex: export\s+default\s+function.*?\{(?!.*auth\(\))
+            description: Missing Clerk auth check in protected route
+            category: authentication
+            scope: pages/api/**
+      nlnh:
+        confidence_threshold: 0.9
+      quality_gates:
+        - CLERK_ONLY
+        - NO_FIREBASE_AUTH
+        - PROTECTED_ROUTES_VALIDATED
+    responsibilities:
+      - Enforce Clerk authentication patterns
+      - Prevent Firebase Auth usage (migration complete)
+      - Validate protected API routes have auth checks
+      - Ensure proper Clerk webhook handling
+
+  # Documentation & Standards Agents
+  - name: documentation-enforcer
+    type: documentation-validator
+    description: Ensures documentation updates after code changes
+    mcp_servers:
+      - memory
+    validation:
+      dgts:
+        threshold: 0.3
+        custom_patterns:
+          - id: DOC_MISSING_PAGE_LOG
+            severity: MINOR
+            regex: pages/.*\.tsx$
+            description: Remember to update docs/page-logs/{page-name}.md
+            category: documentation
+      nlnh:
+        confidence_threshold: 0.8
+      quality_gates:
+        - PAGE_LOGS_UPDATED
+        - README_CURRENT
+        - API_DOCUMENTED
+    responsibilities:
+      - Remind to update docs/page-logs/{page-name}.md after page changes
+      - Validate module README.md files are current
+      - Check API endpoints are documented
+      - Ensure CLAUDE.md reflects current state
+
+# Validation Rules Summary
+validation_summary:
+  critical_checks:
+    - Database endpoint must be ep-dry-night-a9qyh4sj (not ep-damp-credit-a857vku0)
+    - WA Monitor isolation must be maintained (no @/lib/* or @/services/* imports)
+    - API routes must use apiResponse helper
+    - No nested dynamic routes (Vercel limitation)
+    - Use production mode locally (npm run build && PORT=3005 npm start)
+    - Deploy to dev first, then prod
+    - Use Clerk auth only (no Firebase Auth)
+    - WA Monitor restart: use restart-monitor.sh (not systemctl)
+
+  quality_gates:
+    - NO_CONSOLE_LOG
+    - PROPER_ERROR_HANDLING
+    - TYPE_SAFETY
+    - DATABASE_ENDPOINT_VALIDATION
+    - API_RESPONSE_HELPER_USED
+    - ISOLATION_MAINTAINED
+    - DEPLOYMENT_WORKFLOW_FOLLOWED
+
+  pre_commit_checklist:
+    - TypeScript type check passes
+    - ESLint passes
+    - No console.log statements
+    - Database endpoint is correct
+    - API routes use apiResponse helper
+    - WA Monitor isolation maintained (if applicable)
+    - Documentation updated (page logs)
