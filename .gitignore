@@ -109,7 +109,5 @@ tests/e2e/.auth/
 *firebase*adminsdk*.json
 serviceAccountKey.json
 
-# AI/Automation output directories
-.auto-output/
+# AI/Automation output directories (runtime state only)
 runtime-state/
-.playwright-mcp/
