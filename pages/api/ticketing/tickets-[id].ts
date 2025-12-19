@@ -271,7 +271,7 @@ async function handleDeleteTicket(
 
     // Prevent deletion of tickets with approved billing
     if (ticket.billing_status === 'approved') {
-      return apiResponse.badRequest(res, 'Cannot delete tickets with approved billing');
+      return apiResponse.badRequest(res, 'Cannot delete ticket with approved billing');
     }
 
     const { force } = req.query;
@@ -279,7 +279,7 @@ async function handleDeleteTicket(
     if (force === 'true') {
       // Hard delete (admin only)
       if (!isAdmin) {
-        return apiResponse.forbidden(res, 'Only admin can perform hard delete');
+        return apiResponse.forbidden(res, 'Admin access required for hard delete');
       }
       const deleteQuery = `DELETE FROM tickets WHERE id = $1`;
       await sql(deleteQuery, [ticketId]);
@@ -290,9 +290,11 @@ async function handleDeleteTicket(
         UPDATE tickets
         SET deleted = true, deleted_at = NOW(), deleted_by = $2
         WHERE id = $1
+        RETURNING id, deleted, deleted_at, deleted_by
       `;
-      await sql(softDeleteQuery, [ticketId, userId]);
-      return apiResponse.success(res, { deleted: true }, 'Ticket deleted successfully');
+      const deleteResult = await sql(softDeleteQuery, [ticketId, userId]);
+      const deletedTicket = deleteResult[0] || { deleted: true };
+      return apiResponse.success(res, deletedTicket, 'Ticket soft deleted successfully');
     }
   } catch (error) {
     console.error('Delete ticket error:', error);
