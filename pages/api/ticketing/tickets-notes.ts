@@ -11,35 +11,45 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { userId } = getAuth(req);
+  const { userId, sessionClaims } = getAuth(req);
 
   if (!userId) {
     return apiResponse.unauthorized(res);
   }
 
+  const isAdmin = sessionClaims?.metadata?.role === 'admin';
+  const { noteId } = req.query;
+
   if (req.method === 'GET') {
-    return handleGetNotes(req, res, userId);
+    return handleGetNotes(req, res, userId, isAdmin);
   }
 
   if (req.method === 'POST') {
     return handleCreateNote(req, res, userId);
   }
 
-  return apiResponse.methodNotAllowed(res, req.method!, ['GET', 'POST']);
+  if (req.method === 'PATCH') {
+    return handleUpdateNote(req, res, userId, isAdmin, noteId as string);
+  }
+
+  if (req.method === 'DELETE') {
+    return handleDeleteNote(req, res, userId, isAdmin, noteId as string);
+  }
+
+  return apiResponse.methodNotAllowed(res, req.method!, ['GET', 'POST', 'PATCH', 'DELETE']);
 }
 
 async function handleGetNotes(
   req: NextApiRequest,
   res: NextApiResponse,
-  userId: string
+  userId: string,
+  isAdmin: boolean
 ) {
   try {
     const {
       ticket_id,
       note_type,
-      created_by,
-      limit = '50',
-      offset = '0',
+      visibility,
     } = req.query;
 
     if (!ticket_id) {
@@ -56,50 +66,33 @@ async function handleGetNotes(
       paramIndex++;
     }
 
-    if (created_by) {
-      whereConditions.push(`created_by = $${paramIndex}`);
-      params.push(created_by);
+    // Filter internal notes for non-staff
+    if (!isAdmin && visibility !== 'all') {
+      whereConditions.push(`(is_internal = false OR created_by = $${paramIndex})`);
+      params.push(userId);
       paramIndex++;
     }
 
-    const perPage = parseInt(limit as string, 10);
-    const offsetNum = parseInt(offset as string, 10);
+    if (visibility === 'internal') {
+      whereConditions.push('is_internal = true');
+    } else if (visibility === 'public') {
+      whereConditions.push('is_internal = false');
+    }
 
     const whereSQL = whereConditions.join(' AND ');
-
-    const countQuery = `SELECT COUNT(*) as total FROM ticket_notes WHERE ${whereSQL}`;
-    const countResult = await sql.query(countQuery, params);
-    const total = parseInt(countResult.rows[0].total, 10);
-
-    params.push(perPage);
-    const limitParam = paramIndex;
-    paramIndex++;
-
-    params.push(offsetNum);
-    const offsetParam = paramIndex;
 
     const query = `
       SELECT * FROM ticket_notes
       WHERE ${whereSQL}
-      ORDER BY created_at DESC
-      LIMIT $${limitParam}
-      OFFSET $${offsetParam}
+      ORDER BY created_at ASC
     `;
 
-    const result = await sql.query(query, params);
-    const notes = result.rows as TicketNote[];
+    const result = await sql(query, params);
+    const notes = result as TicketNote[];
 
-    const page = Math.floor(offsetNum / perPage) + 1;
-    const totalPages = Math.ceil(total / perPage);
-
-    return apiResponse.success(res, {
-      data: notes,
-      total,
-      page,
-      per_page: perPage,
-      total_pages: totalPages,
-    });
+    return apiResponse.success(res, { notes });
   } catch (error) {
+    console.error('Notes API error:', error);
     return apiResponse.internalError(res, error);
   }
 }
@@ -111,26 +104,28 @@ async function handleCreateNote(
 ) {
   try {
     const input = req.body as CreateTicketNoteInput;
+    // Accept ticket_id from query or body
+    const ticketId = (req.query.ticket_id as string) || input.ticket_id;
 
-    if (!input.ticket_id) {
+    if (!ticketId) {
       return apiResponse.badRequest(res, 'ticket_id is required');
     }
 
-    if (!input.note_text) {
-      return apiResponse.badRequest(res, 'note_text is required');
+    if (!input.content && !input.note_text) {
+      return apiResponse.badRequest(res, 'content is required');
     }
 
-    const checkQuery = `SELECT id FROM tickets WHERE id = $1`;
-    const checkResult = await sql.query(checkQuery, [input.ticket_id]);
+    // Trim whitespace from content
+    const content = (input.content || input.note_text || '').trim();
 
-    if (checkResult.rows.length === 0) {
-      return apiResponse.notFound(res, 'Ticket', input.ticket_id);
+    if (!content) {
+      return apiResponse.badRequest(res, 'content is required');
     }
 
     const insertQuery = `
       INSERT INTO ticket_notes (
         ticket_id,
-        note_text,
+        content,
         note_type,
         created_by,
         is_internal
@@ -138,18 +133,134 @@ async function handleCreateNote(
       RETURNING *
     `;
 
-    const result = await sql.query(insertQuery, [
-      input.ticket_id,
-      input.note_text,
+    const result = await sql(insertQuery, [
+      ticketId,
+      content,
       input.note_type || 'general',
       userId,
       input.is_internal ?? false,
     ]);
 
-    const note = result.rows[0] as TicketNote;
+    const note = result[0] as TicketNote;
+
+    // Update ticket's updated_at timestamp
+    await sql(`UPDATE tickets SET updated_at = NOW() WHERE id = $1`, [ticketId]);
 
     return apiResponse.success(res, note, 'Note created successfully', 201);
   } catch (error) {
+    console.error('Notes API error:', error);
+    return apiResponse.internalError(res, error);
+  }
+}
+
+async function handleUpdateNote(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  userId: string,
+  isAdmin: boolean,
+  noteId: string
+) {
+  try {
+    if (!noteId) {
+      return apiResponse.badRequest(res, 'noteId is required');
+    }
+
+    // Check if note exists and get ownership
+    const checkQuery = `SELECT id, created_by FROM ticket_notes WHERE id = $1`;
+    const checkResult = await sql(checkQuery, [noteId]);
+
+    if (checkResult.length === 0) {
+      return apiResponse.notFound(res, 'Note', noteId);
+    }
+
+    const note = checkResult[0] as { id: string; created_by: string };
+
+    // Only author or admin can edit
+    if (note.created_by !== userId && !isAdmin) {
+      return apiResponse.forbidden(res, 'Only the author or admin can edit this note');
+    }
+
+    const { content, is_internal } = req.body;
+
+    const updateFields: string[] = ['updated_at = NOW()'];
+    const params: unknown[] = [];
+    let paramIndex = 1;
+
+    if (content !== undefined) {
+      updateFields.push(`content = $${paramIndex}`);
+      params.push(content.trim());
+      paramIndex++;
+    }
+
+    if (is_internal !== undefined) {
+      updateFields.push(`is_internal = $${paramIndex}`);
+      params.push(is_internal);
+      paramIndex++;
+    }
+
+    params.push(noteId);
+
+    const updateQuery = `
+      UPDATE ticket_notes
+      SET ${updateFields.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `;
+
+    const result = await sql(updateQuery, params);
+    const updatedNote = result[0] as TicketNote;
+
+    return apiResponse.success(res, updatedNote, 'Note updated successfully');
+  } catch (error) {
+    console.error('Notes API error:', error);
+    return apiResponse.internalError(res, error);
+  }
+}
+
+async function handleDeleteNote(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  userId: string,
+  isAdmin: boolean,
+  noteId: string
+) {
+  try {
+    if (!noteId) {
+      return apiResponse.badRequest(res, 'noteId is required');
+    }
+
+    // Check if note exists and get ownership
+    const checkQuery = `SELECT id, created_by FROM ticket_notes WHERE id = $1`;
+    const checkResult = await sql(checkQuery, [noteId]);
+
+    if (checkResult.length === 0) {
+      return apiResponse.notFound(res, 'Note', noteId);
+    }
+
+    const note = checkResult[0] as { id: string; created_by: string };
+
+    // Only author or admin can delete
+    if (note.created_by !== userId && !isAdmin) {
+      return apiResponse.forbidden(res, 'Only the author or admin can delete this note');
+    }
+
+    const { force } = req.query;
+
+    if (force === 'true') {
+      // Hard delete
+      await sql(`DELETE FROM ticket_notes WHERE id = $1`, [noteId]);
+    } else {
+      // Soft delete
+      await sql(`
+        UPDATE ticket_notes
+        SET deleted = true, deleted_at = NOW(), deleted_by = $1
+        WHERE id = $2
+      `, [userId, noteId]);
+    }
+
+    return apiResponse.success(res, null, 'Note deleted successfully');
+  } catch (error) {
+    console.error('Notes API error:', error);
     return apiResponse.internalError(res, error);
   }
 }

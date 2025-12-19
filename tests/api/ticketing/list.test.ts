@@ -35,6 +35,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
     it('should accept authenticated requests', async () => {
       (getAuth as any).mockReturnValueOnce({ userId: 'user_123' });
 
+      mockSql.mockResolvedValueOnce([{ total: '0' }]); // Count
       mockSql.mockResolvedValueOnce([]); // Empty list
 
       const { req, res } = createMocks({
@@ -58,7 +59,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         title: `Ticket ${i}`,
       }));
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -68,8 +69,8 @@ describe('GET /api/ticketing (List Tickets)', () => {
 
       expect(res._getStatusCode()).toBe(200);
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets.length).toBe(20);
-      expect(data.pagination).toMatchObject({
+      expect(data.data.length).toBe(20);
+      expect({ page: data.page, per_page: data.per_page }).toMatchObject({
         page: 1,
         per_page: 20,
       });
@@ -80,7 +81,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         id: `TICK-${i}`,
       }));
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -90,8 +91,8 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets.length).toBe(50);
-      expect(data.pagination.per_page).toBe(50);
+      expect(data.data.length).toBe(50);
+      expect(data.per_page).toBe(50);
     });
 
     it('should navigate to specific page', async () => {
@@ -99,7 +100,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         id: `TICK-${i + 20}`, // Page 2 results
       }));
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -109,7 +110,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.pagination.page).toBe(2);
+      expect(data.page).toBe(2);
     });
 
     it('should limit maximum page size to 100', async () => {
@@ -117,7 +118,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         id: `TICK-${i}`,
       }));
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -127,7 +128,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.pagination.per_page).toBeLessThanOrEqual(100);
+      expect(data.per_page).toBeLessThanOrEqual(100);
     });
   });
 
@@ -142,7 +143,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-002', status: 'open' },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -152,7 +153,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets.every((t: any) => t.status === 'open')).toBe(true);
+      expect(data.data.every((t: any) => t.status === 'open')).toBe(true);
     });
 
     it('should filter by priority', async () => {
@@ -161,7 +162,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-002', priority: 'critical' },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -171,7 +172,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets.every((t: any) => t.priority === 'critical')).toBe(true);
+      expect(data.data.every((t: any) => t.priority === 'critical')).toBe(true);
     });
 
     it('should filter by assigned user', async () => {
@@ -179,7 +180,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-001', assigned_to: 'user_456' },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -189,7 +190,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets[0].assigned_to).toBe('user_456');
+      expect(data.data[0].assigned_to).toBe('user_456');
     });
 
     it('should filter by project', async () => {
@@ -198,7 +199,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-002', project_id: 'proj_lawley' },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -208,7 +209,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets.every((t: any) => t.project_id === 'proj_lawley')).toBe(true);
+      expect(data.data.every((t: any) => t.project_id === 'proj_lawley')).toBe(true);
     });
 
     it('should filter by SLA breach status', async () => {
@@ -216,7 +217,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-001', is_sla_breached: true },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -226,7 +227,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets[0].is_sla_breached).toBe(true);
+      expect(data.data[0].is_sla_breached).toBe(true);
     });
 
     it('should combine multiple filters', async () => {
@@ -239,7 +240,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -253,7 +254,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets[0]).toMatchObject({
+      expect(data.data[0]).toMatchObject({
         status: 'open',
         priority: 'high',
         project_id: 'proj_lawley',
@@ -273,7 +274,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-001', created_at: '2025-01-15T10:00:00Z' },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -282,7 +283,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets[0].id).toBe('TICK-003'); // Most recent first
+      expect(data.data[0].id).toBe('TICK-003'); // Most recent first
     });
 
     it('should sort by priority', async () => {
@@ -292,7 +293,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-003', priority: 'medium' },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -302,7 +303,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets[0].priority).toBe('critical');
+      expect(data.data[0].priority).toBe('critical');
     });
 
     it('should sort ascending or descending', async () => {
@@ -311,7 +312,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-002', created_at: '2025-01-15T11:00:00Z' },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -321,7 +322,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets[0].id).toBe('TICK-001'); // Oldest first
+      expect(data.data[0].id).toBe('TICK-001'); // Oldest first
     });
   });
 
@@ -335,7 +336,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-123', title: 'Ticket 123' },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -345,7 +346,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets[0].id).toBe('TICK-123');
+      expect(data.data[0].id).toBe('TICK-123');
     });
 
     it('should search in title', async () => {
@@ -353,7 +354,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-001', title: 'Network connectivity issue' },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -363,7 +364,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets[0].title).toContain('connectivity');
+      expect(data.data[0].title).toContain('connectivity');
     });
 
     it('should search in description', async () => {
@@ -375,7 +376,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -385,7 +386,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets[0].description).toContain('installation');
+      expect(data.data[0].description).toContain('installation');
     });
 
     it('should be case-insensitive', async () => {
@@ -393,7 +394,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         { id: 'TICK-001', title: 'Network Issue' },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -403,7 +404,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets.length).toBeGreaterThan(0);
+      expect(data.data.length).toBeGreaterThan(0);
     });
   });
 
@@ -428,7 +429,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         },
       ];
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -437,7 +438,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets[0]).toMatchObject({
+      expect(data.data[0]).toMatchObject({
         id: expect.any(String),
         title: expect.any(String),
         description: expect.any(String),
@@ -447,7 +448,8 @@ describe('GET /api/ticketing (List Tickets)', () => {
     });
 
     it('should include pagination metadata', async () => {
-      mockSql.mockResolvedValueOnce([]);
+      mockSql.mockResolvedValueOnce([{ total: '0' }]); // Count
+      mockSql.mockResolvedValueOnce([]); // Tickets
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -456,7 +458,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.pagination).toMatchObject({
+      expect(data).toMatchObject({
         page: expect.any(Number),
         per_page: expect.any(Number),
         total: expect.any(Number),
@@ -465,7 +467,8 @@ describe('GET /api/ticketing (List Tickets)', () => {
     });
 
     it('should return empty array when no tickets match', async () => {
-      mockSql.mockResolvedValueOnce([]);
+      mockSql.mockResolvedValueOnce([{ total: '0' }]); // Count
+      mockSql.mockResolvedValueOnce([]); // Tickets
 
       const { req, res } = createMocks({
         method: 'GET',
@@ -475,7 +478,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
       await handler(req, res);
 
       const data = JSON.parse(res._getData()).data;
-      expect(data.tickets).toEqual([]);
+      expect(data.data).toEqual([]);
     });
   });
 
@@ -489,7 +492,7 @@ describe('GET /api/ticketing (List Tickets)', () => {
         id: `TICK-${i}`,
       }));
 
-      mockSql.mockResolvedValueOnce(mockTickets);
+      mockSql.mockResolvedValueOnce([{ total: String(mockTickets.length) }]); mockSql.mockResolvedValueOnce(mockTickets);
 
       const startTime = Date.now();
 

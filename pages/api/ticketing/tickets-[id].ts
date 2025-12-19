@@ -11,12 +11,13 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { userId } = getAuth(req);
+  const { userId, sessionClaims } = getAuth(req);
 
   if (!userId) {
     return apiResponse.unauthorized(res);
   }
 
+  const isAdmin = sessionClaims?.metadata?.role === 'admin';
   const { id } = req.query;
 
   if (!id || typeof id !== 'string') {
@@ -32,7 +33,7 @@ export default async function handler(
   }
 
   if (req.method === 'DELETE') {
-    return handleDeleteTicket(req, res, id);
+    return handleDeleteTicket(req, res, id, userId, isAdmin);
   }
 
   return apiResponse.methodNotAllowed(res, req.method!, ['GET', 'PATCH', 'DELETE']);
@@ -66,14 +67,23 @@ async function handleUpdateTicket(
   userId: string
 ) {
   try {
-    const checkQuery = `SELECT id FROM tickets WHERE id = $1`;
-    const checkResult = await sql(checkQuery, [ticketId]);
+    const input = req.body as UpdateTicketInput;
 
-    if (checkResult.length === 0) {
-      return apiResponse.notFound(res, 'Ticket', ticketId);
+    // Validate status if provided
+    if (input.status !== undefined) {
+      const validStatuses = ['open', 'in_progress', 'pending', 'resolved', 'closed'];
+      if (!validStatuses.includes(input.status)) {
+        return apiResponse.badRequest(res, `Invalid status. Valid values: ${validStatuses.join(', ')}`);
+      }
     }
 
-    const input = req.body as UpdateTicketInput;
+    // Validate priority if provided
+    if (input.priority !== undefined) {
+      const validPriorities = ['low', 'medium', 'high', 'critical'];
+      if (!validPriorities.includes(input.priority)) {
+        return apiResponse.badRequest(res, `Invalid priority. Valid values: ${validPriorities.join(', ')}`);
+      }
+    }
 
     const updateFields: string[] = [];
     const params: unknown[] = [];
@@ -169,6 +179,37 @@ async function handleUpdateTicket(
       paramIndex++;
     }
 
+    // Billing fields
+    if ((input as any).billable_type !== undefined) {
+      updateFields.push(`billable_type = $${paramIndex}`);
+      params.push((input as any).billable_type);
+      paramIndex++;
+    }
+
+    if ((input as any).estimated_hours !== undefined) {
+      updateFields.push(`estimated_hours = $${paramIndex}`);
+      params.push((input as any).estimated_hours);
+      paramIndex++;
+    }
+
+    if ((input as any).actual_hours !== undefined) {
+      updateFields.push(`actual_hours = $${paramIndex}`);
+      params.push((input as any).actual_hours);
+      paramIndex++;
+    }
+
+    if ((input as any).hourly_rate !== undefined) {
+      updateFields.push(`hourly_rate = $${paramIndex}`);
+      params.push((input as any).hourly_rate);
+      paramIndex++;
+    }
+
+    if ((input as any).metadata !== undefined) {
+      updateFields.push(`metadata = $${paramIndex}`);
+      params.push(JSON.stringify((input as any).metadata));
+      paramIndex++;
+    }
+
     if (updateFields.length === 0) {
       return apiResponse.badRequest(res, 'No fields to update');
     }
@@ -186,10 +227,16 @@ async function handleUpdateTicket(
     `;
 
     const result = await sql(updateQuery, params);
+
+    if (result.length === 0) {
+      return apiResponse.notFound(res, 'Ticket', ticketId);
+    }
+
     const ticket = result[0] as Ticket;
 
     return apiResponse.success(res, ticket, 'Ticket updated successfully');
   } catch (error) {
+    console.error('Update ticket error:', error);
     return apiResponse.internalError(res, error);
   }
 }
@@ -197,21 +244,58 @@ async function handleUpdateTicket(
 async function handleDeleteTicket(
   req: NextApiRequest,
   res: NextApiResponse,
-  ticketId: string
+  ticketId: string,
+  userId: string,
+  isAdmin: boolean
 ) {
   try {
-    const checkQuery = `SELECT id FROM tickets WHERE id = $1`;
+    // Check if ticket exists
+    const checkQuery = `SELECT id, created_by, status, billing_status FROM tickets WHERE id = $1`;
     const checkResult = await sql(checkQuery, [ticketId]);
 
     if (checkResult.length === 0) {
       return apiResponse.notFound(res, 'Ticket', ticketId);
     }
 
-    const deleteQuery = `DELETE FROM tickets WHERE id = $1`;
-    await sql(deleteQuery, [ticketId]);
+    const ticket = checkResult[0] as { id: string; created_by?: string; status?: string; billing_status?: string };
 
-    return apiResponse.success(res, null, 'Ticket deleted successfully');
+    // Authorization: Only creator or admin can delete (skip if created_by not set)
+    if (ticket.created_by && ticket.created_by !== userId && !isAdmin) {
+      return apiResponse.forbidden(res, 'Only the ticket creator or admin can delete this ticket');
+    }
+
+    // Prevent deletion of closed tickets
+    if (ticket.status === 'closed') {
+      return apiResponse.badRequest(res, 'Cannot delete closed tickets');
+    }
+
+    // Prevent deletion of tickets with approved billing
+    if (ticket.billing_status === 'approved') {
+      return apiResponse.badRequest(res, 'Cannot delete tickets with approved billing');
+    }
+
+    const { force } = req.query;
+
+    if (force === 'true') {
+      // Hard delete (admin only)
+      if (!isAdmin) {
+        return apiResponse.forbidden(res, 'Only admin can perform hard delete');
+      }
+      const deleteQuery = `DELETE FROM tickets WHERE id = $1`;
+      await sql(deleteQuery, [ticketId]);
+      return apiResponse.success(res, null, 'Ticket permanently deleted');
+    } else {
+      // Soft delete
+      const softDeleteQuery = `
+        UPDATE tickets
+        SET deleted = true, deleted_at = NOW(), deleted_by = $2
+        WHERE id = $1
+      `;
+      await sql(softDeleteQuery, [ticketId, userId]);
+      return apiResponse.success(res, { deleted: true }, 'Ticket deleted successfully');
+    }
   } catch (error) {
+    console.error('Delete ticket error:', error);
     return apiResponse.internalError(res, error);
   }
 }

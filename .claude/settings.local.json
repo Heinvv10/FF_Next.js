@@ -39,7 +39,8 @@
       "Bash(find:*)",
       "Bash(npm install:*)",
       "Bash(node -e:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(npx vitest:*)"
     ],
     "deny": [],
     "ask": [],

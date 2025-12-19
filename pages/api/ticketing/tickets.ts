@@ -55,11 +55,19 @@ async function handleGetTickets(
       tags,
       search,
       page = '1',
-      per_page = '50',
+      per_page = '20',
     } = req.query as Record<string, string>;
 
+    // Validate pagination parameters
     const pageNum = parseInt(page, 10);
-    const perPage = parseInt(per_page, 10);
+    const requestedPerPage = parseInt(per_page, 10);
+
+    if (isNaN(pageNum) || isNaN(requestedPerPage) || pageNum < 1 || requestedPerPage < 1) {
+      return apiResponse.badRequest(res, 'Invalid pagination parameters');
+    }
+
+    // Cap per_page at 100
+    const perPage = Math.min(requestedPerPage, 100);
     const offset = (pageNum - 1) * perPage;
 
     const filters: TicketFilters = {};

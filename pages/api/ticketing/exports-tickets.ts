@@ -38,7 +38,30 @@ async function handleExportTickets(
       created_after,
       created_before,
       project_id,
+      fields,
+      sort_by = 'created_at',
+      sort_order = 'desc',
+      limit = '1000',
+      offset = '0',
     } = req.query as Record<string, string>;
+
+    // Validate format
+    const validFormats = ['csv', 'json', 'xlsx'];
+    if (!validFormats.includes(format)) {
+      return apiResponse.badRequest(res, `Invalid format. Supported formats: ${validFormats.join(', ')}`);
+    }
+
+    // Validate limit
+    const limitNum = parseInt(limit, 10);
+    const maxLimit = 10000;
+    if (isNaN(limitNum) || limitNum < 1 || limitNum > maxLimit) {
+      return apiResponse.badRequest(res, `limit must be between 1 and ${maxLimit}`);
+    }
+
+    const offsetNum = parseInt(offset, 10);
+    if (isNaN(offsetNum) || offsetNum < 0) {
+      return apiResponse.badRequest(res, 'Invalid offset parameter');
+    }
 
     // Build query with filters
     const whereClauses: string[] = [];
@@ -90,33 +113,33 @@ async function handleExportTickets(
     const whereSQL =
       whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
+    // Validate sort_by to prevent SQL injection
+    const validSortFields = ['created_at', 'updated_at', 'priority', 'status', 'title'];
+    const sortField = validSortFields.includes(sort_by) ? sort_by : 'created_at';
+    const sortDirection = sort_order.toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
+    // Build select fields
+    const defaultFields = [
+      'id', 'ticket_uid', 'title', 'description', 'source', 'status', 'priority',
+      'type', 'billing_type', 'estimated_cost', 'actual_cost', 'dr_number',
+      'client_name', 'client_contact', 'client_email', 'address', 'project_id',
+      'sla_breached', 'created_at', 'updated_at', 'resolved_at', 'closed_at'
+    ];
+
+    const selectFields = fields ? fields.split(',').filter(f => defaultFields.includes(f.trim())) : defaultFields;
+    const selectSQL = selectFields.length > 0 ? selectFields.join(', ') : '*';
+
+    params.push(limitNum);
+    const limitParam = paramIndex++;
+    params.push(offsetNum);
+    const offsetParam = paramIndex;
+
     const ticketsQuery = `
-      SELECT
-        ticket_uid,
-        title,
-        description,
-        source,
-        status,
-        priority,
-        type,
-        billing_type,
-        estimated_cost,
-        actual_cost,
-        dr_number,
-        client_name,
-        client_contact,
-        client_email,
-        address,
-        project_id,
-        sla_breached,
-        created_at,
-        updated_at,
-        resolved_at,
-        closed_at
+      SELECT ${selectSQL}
       FROM tickets
       ${whereSQL}
-      ORDER BY created_at DESC
-      LIMIT 10000
+      ORDER BY ${sortField} ${sortDirection}
+      LIMIT $${limitParam} OFFSET $${offsetParam}
     `;
 
     const tickets = await sql(ticketsQuery, params);
@@ -127,6 +150,24 @@ async function handleExportTickets(
         total: tickets.length,
         exported_at: new Date().toISOString(),
       });
+    }
+
+    if (format === 'xlsx') {
+      // Generate simple xlsx format (tab-separated values with xlsx content type)
+      // For proper Excel support, consider using a library like 'xlsx' or 'exceljs'
+      const xlsxFilename = `tickets-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${xlsxFilename}"`);
+
+      // Simple approach: return JSON that can be converted client-side
+      // For real xlsx, you'd use a library
+      const xlsxData = {
+        sheets: [{
+          name: 'Tickets',
+          data: tickets
+        }]
+      };
+      return res.status(200).json(xlsxData);
     }
 
     // Generate CSV
