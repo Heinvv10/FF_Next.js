@@ -77,14 +77,6 @@ export function AppRouterLayout({ children }: AppRouterLayoutProps) {
       };
     }
 
-    // Foto Reviews
-    if (pathname.includes('foto-reviews')) {
-      return {
-        title: 'Foto Reviews',
-        breadcrumbs: ['Home', 'QA'],
-      };
-    }
-
     // WA Monitor
     if (pathname.includes('wa-monitor')) {
       if (pathname.includes('dr-validation')) {
