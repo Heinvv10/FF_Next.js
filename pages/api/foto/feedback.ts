@@ -41,8 +41,15 @@ const PROJECT_GROUPS: Record<string, { jid: string; name: string }> = {
  * Falls back to Bridge API (8080) without @mention if no phone number
  */
 async function sendWhatsAppFeedback(drNumber: string, message: string, project?: string): Promise<void> {
-  // Get project group JID
-  const projectKey = project || 'Velo Test'; // Default to Velo Test for testing
+  // Get project group JID - default to Velo Test if project is unknown/undefined
+  let projectKey = project || 'Velo Test';
+
+  // If project is "Unknown" or not in mapping, use Velo Test as fallback
+  if (projectKey === 'Unknown' || !PROJECT_GROUPS[projectKey]) {
+    console.log(`[WhatsApp] Project "${projectKey}" not mapped, using Velo Test as default`);
+    projectKey = 'Velo Test';
+  }
+
   const groupConfig = PROJECT_GROUPS[projectKey];
 
   if (!groupConfig) {
