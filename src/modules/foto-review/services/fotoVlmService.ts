@@ -413,9 +413,10 @@ export async function executeVlmEvaluation(
     log.info('VlmService', `Fetched ${photoUrls.length} photos for ${drNumber}`);
 
     // Step 2: Batch photos to stay within context limits
-    // Qwen3-VL-8B-Instruct has 8192 token limit, but images + prompt = ~3300 tokens per photo
-    // Process 2 photos at a time to stay under 8192 (2 * 3300 + prompt overhead ~= 7500)
-    const BATCH_SIZE = 2;
+    // Qwen3-VL-8B-Instruct has 16K token limit, images + prompt = ~2500 tokens per photo
+    // Process 6 photos at a time to stay under 16384 (6 * 2500 + prompt ~= 15500)
+    // 32 photos ÷ 6 = ~6 batches (much faster than previous 11-16 batches)
+    const BATCH_SIZE = 6;
     const batches: string[][] = [];
 
     for (let i = 0; i < photoUrls.length; i += BATCH_SIZE) {

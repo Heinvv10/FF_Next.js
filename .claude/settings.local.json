@@ -22,7 +22,8 @@
       "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"pm2 list\")",
       "Bash(ls:*)",
       "Bash(rm:*)",
-      "WebFetch(domain:vf.fibreflow.app)"
+      "WebFetch(domain:vf.fibreflow.app)",
+      "Bash(scp:*)"
     ],
     "deny": [],
     "ask": [],
