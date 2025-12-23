@@ -104,7 +104,7 @@ async function sendWhatsAppMessage(
         message: message,
       };
 
-      const response = await fetch('http://localhost:8081/send-message', {
+      const response = await fetch(`${WHATSAPP_SENDER_URL}/send-message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ async function sendWhatsAppMessage(
         message: message,
       };
 
-      const response = await fetch('http://localhost:8080/api/send', {
+      const response = await fetch(`${WHATSAPP_BRIDGE_URL}/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -308,7 +308,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(500).json({
         success: false,
         error: {
-          message: 'Failed to send WhatsApp message',
+          message: `Failed to send WhatsApp message: ${whatsappResult.message}`,
           details: whatsappResult.message
         }
       });

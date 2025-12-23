@@ -43,7 +43,7 @@ func main() {
 
 	// Connect to sender's own WhatsApp session (separate from bridge)
 	dbLog := waLog.Stdout("Database", "WARN", true)
-	storeContainer, err := sqlstore.New(context.Background(), "sqlite3", "file:/opt/whatsapp-sender/store/whatsapp.db?_foreign_keys=on", dbLog)
+	storeContainer, err := sqlstore.New(context.Background(), "sqlite3", "file:/home/louis/whatsapp-sender/store/whatsapp.db?_foreign_keys=on", dbLog)
 	if err != nil {
 		logger.Errorf("Failed to connect to store: %v", err)
 		os.Exit(1)
