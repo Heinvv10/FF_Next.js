@@ -325,11 +325,94 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 // ==================== HELPER FUNCTIONS ====================
 
 /**
- * Extract data for a specific project from Janice's Excel format
- * Format: Row 0 = project names, Row 1 = headers, Row 2+ = data
- * Projects are in columns (Lawley in A-D, Mamelodi in F-I, etc.)
+ * Extract data for a specific project from Excel file
+ * Supports two formats:
+ * 1. Simple Format: Row 0 = headers ("Date", "DR nr", "Time"), Row 1+ = data
+ * 2. Multi-Project Format: Row 0 = project names, Row 1 = headers, Row 2+ = data
  */
 function extractProjectDataFromExcel(rawData: any[][], projectName: string): any[] {
+  if (rawData.length < 2) return []; // Need at least headers and one data row
+
+  // Detect format by checking if row 0 contains headers or project names
+  const firstRow = rawData[0];
+  const isSimpleFormat = isHeaderRow(firstRow);
+
+  if (isSimpleFormat) {
+    // Simple Format: Row 0 = headers, Row 1+ = data
+    return extractSimpleFormat(rawData);
+  } else {
+    // Multi-Project Format: Row 0 = project names, Row 1 = headers, Row 2+ = data
+    return extractMultiProjectFormat(rawData, projectName);
+  }
+}
+
+/**
+ * Check if a row contains headers (Date, DR nr, Time) instead of project names
+ */
+function isHeaderRow(row: any[]): boolean {
+  if (!row || row.length < 2) return false;
+
+  let hasDate = false;
+  let hasDR = false;
+
+  for (const cell of row) {
+    if (cell && typeof cell === 'string') {
+      const lower = cell.toLowerCase().trim();
+      if (lower === 'date') hasDate = true;
+      if (lower.includes('dr') && lower.includes('nr')) hasDR = true;
+    }
+  }
+
+  return hasDate && hasDR;
+}
+
+/**
+ * Extract data from simple format (headers in row 0, data in row 1+)
+ */
+function extractSimpleFormat(rawData: any[][]): any[] {
+  const headerRow = rawData[0];
+
+  // Find column indices
+  let dateCol = -1, drCol = -1, timeCol = -1;
+  for (let i = 0; i < headerRow.length; i++) {
+    const header = headerRow[i];
+    if (header && typeof header === 'string') {
+      const lower = header.toLowerCase().trim();
+      if (lower === 'date' && dateCol === -1) dateCol = i;
+      else if (lower.includes('dr') && lower.includes('nr') && drCol === -1) drCol = i;
+      else if (lower === 'time' && timeCol === -1) timeCol = i;
+    }
+  }
+
+  if (dateCol === -1 || drCol === -1) {
+    return []; // Required columns not found
+  }
+
+  // Extract data rows (start from row 1)
+  const results: any[] = [];
+  for (let i = 1; i < rawData.length; i++) {
+    const row = rawData[i];
+    const dateValue = row[dateCol];
+    const drValue = row[drCol];
+    const timeValue = timeCol !== -1 ? row[timeCol] : null;
+
+    // Only include rows with valid DR number
+    if (drValue) {
+      results.push({
+        date: dateValue,
+        dropNumber: drValue,
+        time: timeValue,
+      });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Extract data from multi-project format (project names in row 0, headers in row 1, data in row 2+)
+ */
+function extractMultiProjectFormat(rawData: any[][], projectName: string): any[] {
   if (rawData.length < 3) return []; // Need at least: row 0 (projects), row 1 (headers), row 2 (data)
 
   const projectRow = rawData[0]; // Row with project names
@@ -343,7 +426,7 @@ function extractProjectDataFromExcel(rawData: any[][], projectName: string): any
       const normalized = cellValue.trim();
       // Match project name (case-insensitive, partial match)
       if (normalized.toLowerCase().includes(projectName.toLowerCase()) ||
-          projectName.toLowerCase().includes(normalized.toLowerCase())) {
+        projectName.toLowerCase().includes(normalized.toLowerCase())) {
         projectColumnStart = i;
         break;
       }

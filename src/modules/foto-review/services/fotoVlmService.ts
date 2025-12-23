@@ -413,8 +413,9 @@ export async function executeVlmEvaluation(
     log.info('VlmService', `Fetched ${photoUrls.length} photos for ${drNumber}`);
 
     // Step 2: Batch photos to stay within context limits
-    // MiniCPM-V-2_6 has 4096 token limit, so process 4-5 photos at a time
-    const BATCH_SIZE = 5;
+    // Qwen3-VL-8B-Instruct has 8192 token limit, but images + prompt = ~3300 tokens per photo
+    // Process 2 photos at a time to stay under 8192 (2 * 3300 + prompt overhead ~= 7500)
+    const BATCH_SIZE = 2;
     const batches: string[][] = [];
 
     for (let i = 0; i < photoUrls.length; i += BATCH_SIZE) {
