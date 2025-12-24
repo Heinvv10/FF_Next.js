@@ -8,7 +8,7 @@ import type { ReactElement } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
-import { Camera, AlertTriangle } from 'lucide-react';
+import { Camera, AlertTriangle, CheckCircle2, Clock, Send } from 'lucide-react';
 import {
   PhotoGallery,
   EvaluationPanel,
@@ -19,6 +19,7 @@ import {
 import { usePhotos } from '@/modules/foto-review/hooks/usePhotos';
 import { useFotoEvaluation } from '@/modules/foto-review/hooks/useFotoEvaluation';
 import type { DropRecord } from '@/modules/foto-review/types';
+import { formatRelativeTime, isWithin24Hours } from '@/modules/foto-review/utils/timeUtils';
 
 function FotoReviewPage() {
   const router = useRouter();
@@ -259,33 +260,68 @@ function FotoReviewPage() {
                     role="navigation"
                     aria-label="Drop record selection"
                   >
-                    {filteredPhotos.map((dr) => (
-                      <button
-                        key={dr.dr_number}
-                        onClick={() => handleSelectDR(dr)}
-                        className={`w-full text-left p-4 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 ${
-                          selectedDR?.dr_number === dr.dr_number
-                            ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600 dark:border-blue-400 shadow-sm'
-                            : 'hover:border-l-4 hover:border-gray-300 dark:hover:border-gray-600'
-                        }`}
-                        aria-label={`Select drop record ${dr.dr_number}, ${dr.project}, ${dr.photos.length} photos${dr.evaluated ? ', already evaluated' : ''}`}
-                        aria-current={selectedDR?.dr_number === dr.dr_number ? 'true' : undefined}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-gray-900 dark:text-gray-100">{dr.dr_number}</span>
-                          {dr.evaluated && (
-                            <span
-                              className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-full font-medium"
-                              aria-label="Status: Evaluated"
-                            >
-                              Evaluated
+                    {filteredPhotos.map((dr) => {
+                      const isNew = dr.evaluated && isWithin24Hours(dr.evaluation_date);
+                      const relativeTime = formatRelativeTime(dr.evaluation_date);
+
+                      return (
+                        <button
+                          key={dr.dr_number}
+                          onClick={() => handleSelectDR(dr)}
+                          className={`w-full text-left p-4 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 ${selectedDR?.dr_number === dr.dr_number
+                              ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600 dark:border-blue-400 shadow-sm'
+                              : dr.evaluated
+                                ? 'bg-green-50/30 dark:bg-green-900/10 hover:border-l-4 hover:border-green-300 dark:hover:border-green-600'
+                                : 'hover:border-l-4 hover:border-gray-300 dark:hover:border-gray-600'
+                            }`}
+                          aria-label={`Select drop record ${dr.dr_number}, ${dr.project}, ${dr.photos.length} photos${dr.evaluated ? `, evaluated ${relativeTime}` : ', pending evaluation'}${dr.feedback_sent ? ', feedback sent' : ''}`}
+                          aria-current={selectedDR?.dr_number === dr.dr_number ? 'true' : undefined}
+                        >
+                          {/* Header Row */}
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">{dr.dr_number}</span>
+                            {dr.evaluated ? (
+                              <div className="flex items-center gap-1.5">
+                                {isNew && (
+                                  <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full font-medium animate-pulse">
+                                    NEW
+                                  </span>
+                                )}
+                                <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              </div>
+                            ) : (
+                              <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                            )}
+                          </div>
+
+                          {/* Project Name */}
+                          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">{dr.project}</p>
+
+                          {/* Status Row */}
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-500 dark:text-gray-500">
+                              {dr.photos.length} photo{dr.photos.length !== 1 ? 's' : ''}
                             </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1">{dr.project}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-500">{dr.photos.length} photo{dr.photos.length !== 1 ? 's' : ''}</p>
-                      </button>
-                    ))}
+
+                            {dr.evaluated ? (
+                              <div className="flex items-center gap-2">
+                                <span className="text-green-700 dark:text-green-400 font-medium">
+                                  {relativeTime}
+                                </span>
+                                {dr.feedback_sent && (
+                                  <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                                    <Send className="w-3 h-3" />
+                                    <span>Sent</span>
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-500 dark:text-gray-500">Pending</span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </nav>
                 )}
               </div>

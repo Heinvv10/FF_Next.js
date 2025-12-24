@@ -18,7 +18,7 @@ export interface PhotoMetadata {
   /** Human-readable step label */
   stepLabel: string;
   /** Timestamp when photo was taken */
-  timestamp: Date;
+  timestamp: string | Date;
   /** Original filename */
   filename: string;
   /** File size in bytes */
@@ -29,6 +29,11 @@ export interface PhotoMetadata {
     height: number;
   };
 }
+
+/**
+ * Photo type alias for backward compatibility
+ */
+export type Photo = PhotoMetadata;
 
 /**
  * Represents a Drop Record with associated photos
@@ -54,6 +59,12 @@ export interface DropRecord {
   evaluated: boolean;
   /** Last evaluation date if evaluated */
   last_evaluation_date?: Date;
+  /** Evaluation date (ISO string) */
+  evaluation_date?: string;
+  /** Whether feedback has been sent */
+  feedback_sent?: boolean;
+  /** Overall evaluation status */
+  overall_status?: 'PASS' | 'FAIL';
 }
 
 /**

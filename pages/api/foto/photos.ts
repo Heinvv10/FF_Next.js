@@ -6,6 +6,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { DropRecord, Photo } from '@/modules/foto-review/types';
+import { db } from '@/lib/db';
 
 // BOSS VPS API base URL
 const BOSS_API_URL = process.env.BOSS_VPS_API_URL || 'http://72.61.197.178:8001';
@@ -33,7 +34,7 @@ const STEP_LABELS: Record<string, string> = {
 function extractStepLabel(filename: string): string {
   // Remove step number prefix and timestamp suffix
   const match = filename.match(/step\d+_(.+?)_\d{8}/);
-  if (match) {
+  if (match && match[1]) {
     const stepKey = match[1];
     return STEP_LABELS[stepKey] || stepKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
@@ -77,9 +78,30 @@ export default async function handler(
 
     console.log(`[FOTO API] Received ${data.total_drs} DRs with ${data.total_photos} photos from BOSS VPS`);
 
+    // Fetch evaluation data from database
+    const evaluationQuery = `
+      SELECT 
+        dr_number,
+        overall_status,
+        average_score,
+        feedback_sent,
+        evaluation_date,
+        created_at
+      FROM foto_ai_reviews
+      ORDER BY evaluation_date DESC
+    `;
+
+    const evaluationResult = await db.query(evaluationQuery);
+    const evaluationMap = new Map(
+      evaluationResult.rows.map(row => [row.dr_number, row])
+    );
+
+    console.log(`[FOTO API] Found ${evaluationResult.rows.length} evaluations in database`);
+
     // Transform BOSS API response to our DropRecord format
     const dropRecords: DropRecord[] = (data.drs || []).map((dr: any) => {
       const drNumber = dr.dr_number;
+      const evaluation = evaluationMap.get(drNumber);
 
       // Convert BOSS photo format to our Photo format
       const photos: Photo[] = (dr.photos || []).map((photo: any, index: number) => ({
@@ -99,7 +121,10 @@ export default async function handler(
         address: '',
         pole_number: '',
         photos: photos,
-        evaluated: false, // TODO: Check foto_ai_reviews table in future
+        evaluated: !!evaluation,
+        evaluation_date: evaluation?.evaluation_date?.toISOString(),
+        feedback_sent: evaluation?.feedback_sent || false,
+        overall_status: evaluation?.overall_status,
       };
     });
 
@@ -118,7 +143,24 @@ export default async function handler(
       );
     }
 
-    console.log(`[FOTO API] Returning ${filteredRecords.length} DRs after filtering`);
+    // Sort by evaluation date (most recent first), then by DR number
+    filteredRecords.sort((a, b) => {
+      // Evaluated drops first
+      if (a.evaluated && !b.evaluated) return -1;
+      if (!a.evaluated && b.evaluated) return 1;
+
+      // Both evaluated: sort by evaluation date (newest first)
+      if (a.evaluated && b.evaluated) {
+        const dateA = a.evaluation_date ? new Date(a.evaluation_date).getTime() : 0;
+        const dateB = b.evaluation_date ? new Date(b.evaluation_date).getTime() : 0;
+        return dateB - dateA;
+      }
+
+      // Both unevaluated: sort by DR number
+      return a.dr_number.localeCompare(b.dr_number);
+    });
+
+    console.log(`[FOTO API] Returning ${filteredRecords.length} DRs after filtering and sorting`);
 
     return res.status(200).json({
       success: true,
