@@ -97,9 +97,9 @@ export default async function handler(
       ORDER BY evaluation_date DESC
     `;
 
-    const evaluationResult = await db.query(evaluationQuery);
+    const evaluationResult = await pool.query(evaluationQuery);
     const evaluationMap = new Map(
-      evaluationResult.rows.map(row => [row.dr_number, row])
+      evaluationResult.rows.map((row: any) => [row.dr_number, row])
     );
 
     console.log(`[FOTO API] Found ${evaluationResult.rows.length} evaluations in database`);
