@@ -1,7 +1,11 @@
 /**
  * POST /api/foto/evaluate
  * Trigger AI evaluation for a DR
- * Calls Python backend script via child_process and saves to database
+ * 
+ * Hybrid Evaluation Strategy:
+ * 1. Check BOSS API for existing evaluation (fast, auto-triggered)
+ * 2. If force_vlm=true, run VLM re-evaluation
+ * 3. Save results to database
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -15,10 +19,15 @@ import {
   executeVlmEvaluation,
   VlmEvaluationError,
 } from '@/modules/foto-review/services/fotoVlmService';
+import {
+  fetchBossEvaluation,
+  BossEvaluationError,
+} from '@/modules/foto-review/services/fotoBossService';
 import { validateDrNumber } from '@/modules/foto-review/utils/drValidator';
 
 // Feature flags
-const USE_VLM_BACKEND = process.env.USE_VLM_BACKEND !== 'false'; // Default: true (VLM is primary)
+const USE_BOSS_PRIMARY = process.env.USE_BOSS_PRIMARY !== 'false'; // Default: true (BOSS is primary)
+const USE_VLM_BACKEND = process.env.USE_VLM_BACKEND !== 'false'; // Default: true (VLM for re-evaluation)
 const USE_PYTHON_BACKEND = process.env.USE_PYTHON_BACKEND === 'true'; // Fallback option
 
 export default async function handler(
@@ -46,16 +55,47 @@ export default async function handler(
 
     // Use sanitized DR number
     const sanitizedDr = validation.sanitized!;
+    const forceVlm = req.body.force_vlm === true; // Force VLM re-evaluation
 
     let evaluation: EvaluationResult;
     let evaluationMethod = 'mock';
 
-    // Priority: VLM > Python > Mock
-    if (USE_VLM_BACKEND) {
-      console.log('[evaluate API] Using VLM backend for evaluation');
+    // Hybrid Strategy: BOSS (fast) > VLM (re-evaluation) > Python > Mock
+    if (USE_BOSS_PRIMARY && !forceVlm) {
+      console.log('[evaluate API] Checking BOSS API for existing evaluation');
+      try {
+        const bossEval = await fetchBossEvaluation(sanitizedDr);
+
+        if (bossEval) {
+          evaluation = bossEval;
+          evaluationMethod = 'boss';
+          console.log('[evaluate API] Using BOSS evaluation (already completed)');
+        } else {
+          console.log('[evaluate API] No BOSS evaluation found, falling back to VLM');
+          // No BOSS evaluation yet, use VLM
+          if (USE_VLM_BACKEND) {
+            evaluation = await executeVlmEvaluation(sanitizedDr);
+            evaluationMethod = 'vlm-fallback';
+          } else {
+            evaluation = generateMockEvaluation(sanitizedDr);
+            evaluationMethod = 'mock';
+          }
+        }
+      } catch (error) {
+        console.warn('[evaluate API] BOSS fetch failed, falling back to VLM:', error);
+        // BOSS failed, try VLM
+        if (USE_VLM_BACKEND) {
+          evaluation = await executeVlmEvaluation(sanitizedDr);
+          evaluationMethod = 'vlm-fallback';
+        } else {
+          throw error;
+        }
+      }
+    } else if (USE_VLM_BACKEND) {
+      console.log('[evaluate API] Using VLM backend for evaluation (force_vlm or BOSS disabled)');
       try {
         evaluation = await executeVlmEvaluation(sanitizedDr);
-        evaluationMethod = 'vlm';
+        evaluationMethod = forceVlm ? 'vlm-reeval' : 'vlm';
         console.log('[evaluate API] VLM evaluation successful');
       } catch (error) {
         if (error instanceof VlmEvaluationError) {
@@ -119,7 +159,7 @@ export default async function handler(
         throw error;
       }
     } else {
-      console.log('[evaluate API] Using mock evaluation data (both VLM and Python backends disabled)');
+      console.log('[evaluate API] Using mock evaluation data (all backends disabled)');
       evaluation = generateMockEvaluation(sanitizedDr);
     }
 
@@ -133,13 +173,19 @@ export default async function handler(
       data: savedEvaluation,
       method: evaluationMethod,
       message:
-        evaluationMethod === 'vlm'
-          ? 'AI evaluation completed successfully using VLM'
-          : evaluationMethod === 'python'
-          ? 'AI evaluation completed successfully using Python'
-          : evaluationMethod === 'python-fallback'
-          ? 'AI evaluation completed using Python (VLM fallback)'
-          : 'Mock evaluation completed (VLM and Python backends disabled)',
+        evaluationMethod === 'boss'
+          ? 'Using BOSS AI evaluation (auto-generated when photos were fetched)'
+          : evaluationMethod === 'vlm-reeval'
+            ? 'VLM re-evaluation completed successfully'
+            : evaluationMethod === 'vlm'
+              ? 'AI evaluation completed successfully using VLM'
+              : evaluationMethod === 'vlm-fallback'
+                ? 'AI evaluation completed using VLM (BOSS not available)'
+                : evaluationMethod === 'python'
+                  ? 'AI evaluation completed successfully using Python'
+                  : evaluationMethod === 'python-fallback'
+                    ? 'AI evaluation completed using Python (VLM fallback)'
+                    : 'Mock evaluation completed (all backends disabled)',
     });
   } catch (error) {
     console.error('Error evaluating DR:', error);
