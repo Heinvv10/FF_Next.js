@@ -101,7 +101,7 @@ function FotoReviewPage() {
   useEffect(() => {
     if (!router.isReady || !photos.length) return;
 
-    const drNumber = router.query.dr as string;
+    const drNumber = router.query?.dr as string | undefined;
     if (drNumber && !selectedDR) {
       const dr = photos.find((p) => p.dr_number === drNumber);
       if (dr) {
@@ -112,7 +112,7 @@ function FotoReviewPage() {
         }
       }
     }
-  }, [router.isReady, router.query.dr, photos, selectedDR, fetchEvaluation]);
+  }, [router.isReady, router.query?.dr, photos, selectedDR, fetchEvaluation]);
 
   // Update URL when DR is selected
   useEffect(() => {
