@@ -172,41 +172,34 @@ async function fetchDrPhotos(drNumber: string): Promise<string[]> {
 }
 
 /**
- * Build evaluation prompt for VLM
- * Creates structured prompt based on QA steps
+ * Build evaluation prompt for a SINGLE step
+ * VLM will look through photos and find the most relevant one for this step
  */
-function buildEvaluationPrompt(drNumber: string): string {
-  return `You are an expert fiber optic installation quality inspector. Evaluate the installation photos for drop record ${drNumber} according to these ${QA_STEPS.length} quality assurance steps:
+function buildStepEvaluationPrompt(drNumber: string, step: typeof QA_STEPS[0]): string {
+  return `You are an expert fiber optic installation quality inspector evaluating drop record ${drNumber}.
 
-${QA_STEPS.map((step, index) =>
-  `${index + 1}. **${step.step_label}**: ${step.criteria}`
-).join('\n')}
+EVALUATE ONLY THIS ONE STEP:
 
-For each step, provide:
-1. **Pass/Fail status**: Does the photo meet the criteria?
-2. **Score** (0-10): Quality rating for this step
-3. **Comment**: Brief explanation of issues or confirmation of quality
+**Step ${step.step_number}: ${step.step_label}**
+Criteria: ${step.criteria}
+
+INSTRUCTIONS:
+1. Look through ALL the provided photos
+2. Find the photo(s) that best match this step
+3. If you find a relevant photo, evaluate it against the criteria
+4. If NO photo matches this step, return score=0 and comment="NO PHOTO FOUND for ${step.step_label}"
+
+IMPORTANT: Only evaluate THIS ONE step. Ignore other aspects of the installation.
 
 Respond in JSON format:
 {
-  "overall_status": "PASS" or "FAIL",
-  "overall_score": <average score>,
-  "total_steps": ${QA_STEPS.length},
-  "passed_steps": <count>,
-  "step_results": [
-    {
-      "step_number": 1,
-      "step_name": "house_photo",
-      "passed": true/false,
-      "score": <0-10>,
-      "comment": "..."
-    },
-    ...
-  ],
-  "summary": "Overall assessment and recommendations"
-}
-
-Analyze all provided photos and evaluate against each QA step.`;
+  "step_number": ${step.step_number},
+  "step_name": "${step.step_name}",
+  "step_label": "${step.step_label}",
+  "passed": true/false,
+  "score": <0-10>,
+  "comment": "Brief explanation of what you found and why it passed/failed"
+}`;
 }
 
 /**
@@ -234,13 +227,14 @@ async function fetchImageAsBase64(imageUrl: string): Promise<string> {
 }
 
 /**
- * Call VLM API with photos and evaluation prompt
+ * Call VLM API to evaluate a single step with a batch of photos
  * @param drNumber - DR number to evaluate
+ * @param step - QA step to evaluate
  * @param photoUrls - Array of photo URLs from BOSS API
- * @returns VLM evaluation response
+ * @returns VLM evaluation response for this step
  */
-async function callVlmApi(drNumber: string, photoUrls: string[]): Promise<any> {
-  const prompt = buildEvaluationPrompt(drNumber);
+async function callVlmApiForStep(drNumber: string, step: typeof QA_STEPS[0], photoUrls: string[]): Promise<any> {
+  const prompt = buildStepEvaluationPrompt(drNumber, step);
 
   log.info('VlmService', `Fetching and encoding ${photoUrls.length} photos for ${drNumber}...`);
 
@@ -345,9 +339,10 @@ async function callVlmApi(drNumber: string, photoUrls: string[]): Promise<any> {
 }
 
 /**
- * Parse VLM API response into EvaluationResult
+ * Parse VLM API response for a single step evaluation
+ * Returns the step result object
  */
-function parseVlmResponse(drNumber: string, vlmResponse: any): EvaluationResult {
+function parseStepResponse(vlmResponse: any): any {
   try {
     // Extract content from OpenAI-compatible response format
     const content = vlmResponse.choices?.[0]?.message?.content;
@@ -356,10 +351,10 @@ function parseVlmResponse(drNumber: string, vlmResponse: any): EvaluationResult 
       throw new Error('No content in VLM response');
     }
 
-    log.debug('VlmService', `Raw VLM response: ${content.substring(0, 200)}...`);
+    log.debug('VlmService', `Raw VLM step response: ${content.substring(0, 200)}...`);
 
-    // Parse JSON from content (VLM should return JSON as instructed in prompt)
-    let evaluationData: any;
+    // Parse JSON from content
+    let stepData: any;
 
     // Try to extract JSON from markdown code blocks if present
     const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) ||
@@ -367,46 +362,31 @@ function parseVlmResponse(drNumber: string, vlmResponse: any): EvaluationResult 
                       [null, content];
 
     try {
-      evaluationData = JSON.parse(jsonMatch[1] || content);
+      stepData = JSON.parse(jsonMatch[1] || content);
     } catch (parseError) {
-      log.error('VlmService', `Failed to parse VLM JSON: ${content}`);
+      log.error('VlmService', `Failed to parse VLM step JSON: ${content}`);
       throw new Error('VLM response is not valid JSON');
     }
 
-    // Validate required fields
-    if (!evaluationData.step_results || !Array.isArray(evaluationData.step_results)) {
-      throw new Error('Missing or invalid step_results in VLM response');
+    // Validate required fields for step
+    if (typeof stepData.step_number === 'undefined' ||
+        typeof stepData.passed === 'undefined' ||
+        typeof stepData.score === 'undefined') {
+      throw new Error('Missing required fields in step response');
     }
 
-    // Map VLM response to our EvaluationResult format
-    const stepResults = evaluationData.step_results.map((step: any) => {
-      const qaStep = QA_STEPS.find(s => s.step_number === step.step_number);
-
-      return {
-        step_number: step.step_number,
-        step_name: step.step_name || qaStep?.step_name || `step_${step.step_number}`,
-        step_label: qaStep?.step_label || step.step_name || `Step ${step.step_number}`,
-        passed: Boolean(step.passed),
-        score: Number(step.score) || 0,
-        comment: step.comment || 'No comment provided',
-      };
-    });
-
     return {
-      dr_number: drNumber,
-      overall_status: evaluationData.overall_status === 'PASS' ? 'PASS' : 'FAIL',
-      average_score: Number(evaluationData.overall_score) || 0,
-      total_steps: evaluationData.total_steps || QA_STEPS.length,
-      passed_steps: evaluationData.passed_steps || 0,
-      step_results: stepResults,
-      feedback_sent: false,
-      evaluation_date: new Date(),
-      markdown_report: evaluationData.summary,
+      step_number: stepData.step_number,
+      step_name: stepData.step_name,
+      step_label: stepData.step_label,
+      passed: Boolean(stepData.passed),
+      score: Number(stepData.score) || 0,
+      comment: stepData.comment || 'No comment provided',
     };
   } catch (error) {
-    log.error('VlmService', `Failed to parse VLM response: ${error}`);
+    log.error('VlmService', `Failed to parse VLM step response: ${error}`);
     throw new VlmEvaluationError(
-      `Failed to parse VLM response: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      `Failed to parse VLM step response: ${error instanceof Error ? error.message : 'Unknown error'}`,
       'PARSE_ERROR',
       error
     );
@@ -414,16 +394,17 @@ function parseVlmResponse(drNumber: string, vlmResponse: any): EvaluationResult 
 }
 
 /**
- * Execute VLM evaluation for a DR with batching to handle context limits
- * Main entry point - fetches photos, calls VLM in batches, merges results
+ * Execute VLM evaluation for a DR - Step-by-step approach
+ * Evaluates ONE step at a time across ALL photo batches
+ * Takes the BEST result for each step (fixes the 30-step duplication issue)
  *
  * @param drNumber - DR number to evaluate (e.g., "DR1730550")
- * @returns Evaluation results
+ * @returns Evaluation results with 10 steps (not 30!)
  */
 export async function executeVlmEvaluation(
   drNumber: string
 ): Promise<EvaluationResult> {
-  log.info('VlmService', `Starting VLM evaluation for ${drNumber}`);
+  log.info('VlmService', `Starting step-by-step VLM evaluation for ${drNumber}`);
 
   try {
     // Step 1: Fetch DR photos
@@ -433,7 +414,6 @@ export async function executeVlmEvaluation(
     // Step 2: Batch photos to stay within context limits
     // Qwen3-VL-8B-Instruct has 16K token limit, images + prompt = ~2500 tokens per photo
     // Process 6 photos at a time to stay under 16384 (6 * 2500 + prompt ~= 15500)
-    // 32 photos ÷ 6 = ~6 batches (much faster than previous 11-16 batches)
     const BATCH_SIZE = 6;
     const batches: string[][] = [];
 
@@ -441,63 +421,78 @@ export async function executeVlmEvaluation(
       batches.push(photoUrls.slice(i, i + BATCH_SIZE));
     }
 
-    log.info('VlmService', `Processing ${batches.length} batches in parallel`);
+    log.info('VlmService', `Split ${photoUrls.length} photos into ${batches.length} batches of ${BATCH_SIZE}`);
 
-    // Step 3: Evaluate all batches in parallel (4x faster!)
-    const batchStartTime = Date.now();
+    // Step 3: Evaluate EACH QA step across ALL photo batches
+    const finalStepResults = [];
+    const totalStartTime = Date.now();
 
-    const batchPromises = batches.map(async (batch, index) => {
-      const batchNum = index + 1;
-      const batchStart = Date.now();
+    for (const qaStep of QA_STEPS) {
+      log.info('VlmService', `Evaluating Step ${qaStep.step_number}: ${qaStep.step_label}`);
 
-      log.info('VlmService', `Starting batch ${batchNum}/${batches.length} (${batch.length} photos)`);
+      const stepBatchResults = [];
 
-      try {
-        const vlmResponse = await callVlmApi(drNumber, batch);
-        const evaluation = parseVlmResponse(drNumber, vlmResponse);
+      // Evaluate this step against each batch of photos
+      for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+        const batch = batches[batchIndex];
+        const batchNum = batchIndex + 1;
 
-        const batchTime = Date.now() - batchStart;
-        log.info('VlmService', `Batch ${batchNum} completed in ${batchTime}ms`);
+        log.info('VlmService', `  Step ${qaStep.step_number} - Batch ${batchNum}/${batches.length} (${batch.length} photos)`);
 
-        return evaluation;
-      } catch (error) {
-        const batchTime = Date.now() - batchStart;
-        log.error('VlmService', `Batch ${batchNum} failed after ${batchTime}ms: ${error}`);
+        try {
+          const vlmResponse = await callVlmApiForStep(drNumber, qaStep, batch);
+          const stepResult = parseStepResponse(vlmResponse);
+          stepBatchResults.push(stepResult);
 
-        // Return partial evaluation for failed batch (don't fail entire evaluation)
-        return {
-          dr_number: drNumber,
-          overall_status: 'FAIL' as const,
-          average_score: 0,
-          total_steps: batch.length,
-          passed_steps: 0,
-          step_results: batch.map((_, i) => ({
-            step_number: i + 1,
-            step_name: `batch_${batchNum}_photo_${i + 1}`,
-            step_label: `Batch ${batchNum} Photo ${i + 1}`,
+          log.info('VlmService', `  Step ${qaStep.step_number} - Batch ${batchNum}: Score ${stepResult.score}/10`);
+        } catch (error) {
+          log.error('VlmService', `  Step ${qaStep.step_number} - Batch ${batchNum} failed: ${error}`);
+          // Add failed result (score = 0)
+          stepBatchResults.push({
+            step_number: qaStep.step_number,
+            step_name: qaStep.step_name,
+            step_label: qaStep.step_label,
             passed: false,
             score: 0,
-            comment: `Failed to evaluate: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          })),
-          feedback_sent: false,
-          evaluation_date: new Date(),
-          markdown_report: `Batch ${batchNum} failed: ${error}`,
-        };
+            comment: `Batch ${batchNum} failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          });
+        }
       }
-    });
 
-    // Wait for all batches to complete
-    const batchEvaluations = await Promise.all(batchPromises);
+      // Take the BEST result for this step across all batches
+      const bestResult = stepBatchResults.reduce((best, current) =>
+        current.score > best.score ? current : best
+      );
 
-    const totalBatchTime = Date.now() - batchStartTime;
-    log.info('VlmService', `All ${batches.length} batches completed in ${totalBatchTime}ms (parallel)`);
+      log.info('VlmService', `✓ Step ${qaStep.step_number} BEST: ${bestResult.score}/10 - ${bestResult.passed ? 'PASS' : 'FAIL'}`);
 
-    // Step 4: Merge batch results
-    const mergedEvaluation = mergeBatchEvaluations(drNumber, batchEvaluations);
+      finalStepResults.push(bestResult);
+    }
 
-    log.info('VlmService', `VLM evaluation completed for ${drNumber}: ${mergedEvaluation.overall_status}`);
+    const totalTime = Date.now() - totalStartTime;
+    log.info('VlmService', `All ${QA_STEPS.length} steps evaluated in ${totalTime}ms`);
 
-    return mergedEvaluation;
+    // Step 4: Aggregate final results
+    const passedCount = finalStepResults.filter(s => s.passed).length;
+    const avgScore = finalStepResults.reduce((sum, s) => sum + s.score, 0) / finalStepResults.length;
+    const passRate = passedCount / finalStepResults.length;
+    const overallStatus = passRate >= 0.7 ? 'PASS' : 'FAIL';
+
+    const result: EvaluationResult = {
+      dr_number: drNumber,
+      overall_status: overallStatus,
+      average_score: Math.round(avgScore * 10) / 10,
+      total_steps: QA_STEPS.length,
+      passed_steps: passedCount,
+      step_results: finalStepResults,
+      feedback_sent: false,
+      evaluation_date: new Date(),
+      markdown_report: `Evaluation for ${drNumber}: ${passedCount}/${QA_STEPS.length} steps passed (${Math.round(passRate * 100)}%)`,
+    };
+
+    log.info('VlmService', `✅ VLM evaluation completed: ${overallStatus} (${passedCount}/${QA_STEPS.length} passed)`);
+
+    return result;
   } catch (error) {
     log.error('VlmService', `VLM evaluation failed for ${drNumber}: ${error}`);
 
@@ -513,56 +508,6 @@ export async function executeVlmEvaluation(
   }
 }
 
-/**
- * Merge multiple batch evaluation results into a single result
- * @param drNumber - DR number
- * @param batchEvaluations - Array of batch evaluation results
- * @returns Merged evaluation result
- */
-function mergeBatchEvaluations(
-  drNumber: string,
-  batchEvaluations: EvaluationResult[]
-): EvaluationResult {
-  if (batchEvaluations.length === 1) {
-    return batchEvaluations[0];
-  }
-
-  // Merge step results from all batches
-  const allSteps = batchEvaluations.flatMap(e => e.step_results);
-
-  // Count passed steps
-  const passedCount = allSteps.filter(s => s.passed).length;
-
-  // Calculate average score
-  const avgScore = allSteps.reduce((sum, s) => sum + s.score, 0) / allSteps.length;
-
-  // Determine overall status
-  const passRate = passedCount / allSteps.length;
-  const overallStatus = passRate >= 0.7 ? 'PASS' : 'FAIL';
-
-  // Combine feedback
-  const feedback = batchEvaluations
-    .map(e => e.markdown_report)
-    .filter(Boolean)
-    .join('\n\n---\n\n');
-
-  return {
-    dr_number: drNumber,
-    overall_status: overallStatus,
-    average_score: Math.round(avgScore * 10) / 10,
-    total_steps: allSteps.length,
-    passed_steps: passedCount,
-    step_results: allSteps,
-    feedback_sent: false,
-    evaluation_date: new Date(),
-    markdown_report: feedback,
-  };
-}
-
-/**
- * Check VLM service health
- * @returns true if VLM is reachable and healthy
- */
 /**
  * Check VLM service health (vLLM with MiniCPM-V-2_6)
  * @returns true if vLLM is reachable and has the MiniCPM-V-2_6 model
