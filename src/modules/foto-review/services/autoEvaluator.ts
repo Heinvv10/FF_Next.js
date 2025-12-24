@@ -1,13 +1,13 @@
 /**
  * Auto-Evaluator Service
- * Automatically evaluates new drops from WA Monitor and sends feedback
+ * Automatically evaluates new drops from WA Monitor (human approval required for feedback)
  *
  * Flow:
  * 1. Detect new drops in qa_photo_reviews (not yet evaluated)
  * 2. Fetch photos from BOSS VPS API
  * 3. Run VLM evaluation (smart batch processing)
  * 4. Save results to foto_ai_reviews
- * 5. Send WhatsApp feedback to submitter
+ * 5. Human agent reviews and manually sends feedback (NOT automatic)
  */
 
 import { fetchDrPhotos, executeVlmEvaluation } from './fotoVlmService';
@@ -50,6 +50,9 @@ const CONFIG = {
 
   // Dry run mode (test without actually sending feedback)
   DRY_RUN: process.env.AUTO_EVALUATOR_DRY_RUN === 'true',
+
+  // Auto-send feedback (false = human approval required)
+  AUTO_SEND_FEEDBACK: process.env.AUTO_EVALUATOR_SEND_FEEDBACK === 'true', // Default: false
 };
 
 // ==================== HELPER FUNCTIONS ====================
@@ -182,9 +185,15 @@ export async function autoEvaluateDrop(
     console.log(`[AUTO] Saving evaluation for ${drNumber}...`);
     const saved = await saveEvaluation(evaluation);
 
-    // 5. Send WhatsApp feedback
-    console.log(`[AUTO] Sending feedback for ${drNumber}...`);
-    const feedbackSent = await sendAutoFeedback(drNumber, project);
+    // 5. Send WhatsApp feedback (only if AUTO_SEND_FEEDBACK is enabled)
+    let feedbackSent = false;
+    if (CONFIG.AUTO_SEND_FEEDBACK) {
+      console.log(`[AUTO] Sending feedback for ${drNumber}...`);
+      feedbackSent = await sendAutoFeedback(drNumber, project);
+    } else {
+      console.log(`[AUTO] Feedback NOT sent for ${drNumber} - requires human approval`);
+      // Human agent will review and send feedback manually via UI
+    }
 
     const processingTime = Date.now() - startTime;
 

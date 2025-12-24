@@ -1,29 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'' -c \"\"SELECT drop_number, submitted_by, user_name, project FROM qa_photo_reviews WHERE drop_number = ''DRTEST0808'';\"\"\")",
-      "Bash(sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \"pm2 status | grep fibreflow-dev\")",
-      "Bash(sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no root@72.60.17.245 \"cd /var/www/fibreflow && git pull && npm ci && npm run build && pm2 restart fibreflow-prod\")",
-      "Bash(curl:*)",
-      "Bash(git push:*)",
-      "Bash(sshpass:*)",
-      "Bash(psql:*)",
-      "Bash(ssh:*)",
-      "Read(//home/louisdup/VF/Apps/QFieldCloud/**)",
-      "Bash(grep:*)",
-      "Bash(mkdir:*)",
-      "Bash(npm run build:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(python3:*)",
-      "Bash(cat:*)",
-      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'''' -c \"\"\\d poles\"\" 2>&1\")",
-      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'''' -c \"\"\\d sow_fibre\"\" 2>&1\")",
-      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"pm2 list\")",
-      "Bash(ls:*)",
-      "Bash(rm:*)",
-      "WebFetch(domain:vf.fibreflow.app)",
-      "Bash(scp:*)"
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'' -c \"\"SELECT dr_number FROM foto_ai_reviews WHERE dr_number IN (''DR1856255'', ''DR1856232'', ''DR1856248'', ''DR1752318'');\"\"\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'' -c \"\"SELECT drop_number FROM qa_photo_reviews WHERE drop_number IN (''DR1854650'', ''DR1854713'', ''DR1854832'', ''DR1854833'');\"\"\")"
     ],
     "deny": [],
     "ask": [],

@@ -41,10 +41,13 @@ nano /var/www/fibreflow/.env.production
 
 # Add these lines:
 AUTO_EVALUATOR_ENABLED=true
-AUTO_EVALUATOR_DRY_RUN=true  # Start with dry run for testing
+AUTO_EVALUATOR_DRY_RUN=false  # Set to false for live mode
+AUTO_EVALUATOR_SEND_FEEDBACK=false  # Human approval required (safer)
 AUTO_EVALUATOR_API_KEY=your-secret-key-here  # Optional security
-USE_WHATSAPP_FEEDBACK=true  # Enable WhatsApp sending
+USE_WHATSAPP_FEEDBACK=true  # Enable WhatsApp sending (for manual feedback)
 ```
+
+**Note:** `AUTO_EVALUATOR_SEND_FEEDBACK=false` means evaluations are automatic, but feedback requires human approval via UI.
 
 ### Step 3: Deploy Code
 
