@@ -94,7 +94,7 @@ function FotoReviewPage() {
 
     return true;
   });
-}, [photos, filters]);
+}, [photos, filters, searchQuery]);
 
 const handleClearFilters = () => {
   setFilters({
