@@ -118,7 +118,7 @@ function FotoReviewPage() {
   useEffect(() => {
     if (!router.isReady) return;
 
-    const currentDR = router.query.dr as string;
+    const currentDR = router.query?.dr as string | undefined;
     const newDR = selectedDR?.dr_number;
 
     // Only update if different to avoid infinite loops
@@ -269,10 +269,10 @@ function FotoReviewPage() {
                           key={dr.dr_number}
                           onClick={() => handleSelectDR(dr)}
                           className={`w-full text-left p-4 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 ${selectedDR?.dr_number === dr.dr_number
-                              ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600 dark:border-blue-400 shadow-sm'
-                              : dr.evaluated
-                                ? 'bg-green-50/30 dark:bg-green-900/10 hover:border-l-4 hover:border-green-300 dark:hover:border-green-600'
-                                : 'hover:border-l-4 hover:border-gray-300 dark:hover:border-gray-600'
+                            ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600 dark:border-blue-400 shadow-sm'
+                            : dr.evaluated
+                              ? 'bg-green-50/30 dark:bg-green-900/10 hover:border-l-4 hover:border-green-300 dark:hover:border-green-600'
+                              : 'hover:border-l-4 hover:border-gray-300 dark:hover:border-gray-600'
                             }`}
                           aria-label={`Select drop record ${dr.dr_number}, ${dr.project}, ${dr.photos.length} photos${dr.evaluated ? `, evaluated ${relativeTime}` : ', pending evaluation'}${dr.feedback_sent ? ', feedback sent' : ''}`}
                           aria-current={selectedDR?.dr_number === dr.dr_number ? 'true' : undefined}
