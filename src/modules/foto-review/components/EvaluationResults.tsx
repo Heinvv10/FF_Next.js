@@ -6,7 +6,7 @@
 
 'use client';
 
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Download } from 'lucide-react';
 import type { EvaluationResultsProps } from '../types';
 
 export function EvaluationResults({ evaluation }: EvaluationResultsProps) {
@@ -17,6 +17,12 @@ export function EvaluationResults({ evaluation }: EvaluationResultsProps) {
       </div>
     );
   }
+
+  const handleDownloadReport = () => {
+    // Trigger download from API endpoint
+    const downloadUrl = `/api/foto/download-report?dr_number=${encodeURIComponent(evaluation.dr_number)}`;
+    window.open(downloadUrl, '_blank');
+  };
 
   const getScoreColor = (score: number) => {
     if (score >= 8) return 'text-green-600 bg-green-50';
@@ -34,8 +40,20 @@ export function EvaluationResults({ evaluation }: EvaluationResultsProps) {
     <div className="bg-white rounded-lg shadow-md">
       {/* Header */}
       <div className="p-6 border-b">
-        <h3 className="text-lg font-semibold text-gray-900">Detailed Step Results</h3>
-        <p className="text-sm text-gray-600 mt-1">AI evaluation for each installation step</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Detailed Step Results</h3>
+            <p className="text-sm text-gray-600 mt-1">AI evaluation for each installation step</p>
+          </div>
+          <button
+            onClick={handleDownloadReport}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+            aria-label="Download comprehensive markdown report"
+          >
+            <Download className="w-4 h-4" />
+            Download Report
+          </button>
+        </div>
       </div>
 
       {/* Step Results */}

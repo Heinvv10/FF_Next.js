@@ -8,13 +8,21 @@
 
 'use client';
 
-import { CheckCircle, XCircle, Sparkles } from 'lucide-react';
+import { CheckCircle, XCircle, Sparkles, Download } from 'lucide-react';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { VelocityButton } from '@/components/ui/VelocityButton';
 import type { AIEvaluationCardProps } from '../types';
 import { FeedbackButton } from './FeedbackButton';
 
 export function AIEvaluationCard({ dr_number, evaluation, isEvaluating, onEvaluate, onSendFeedback, isSendingFeedback }: AIEvaluationCardProps) {
+  const handleDownloadReport = () => {
+    if (!dr_number) return;
+
+    // Trigger download from API endpoint
+    const downloadUrl = `/api/foto/download-report?dr_number=${encodeURIComponent(dr_number)}`;
+    window.open(downloadUrl, '_blank');
+  };
+
   const getStatusColor = (status: 'PASS' | 'FAIL') => {
     return status === 'PASS' ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50';
   };
@@ -137,6 +145,18 @@ export function AIEvaluationCard({ dr_number, evaluation, isEvaluating, onEvalua
                 isSending={isSendingFeedback}
               />
             )}
+
+            {/* Download Report Button */}
+            <VelocityButton
+              onClick={handleDownloadReport}
+              variant="glass"
+              size="lg"
+              className="w-full"
+              aria-label="Download comprehensive markdown report"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download Report
+            </VelocityButton>
           </div>
         </div>
       ) : (
