@@ -24,6 +24,7 @@ import { formatRelativeTime, isWithin24Hours } from '@/modules/foto-review/utils
 function FotoReviewPage() {
   const router = useRouter();
   const [selectedDR, setSelectedDR] = useState<DropRecord | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterOptions>({
     project: 'all',
     startDate: '',
