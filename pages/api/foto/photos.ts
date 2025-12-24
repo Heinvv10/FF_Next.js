@@ -6,7 +6,13 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { DropRecord, Photo } from '@/modules/foto-review/types';
-import { db } from '@/lib/db';
+import { Pool } from 'pg';
+
+// Create database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || process.env.NEON_DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+});
 
 // BOSS VPS API base URL
 const BOSS_API_URL = process.env.BOSS_VPS_API_URL || 'http://72.61.197.178:8001';
