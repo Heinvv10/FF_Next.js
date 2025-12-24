@@ -6,6 +6,8 @@
 
 import { EvaluationResult } from '../types';
 import { log } from '@/lib/logger';
+import fs from 'fs';
+import path from 'path';
 
 /**
  * VLM API configuration
@@ -17,77 +19,93 @@ const VLM_MODEL = process.env.VLM_MODEL || 'openbmb/MiniCPM-V-2_6';
 const VLM_TIMEOUT_MS = 180000; // 3 minutes for image processing
 
 /**
- * 11 QA Steps from DR Photo Verification Manual
- * Each step has specific validation criteria
+ * Load QA evaluation steps from config file
+ * This allows updating evaluation criteria without code changes
  */
-const QA_STEPS = [
-  {
-    step_number: 1,
-    step_name: 'house_photo',
-    step_label: 'House Photo',
-    criteria: 'Clear photo of the house with visible address/street number',
-  },
-  {
-    step_number: 2,
-    step_name: 'cable_span',
-    step_label: 'Cable Span from Pole',
-    criteria: 'Photo showing cable span from pole to house',
-  },
-  {
-    step_number: 3,
-    step_name: 'cable_entry_outside',
-    step_label: 'Cable Entry Outside',
-    criteria: 'Outside view of cable entry point into house',
-  },
-  {
-    step_number: 4,
-    step_name: 'cable_entry_inside',
-    step_label: 'Cable Entry Inside',
-    criteria: 'Inside view of cable entry, showing clean installation',
-  },
-  {
-    step_number: 5,
-    step_name: 'wall_installation',
-    step_label: 'Wall for Installation',
-    criteria: 'Photo of wall where ONT will be/is installed',
-  },
-  {
-    step_number: 6,
-    step_name: 'ont_back',
-    step_label: 'ONT Back After Install',
-    criteria: 'Back of ONT showing cable connections',
-  },
-  {
-    step_number: 7,
-    step_name: 'power_meter',
-    step_label: 'Power Meter Reading',
-    criteria: 'Clear photo of power meter showing reading',
-  },
-  {
-    step_number: 8,
-    step_name: 'ont_barcode',
-    step_label: 'ONT Barcode',
-    criteria: 'ONT barcode/serial number clearly visible and readable',
-  },
-  {
-    step_number: 9,
-    step_name: 'ups_serial',
-    step_label: 'UPS Serial Number',
-    criteria: 'UPS serial number clearly visible and readable',
-  },
-  {
-    step_number: 10,
-    step_name: 'final_installation',
-    step_label: 'Final Installation',
-    criteria: 'Complete installation showing ONT and cables neatly installed',
-  },
-  {
-    step_number: 11,
-    step_name: 'ont_lights',
-    step_label: 'Green Lights on ONT',
-    criteria: 'ONT with green lights indicating successful connection',
-  },
-];
+function loadQASteps() {
+  try {
+    const configPath = path.join(process.cwd(), 'config', 'qa-evaluation-steps.json');
+    const configData = fs.readFileSync(configPath, 'utf-8');
+    const config = JSON.parse(configData);
+
+    log.info('VlmService', `Loaded ${config.steps.length} QA steps from config (version ${config.version})`);
+
+    return config.steps;
+  } catch (error) {
+    log.error('VlmService', `Failed to load QA steps config: ${error}`);
+
+    // Fallback to hardcoded steps if config file not found
+    log.warn('VlmService', 'Using fallback hardcoded QA steps');
+    return [
+      {
+        step_number: 1,
+        step_name: 'house_photo',
+        step_label: 'House Photo',
+        criteria: 'Clear photo of the house.',
+      },
+      {
+        step_number: 2,
+        step_name: 'cable_span',
+        step_label: 'Cable Span from Pole',
+        criteria: 'Photo showing cable span from pole to house',
+      },
+      {
+        step_number: 3,
+        step_name: 'cable_entry_outside',
+        step_label: 'Cable Entry Outside',
+        criteria: 'Outside view of cable entry point into house',
+      },
+      {
+        step_number: 4,
+        step_name: 'cable_entry_inside',
+        step_label: 'Cable Entry Inside',
+        criteria: 'Inside view of cable entry, showing clean installation',
+      },
+      {
+        step_number: 5,
+        step_name: 'wall_installation',
+        step_label: 'Wall for Installation',
+        criteria: 'Photo of wall where ONT will be/is installed',
+      },
+      {
+        step_number: 6,
+        step_name: 'ont_back_and_barcode',
+        step_label: 'ONT Back & Barcode',
+        criteria: 'Back of ONT showing cable connections AND ONT barcode/serial number clearly visible and readable',
+      },
+      {
+        step_number: 7,
+        step_name: 'power_meter',
+        step_label: 'Power Meter Reading',
+        criteria: 'Clear photo of power meter showing reading',
+      },
+      {
+        step_number: 8,
+        step_name: 'ups_serial',
+        step_label: 'UPS Serial Number',
+        criteria: 'UPS serial number clearly visible and readable',
+      },
+      {
+        step_number: 9,
+        step_name: 'final_installation',
+        step_label: 'Final Installation',
+        criteria: 'Complete installation showing ONT and cables neatly installed',
+      },
+      {
+        step_number: 10,
+        step_name: 'ont_lights_and_dr_label',
+        step_label: 'Green Lights & DR Label',
+        criteria: 'ONT with green lights indicating successful connection AND DR number label clearly visible on device or nearby',
+      },
+    ];
+  }
+}
+
+/**
+ * QA Steps loaded from config file at module initialization
+ * To update steps: edit config/qa-evaluation-steps.json and restart the application
+ */
+const QA_STEPS = loadQASteps();
 
 /**
  * VLM API Error
@@ -158,7 +176,7 @@ async function fetchDrPhotos(drNumber: string): Promise<string[]> {
  * Creates structured prompt based on QA steps
  */
 function buildEvaluationPrompt(drNumber: string): string {
-  return `You are an expert fiber optic installation quality inspector. Evaluate the installation photos for drop record ${drNumber} according to these 11 quality assurance steps:
+  return `You are an expert fiber optic installation quality inspector. Evaluate the installation photos for drop record ${drNumber} according to these ${QA_STEPS.length} quality assurance steps:
 
 ${QA_STEPS.map((step, index) =>
   `${index + 1}. **${step.step_label}**: ${step.criteria}`
@@ -173,7 +191,7 @@ Respond in JSON format:
 {
   "overall_status": "PASS" or "FAIL",
   "overall_score": <average score>,
-  "total_steps": 11,
+  "total_steps": ${QA_STEPS.length},
   "passed_steps": <count>,
   "step_results": [
     {
