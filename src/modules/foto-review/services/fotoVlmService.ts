@@ -105,7 +105,7 @@ function loadQASteps() {
  * QA Steps loaded from config file at module initialization
  * To update steps: edit config/qa-evaluation-steps.json and restart the application
  */
-const QA_STEPS = loadQASteps();
+export const QA_STEPS = loadQASteps();
 
 /**
  * VLM API Error
@@ -126,7 +126,7 @@ export class VlmEvaluationError extends Error {
  * @param drNumber - DR number (e.g., "DR1730550")
  * @returns Array of photo URLs (direct BOSS API URLs for Ollama to access)
  */
-async function fetchDrPhotos(drNumber: string): Promise<string[]> {
+export async function fetchDrPhotos(drNumber: string): Promise<string[]> {
   const BOSS_API_URL = process.env.BOSS_VPS_API_URL || 'http://72.61.197.178:8001';
 
   try {
