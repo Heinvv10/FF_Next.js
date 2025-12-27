@@ -15,9 +15,24 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HandoverSnapshot } from '../../components/Handover/HandoverSnapshot';
 import { HandoverType, OwnerType } from '../../types/handover';
 import type { HandoverSnapshot as HandoverSnapshotType } from '../../types/handover';
+
+// Helper to create wrapper with QueryClient
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
 // Mock Clerk auth
 vi.mock('@clerk/nextjs', () => ({
@@ -108,7 +123,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText('FT406824')).toBeInTheDocument();
@@ -120,7 +135,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/DR12345/i)).toBeInTheDocument();
@@ -133,7 +148,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/ONT123456/i)).toBeInTheDocument();
@@ -146,7 +161,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/12\/12/i)).toBeInTheDocument(); // Verification steps
@@ -157,7 +172,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/workmanship/i)).toBeInTheDocument();
@@ -171,7 +186,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/2 photo/i)).toBeInTheDocument();
@@ -182,7 +197,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} showEvidence />);
+      render(<HandoverSnapshot snapshot={snapshot} showEvidence />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText('photo1.jpg')).toBeInTheDocument();
@@ -195,7 +210,7 @@ describe('HandoverSnapshot Component', () => {
       snapshot.evidence_links = [];
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/no evidence/i)).toBeInTheDocument();
@@ -208,7 +223,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/1 decision/i)).toBeInTheDocument();
@@ -219,7 +234,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} showDecisions />);
+      render(<HandoverSnapshot snapshot={snapshot} showDecisions />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/approval/i)).toBeInTheDocument();
@@ -232,7 +247,7 @@ describe('HandoverSnapshot Component', () => {
       snapshot.decisions = [];
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/no decisions/i)).toBeInTheDocument();
@@ -245,7 +260,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/QA/i)).toBeInTheDocument();
@@ -257,7 +272,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       // Should show some formatted date/time
@@ -272,7 +287,7 @@ describe('HandoverSnapshot Component', () => {
       snapshot.is_locked = true;
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/locked/i)).toBeInTheDocument();
@@ -284,7 +299,7 @@ describe('HandoverSnapshot Component', () => {
       snapshot.is_locked = false;
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} />);
+      render(<HandoverSnapshot snapshot={snapshot} />, { wrapper: createWrapper() });
 
       // Assert
       // Should still show as locked (business rule)
@@ -298,7 +313,7 @@ describe('HandoverSnapshot Component', () => {
       const snapshot = createMockSnapshot();
 
       // Act
-      render(<HandoverSnapshot snapshot={snapshot} compact />);
+      render(<HandoverSnapshot snapshot={snapshot} compact />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText('FT406824')).toBeInTheDocument();

@@ -274,8 +274,8 @@ describe('TicketList', () => {
     render(<TicketList />, { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(screen.getByText('NORMAL')).toBeInTheDocument();
-      expect(screen.getByText('HIGH')).toBeInTheDocument();
+      expect(screen.getByText('normal')).toBeInTheDocument();
+      expect(screen.getByText('high')).toBeInTheDocument();
     });
   });
 

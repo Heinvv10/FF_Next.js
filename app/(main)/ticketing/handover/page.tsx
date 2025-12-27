@@ -11,6 +11,8 @@
  * 🟢 WORKING: Handover center page integrates handover components
  */
 
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { HandoverWizard } from '@/modules/ticketing/components/Handover/HandoverWizard';

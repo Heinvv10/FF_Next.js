@@ -15,6 +15,8 @@
  * 🟢 WORKING: Ticket detail page integrates TicketDetail component
  */
 
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { TicketDetail } from '@/modules/ticketing/components/TicketDetail/TicketDetail';

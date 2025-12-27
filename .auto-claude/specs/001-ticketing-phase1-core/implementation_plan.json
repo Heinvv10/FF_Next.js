@@ -1830,14 +1830,25 @@
         }
       ],
       "duration_seconds": 848.43
+    },
+    {
+      "iteration": 4,
+      "status": "rejected",
+      "timestamp": "2025-12-27T10:32:34.491656+00:00",
+      "issues": [
+        {
+          "description": "Critical: (1) 9 ticketing pages fail Next.js build - missing 'export const dynamic = force-dynamic'. Fix: Add to 9 page files. (2) No .env file - database cannot connect. Fix: Create .env + deploy migrations. Moderate: (3) 34 component tests fail - missing QueryClientProvider wrapper. (4) steps.filter runtime error in VerificationChecklist. Test Results: 1212/1251 passing (97%). CRITICAL: Same 4 issues from QA Session 3 remain unfixed. Estimated fix time: 70 minutes."
+        }
+      ],
+      "duration_seconds": 601.24
     }
   ],
   "qa_stats": {
-    "total_iterations": 5,
-    "last_iteration": 3,
+    "total_iterations": 6,
+    "last_iteration": 4,
     "last_status": "rejected",
     "issues_by_type": {
-      "unknown": 5
+      "unknown": 6
     }
   },
   "qa_signoff": {

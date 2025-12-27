@@ -11,6 +11,8 @@
  * 🟢 WORKING: Dashboard page integrates TicketingDashboard component
  */
 
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { TicketingDashboard } from '@/modules/ticketing/components/Dashboard/TicketingDashboard';

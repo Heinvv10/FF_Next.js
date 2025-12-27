@@ -12,6 +12,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SyncDashboard } from '../../components/QContact/SyncDashboard';
 import { SyncTrigger } from '../../components/QContact/SyncTrigger';
 import { SyncAuditLog } from '../../components/QContact/SyncAuditLog';
@@ -21,6 +22,20 @@ import type {
   FullSyncResult,
   SyncLogListResponse
 } from '../../types/qcontact';
+
+// Helper to create wrapper with QueryClient
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
 // Helper to create mock sync status
 const createMockSyncStatus = (overrides?: Partial<SyncStatusOverview>): SyncStatusOverview => ({
@@ -77,7 +92,7 @@ describe('SyncDashboard Component', () => {
       const mockStatus = createMockSyncStatus();
 
       // Act
-      render(<SyncDashboard status={mockStatus} />);
+      render(<SyncDashboard status={mockStatus} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/QContact Sync Status/i)).toBeInTheDocument();
@@ -89,7 +104,7 @@ describe('SyncDashboard Component', () => {
       const mockStatus = createMockSyncStatus({ success_rate_last_7d: 0.958 });
 
       // Act
-      render(<SyncDashboard status={mockStatus} />);
+      render(<SyncDashboard status={mockStatus} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/96%/i)).toBeInTheDocument(); // Rounded from 95.8%
@@ -100,7 +115,7 @@ describe('SyncDashboard Component', () => {
       const mockStatus = createMockSyncStatus({ pending_outbound: 5 });
 
       // Act
-      render(<SyncDashboard status={mockStatus} />);
+      render(<SyncDashboard status={mockStatus} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText('5')).toBeInTheDocument();
@@ -108,7 +123,7 @@ describe('SyncDashboard Component', () => {
 
     it('should show loading state', () => {
       // Act
-      render(<SyncDashboard status={null} isLoading={true} />);
+      render(<SyncDashboard status={null} isLoading={true} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/Loading sync status/i)).toBeInTheDocument();
@@ -116,7 +131,7 @@ describe('SyncDashboard Component', () => {
 
     it('should show error state', () => {
       // Act
-      render(<SyncDashboard status={null} error="Failed to load status" />);
+      render(<SyncDashboard status={null} error="Failed to load status" />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/Failed to Load Sync Status/i)).toBeInTheDocument();
@@ -133,7 +148,7 @@ describe('SyncDashboard Component', () => {
       });
 
       // Act
-      render(<SyncDashboard status={mockStatus} />);
+      render(<SyncDashboard status={mockStatus} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/Healthy/i)).toBeInTheDocument();
@@ -147,7 +162,7 @@ describe('SyncDashboard Component', () => {
       });
 
       // Act
-      render(<SyncDashboard status={mockStatus} />);
+      render(<SyncDashboard status={mockStatus} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/Issues Detected/i)).toBeInTheDocument();
@@ -163,7 +178,7 @@ describe('SyncDashboard Component', () => {
       const mockRefresh = vi.fn();
 
       // Act
-      render(<SyncDashboard status={mockStatus} onRefresh={mockRefresh} />);
+      render(<SyncDashboard status={mockStatus} onRefresh={mockRefresh} />, { wrapper: createWrapper() });
       const refreshButton = screen.getByTitle('Refresh status');
       fireEvent.click(refreshButton);
 
@@ -182,7 +197,7 @@ describe('SyncTrigger Component', () => {
       const mockTrigger = vi.fn();
 
       // Act
-      render(<SyncTrigger onTriggerSync={mockTrigger} />);
+      render(<SyncTrigger onTriggerSync={mockTrigger} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByRole('button', { name: /Trigger Sync/i })).toBeInTheDocument();
@@ -193,7 +208,7 @@ describe('SyncTrigger Component', () => {
       const mockTrigger = vi.fn();
 
       // Act
-      render(<SyncTrigger onTriggerSync={mockTrigger} />);
+      render(<SyncTrigger onTriggerSync={mockTrigger} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/Bidirectional/i)).toBeInTheDocument();
@@ -234,7 +249,7 @@ describe('SyncTrigger Component', () => {
       });
 
       // Act
-      render(<SyncTrigger onTriggerSync={mockTrigger} />);
+      render(<SyncTrigger onTriggerSync={mockTrigger} />, { wrapper: createWrapper() });
       const triggerButton = screen.getByRole('button', { name: /Trigger Sync/i });
       fireEvent.click(triggerButton);
 
@@ -249,7 +264,7 @@ describe('SyncTrigger Component', () => {
       const mockTrigger = vi.fn(() => new Promise(() => {})); // Never resolves
 
       // Act
-      render(<SyncTrigger onTriggerSync={mockTrigger} />);
+      render(<SyncTrigger onTriggerSync={mockTrigger} />, { wrapper: createWrapper() });
       const triggerButton = screen.getByRole('button', { name: /Trigger Sync/i });
       fireEvent.click(triggerButton);
 
@@ -265,7 +280,7 @@ describe('SyncTrigger Component', () => {
       const mockTrigger = vi.fn();
 
       // Act
-      render(<SyncTrigger onTriggerSync={mockTrigger} />);
+      render(<SyncTrigger onTriggerSync={mockTrigger} />, { wrapper: createWrapper() });
       const advancedToggle = screen.getByText(/Show Advanced Options/i);
       fireEvent.click(advancedToggle);
 
@@ -286,7 +301,7 @@ describe('SyncAuditLog Component', () => {
       const mockData = createMockLogListResponse(3);
 
       // Act
-      render(<SyncAuditLog data={mockData} />);
+      render(<SyncAuditLog data={mockData} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/Sync Audit Log/i)).toBeInTheDocument();
@@ -299,7 +314,7 @@ describe('SyncAuditLog Component', () => {
       const mockData = createMockLogListResponse(5);
 
       // Act
-      render(<SyncAuditLog data={mockData} />);
+      render(<SyncAuditLog data={mockData} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/3/i)).toBeInTheDocument(); // Inbound count
@@ -308,7 +323,7 @@ describe('SyncAuditLog Component', () => {
 
     it('should show loading state', () => {
       // Act
-      render(<SyncAuditLog data={null} isLoading={true} />);
+      render(<SyncAuditLog data={null} isLoading={true} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/Loading sync logs/i)).toBeInTheDocument();
@@ -316,7 +331,7 @@ describe('SyncAuditLog Component', () => {
 
     it('should show error state', () => {
       // Act
-      render(<SyncAuditLog data={null} error="Failed to load logs" />);
+      render(<SyncAuditLog data={null} error="Failed to load logs" />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/Failed to Load Sync Logs/i)).toBeInTheDocument();
@@ -328,7 +343,7 @@ describe('SyncAuditLog Component', () => {
       const emptyData = createMockLogListResponse(0);
 
       // Act
-      render(<SyncAuditLog data={emptyData} />);
+      render(<SyncAuditLog data={emptyData} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/No sync logs found/i)).toBeInTheDocument();
@@ -341,7 +356,7 @@ describe('SyncAuditLog Component', () => {
       const mockData = createMockLogListResponse(2);
 
       // Act
-      render(<SyncAuditLog data={mockData} />);
+      render(<SyncAuditLog data={mockData} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/INBOUND/i)).toBeInTheDocument();
@@ -354,7 +369,7 @@ describe('SyncAuditLog Component', () => {
       const mockData = createMockLogListResponse(2);
 
       // Act
-      render(<SyncAuditLog data={mockData} />);
+      render(<SyncAuditLog data={mockData} />, { wrapper: createWrapper() });
 
       // Assert
       expect(screen.getByText(/FAILED/i)).toBeInTheDocument();
@@ -366,7 +381,7 @@ describe('SyncAuditLog Component', () => {
       const mockData = createMockLogListResponse(1);
 
       // Act
-      render(<SyncAuditLog data={mockData} />);
+      render(<SyncAuditLog data={mockData} />, { wrapper: createWrapper() });
 
       // Find and click the first log entry
       const logEntries = screen.getAllByRole('button');

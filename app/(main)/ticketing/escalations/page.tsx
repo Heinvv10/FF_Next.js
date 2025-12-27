@@ -11,6 +11,8 @@
  * 🟢 WORKING: Escalation management page integrates escalation components
  */
 
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { EscalationList } from '@/modules/ticketing/components/Escalation/EscalationList';

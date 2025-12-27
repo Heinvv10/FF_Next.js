@@ -11,6 +11,8 @@
  * 🟢 WORKING: Risk acceptance review page with filtering and management
  */
 
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { useState } from 'react';

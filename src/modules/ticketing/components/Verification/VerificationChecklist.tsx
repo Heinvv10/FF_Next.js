@@ -131,7 +131,7 @@ export function VerificationChecklist({
   }
 
   // 🟢 WORKING: Empty state (no steps)
-  if (!steps || steps.length === 0) {
+  if (!steps || !Array.isArray(steps) || steps.length === 0) {
     return (
       <div className="flex items-center justify-center p-8 bg-white/5 border border-white/10 rounded-lg">
         <AlertCircle className="w-6 h-6 text-white/60" />

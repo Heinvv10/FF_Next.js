@@ -13,6 +13,8 @@
  * ⚪ UNTESTED: Create ticket page awaiting TicketForm component implementation
  */
 
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { ArrowLeft, Plus } from 'lucide-react';

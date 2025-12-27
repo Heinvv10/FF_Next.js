@@ -12,6 +12,8 @@
  * 🟢 WORKING: Weekly import page integrates WeeklyImportWizard component
  */
 
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { WeeklyImportWizard } from '@/modules/ticketing/components/WeeklyImport/WeeklyImportWizard';

@@ -12,6 +12,8 @@
  * 🟢 WORKING: Ticket list page integrates TicketList component
  */
 
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { TicketList } from '@/modules/ticketing/components/TicketList/TicketList';

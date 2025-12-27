@@ -11,6 +11,8 @@
  * 🟢 WORKING: QContact sync page integrates sync components
  */
 
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 import { SyncDashboard } from '@/modules/ticketing/components/QContact/SyncDashboard';
