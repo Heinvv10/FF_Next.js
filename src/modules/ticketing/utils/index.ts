@@ -21,9 +21,15 @@ export type {
   MultiplePatternCheckInput
 } from './faultPatternDetector';
 
+// Snapshot Generator (subtask 3.3) ✅
+export { generateHandoverSnapshot } from './snapshotGenerator';
+export type {
+  GenerateSnapshotInput,
+  GeneratedSnapshot
+} from './snapshotGenerator';
+
 // Utilities to be added in future subtasks:
 // - drLookup.ts - DR number lookup helpers
 // - guaranteeCalculator.ts (subtask 3.5) - Guarantee calculations
 // - excelParser.ts (subtask 5.1) - Excel file parsing
 // - slaCalculator.ts (subtask 5.8) - SLA calculations
-// - snapshotGenerator.ts (subtask 3.3) - Handover snapshot generation
