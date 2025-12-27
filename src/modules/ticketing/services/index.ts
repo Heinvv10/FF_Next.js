@@ -9,9 +9,11 @@ export * from './ticketService';
 // DR Lookup Service (subtask 1.6)
 export * from './drLookupService';
 
+// QA Readiness Service (subtask 2.2)
+export * from './qaReadinessService';
+
 // Additional services will be exported as they are implemented:
 // - verificationService (subtask 2.3)
-// - qaReadinessService (subtask 2.2)
 // - riskAcceptanceService (subtask 2.4)
 // - handoverService (subtask 3.4)
 // - escalationService (subtask 3.2)
