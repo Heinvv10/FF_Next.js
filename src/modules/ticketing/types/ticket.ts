@@ -208,8 +208,10 @@ export interface UpdateTicketPayload {
   billing_classification?: string;
   fault_cause?: FaultCause;
   fault_cause_details?: string;
+  qa_ready?: boolean;
   sla_due_at?: Date;
   sla_first_response_at?: Date;
+  sla_breached?: boolean;
 }
 
 /**

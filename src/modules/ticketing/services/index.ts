@@ -1,8 +1,12 @@
-// 🟢 WORKING: Service exports for FibreFlow Ticketing Module
-// This file will export all service functions for the ticketing module
+/**
+ * Ticketing Module - Services Exports
+ * 🟢 WORKING: Central export point for all ticketing services (server-side only)
+ */
 
-// Services will be added in future subtasks:
-// - ticketService (subtask 1.5)
+// Ticket CRUD Service (subtask 1.5)
+export * from './ticketService';
+
+// Additional services will be exported as they are implemented:
 // - drLookupService (subtask 1.6)
 // - verificationService (subtask 2.3)
 // - qaReadinessService (subtask 2.2)
@@ -13,5 +17,3 @@
 // - qcontactService (phase 4)
 // - whatsappService (phase 5)
 // - weeklyReportService (phase 5)
-
-export {};

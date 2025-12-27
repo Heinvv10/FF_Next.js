@@ -1,0 +1,479 @@
+/**
+ * Ticket Service - CRUD Operations
+ *
+ * 🟢 WORKING: Production-ready ticket service with full CRUD operations
+ *
+ * Provides:
+ * - Create ticket with validation and UID generation
+ * - Read ticket by ID
+ * - Update ticket (partial updates)
+ * - Delete ticket (soft delete - marks as CANCELLED)
+ * - List tickets with filters and pagination
+ *
+ * Features:
+ * - Input validation
+ * - SQL injection prevention (parameterized queries)
+ * - Soft delete (never hard delete tickets)
+ * - Pagination support
+ * - Multi-criteria filtering
+ * - Automatic ticket UID generation (FT + 6 digits)
+ */
+
+import { query, queryOne } from '../utils/db';
+import {
+  Ticket,
+  CreateTicketPayload,
+  UpdateTicketPayload,
+  TicketSource,
+  TicketType,
+  TicketPriority,
+  TicketStatus,
+  TicketFilters,
+  TicketListResponse
+} from '../types/ticket';
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('ticketing:service');
+
+/**
+ * UUID validation regex
+ */
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Validate UUID format
+ */
+function isValidUUID(id: string): boolean {
+  return UUID_REGEX.test(id);
+}
+
+/**
+ * Generate unique ticket UID (FT + 6 random digits)
+ * Format: FT406824
+ */
+function generateTicketUID(): string {
+  const randomDigits = Math.floor(100000 + Math.random() * 900000);
+  return `FT${randomDigits}`;
+}
+
+/**
+ * Validate ticket source enum
+ */
+function isValidSource(source: string): source is TicketSource {
+  return Object.values(TicketSource).includes(source as TicketSource);
+}
+
+/**
+ * Validate ticket type enum
+ */
+function isValidTicketType(ticketType: string): ticketType is TicketType {
+  return Object.values(TicketType).includes(ticketType as TicketType);
+}
+
+/**
+ * Create a new ticket
+ *
+ * @param payload - Ticket creation data
+ * @returns Created ticket with generated ID and UID
+ * @throws {Error} If validation fails or database error occurs
+ */
+export async function createTicket(payload: CreateTicketPayload): Promise<Ticket> {
+  // 🟢 WORKING: Validate required fields
+  if (!payload.source) {
+    throw new Error('source is required');
+  }
+
+  if (!payload.title || !payload.title.trim()) {
+    throw new Error(payload.title === '' ? 'title cannot be empty' : 'title is required');
+  }
+
+  if (!payload.ticket_type) {
+    throw new Error('ticket_type is required');
+  }
+
+  // 🟢 WORKING: Validate enum values
+  if (!isValidSource(payload.source)) {
+    throw new Error('Invalid source value');
+  }
+
+  if (!isValidTicketType(payload.ticket_type)) {
+    throw new Error('Invalid ticket_type value');
+  }
+
+  // 🟢 WORKING: Set defaults
+  const priority = payload.priority || TicketPriority.NORMAL;
+  const status = TicketStatus.OPEN;
+  const ticketUID = generateTicketUID();
+
+  logger.info('Creating ticket', {
+    title: payload.title,
+    type: payload.ticket_type,
+    source: payload.source
+  });
+
+  try {
+    // 🟢 WORKING: Insert ticket with all fields
+    const sql = `
+      INSERT INTO tickets (
+        ticket_uid,
+        source,
+        external_id,
+        title,
+        description,
+        ticket_type,
+        priority,
+        status,
+        dr_number,
+        project_id,
+        zone_id,
+        pole_number,
+        pon_number,
+        address,
+        assigned_to,
+        assigned_contractor_id,
+        assigned_team,
+        created_by
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+      )
+      RETURNING *
+    `;
+
+    const values = [
+      ticketUID,
+      payload.source,
+      payload.external_id || null,
+      payload.title,
+      payload.description || null,
+      payload.ticket_type,
+      priority,
+      status,
+      payload.dr_number || null,
+      payload.project_id || null,
+      payload.zone_id || null,
+      payload.pole_number || null,
+      payload.pon_number || null,
+      payload.address || null,
+      payload.assigned_to || null,
+      payload.assigned_contractor_id || null,
+      payload.assigned_team || null,
+      payload.created_by || null
+    ];
+
+    const ticket = await queryOne<Ticket>(sql, values);
+
+    if (!ticket) {
+      throw new Error('Failed to create ticket');
+    }
+
+    logger.info('Ticket created successfully', {
+      id: ticket.id,
+      ticket_uid: ticket.ticket_uid
+    });
+
+    return ticket;
+  } catch (error) {
+    logger.error('Failed to create ticket', { error, payload });
+    throw error;
+  }
+}
+
+/**
+ * Get ticket by ID
+ *
+ * @param id - Ticket UUID
+ * @returns Ticket data
+ * @throws {Error} If ticket not found or ID invalid
+ */
+export async function getTicketById(id: string): Promise<Ticket> {
+  // 🟢 WORKING: Validate ID format
+  if (!isValidUUID(id)) {
+    throw new Error('Invalid ticket ID format');
+  }
+
+  logger.debug('Fetching ticket by ID', { id });
+
+  try {
+    const sql = 'SELECT * FROM tickets WHERE id = $1';
+    const ticket = await queryOne<Ticket>(sql, [id]);
+
+    if (!ticket) {
+      throw new Error(`Ticket with ID ${id} not found`);
+    }
+
+    logger.debug('Ticket fetched successfully', { id, ticket_uid: ticket.ticket_uid });
+
+    return ticket;
+  } catch (error) {
+    logger.error('Failed to fetch ticket', { error, id });
+    throw error;
+  }
+}
+
+/**
+ * Update ticket (partial update)
+ *
+ * @param id - Ticket UUID
+ * @param payload - Fields to update
+ * @returns Updated ticket
+ * @throws {Error} If ticket not found or update fails
+ */
+export async function updateTicket(
+  id: string,
+  payload: UpdateTicketPayload
+): Promise<Ticket> {
+  // 🟢 WORKING: Validate empty payload
+  if (!payload || Object.keys(payload).length === 0) {
+    throw new Error('Update payload cannot be empty');
+  }
+
+  logger.info('Updating ticket', { id, fields: Object.keys(payload) });
+
+  try {
+    // 🟢 WORKING: Build dynamic UPDATE query based on provided fields
+    const updateFields: string[] = [];
+    const values: any[] = [];
+    let paramCounter = 1;
+
+    // Map of payload keys to database columns
+    const fieldMap: Record<string, string> = {
+      title: 'title',
+      description: 'description',
+      status: 'status',
+      priority: 'priority',
+      assigned_to: 'assigned_to',
+      assigned_contractor_id: 'assigned_contractor_id',
+      assigned_team: 'assigned_team',
+      dr_number: 'dr_number',
+      project_id: 'project_id',
+      zone_id: 'zone_id',
+      pole_number: 'pole_number',
+      pon_number: 'pon_number',
+      address: 'address',
+      ont_serial: 'ont_serial',
+      ont_rx_level: 'ont_rx_level',
+      ont_model: 'ont_model',
+      fault_cause: 'fault_cause',
+      fault_cause_details: 'fault_cause_details',
+      guarantee_status: 'guarantee_status',
+      guarantee_expires_at: 'guarantee_expires_at',
+      is_billable: 'is_billable',
+      billing_classification: 'billing_classification',
+      qa_ready: 'qa_ready',
+      sla_due_at: 'sla_due_at',
+      sla_first_response_at: 'sla_first_response_at',
+      sla_breached: 'sla_breached'
+    };
+
+    // Build SET clause dynamically
+    for (const [key, value] of Object.entries(payload)) {
+      if (key in fieldMap) {
+        const dbColumn = fieldMap[key];
+        updateFields.push(`${dbColumn} = $${paramCounter}`);
+        values.push(value);
+        paramCounter++;
+      }
+    }
+
+    // Always update updated_at
+    updateFields.push('updated_at = NOW()');
+
+    // Add ID as last parameter
+    values.push(id);
+
+    const sql = `
+      UPDATE tickets
+      SET ${updateFields.join(', ')}
+      WHERE id = $${paramCounter}
+      RETURNING *
+    `;
+
+    const updatedTicket = await queryOne<Ticket>(sql, values);
+
+    if (!updatedTicket) {
+      throw new Error(`Ticket with ID ${id} not found`);
+    }
+
+    logger.info('Ticket updated successfully', {
+      id,
+      ticket_uid: updatedTicket.ticket_uid
+    });
+
+    return updatedTicket;
+  } catch (error) {
+    logger.error('Failed to update ticket', { error, id, payload });
+    throw error;
+  }
+}
+
+/**
+ * Delete ticket (soft delete - marks as CANCELLED)
+ *
+ * We never hard delete tickets for audit trail purposes.
+ * Instead, we mark them as CANCELLED.
+ *
+ * @param id - Ticket UUID
+ * @returns Deleted (cancelled) ticket
+ * @throws {Error} If ticket not found
+ */
+export async function deleteTicket(id: string): Promise<Ticket> {
+  logger.info('Soft deleting ticket (marking as CANCELLED)', { id });
+
+  try {
+    // 🟢 WORKING: Soft delete by updating status to CANCELLED
+    const sql = `
+      UPDATE tickets
+      SET status = $1, updated_at = NOW()
+      WHERE id = $2
+      RETURNING *
+    `;
+
+    const deletedTicket = await queryOne<Ticket>(sql, [TicketStatus.CANCELLED, id]);
+
+    if (!deletedTicket) {
+      throw new Error(`Ticket with ID ${id} not found`);
+    }
+
+    logger.info('Ticket soft deleted successfully', {
+      id,
+      ticket_uid: deletedTicket.ticket_uid
+    });
+
+    return deletedTicket;
+  } catch (error) {
+    logger.error('Failed to delete ticket', { error, id });
+    throw error;
+  }
+}
+
+/**
+ * Combined filters and pagination interface
+ */
+export interface ListTicketsParams extends Partial<TicketFilters> {
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * List tickets with filters and pagination
+ *
+ * @param filters - Filter criteria (status, type, assignee, etc.) and pagination
+ * @returns Paginated list of tickets
+ */
+export async function listTickets(
+  filters: ListTicketsParams = {}
+): Promise<TicketListResponse> {
+  logger.debug('Listing tickets', { filters });
+
+  try {
+    // 🟢 WORKING: Build WHERE clause based on filters
+    const whereClauses: string[] = [];
+    const values: any[] = [];
+    let paramCounter = 1;
+
+    if (filters.status) {
+      whereClauses.push(`status = $${paramCounter}`);
+      values.push(filters.status);
+      paramCounter++;
+    }
+
+    if (filters.ticket_type) {
+      whereClauses.push(`ticket_type = $${paramCounter}`);
+      values.push(filters.ticket_type);
+      paramCounter++;
+    }
+
+    if (filters.assigned_to) {
+      whereClauses.push(`assigned_to = $${paramCounter}`);
+      values.push(filters.assigned_to);
+      paramCounter++;
+    }
+
+    if (filters.assigned_contractor_id) {
+      whereClauses.push(`assigned_contractor_id = $${paramCounter}`);
+      values.push(filters.assigned_contractor_id);
+      paramCounter++;
+    }
+
+    if (filters.priority) {
+      whereClauses.push(`priority = $${paramCounter}`);
+      values.push(filters.priority);
+      paramCounter++;
+    }
+
+    if (filters.source) {
+      whereClauses.push(`source = $${paramCounter}`);
+      values.push(filters.source);
+      paramCounter++;
+    }
+
+    if (filters.project_id) {
+      whereClauses.push(`project_id = $${paramCounter}`);
+      values.push(filters.project_id);
+      paramCounter++;
+    }
+
+    if (filters.dr_number) {
+      whereClauses.push(`dr_number = $${paramCounter}`);
+      values.push(filters.dr_number);
+      paramCounter++;
+    }
+
+    if (filters.qa_ready !== undefined) {
+      whereClauses.push(`qa_ready = $${paramCounter}`);
+      values.push(filters.qa_ready);
+      paramCounter++;
+    }
+
+    if (filters.sla_breached !== undefined) {
+      whereClauses.push(`sla_breached = $${paramCounter}`);
+      values.push(filters.sla_breached);
+      paramCounter++;
+    }
+
+    // 🟢 WORKING: Build WHERE clause
+    const whereClause = whereClauses.length > 0
+      ? `WHERE ${whereClauses.join(' AND ')}`
+      : '';
+
+    // 🟢 WORKING: Pagination (default: page 1, pageSize 50)
+    const page = filters.page || 1;
+    const pageSize = filters.pageSize || 50;
+    const offset = (page - 1) * pageSize;
+
+    // Add LIMIT and OFFSET as last parameters
+    values.push(pageSize);
+    const limitParam = paramCounter;
+    paramCounter++;
+
+    values.push(offset);
+    const offsetParam = paramCounter;
+
+    // 🟢 WORKING: Query with pagination and ordering
+    const sql = `
+      SELECT * FROM tickets
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT $${limitParam} OFFSET $${offsetParam}
+    `;
+
+    const tickets = await query<Ticket>(sql, values);
+
+    logger.debug('Tickets fetched successfully', {
+      count: tickets.length,
+      page,
+      pageSize
+    });
+
+    return {
+      tickets,
+      total: tickets.length,
+      page,
+      limit: pageSize,
+      total_pages: Math.ceil(tickets.length / pageSize)
+    };
+  } catch (error) {
+    logger.error('Failed to list tickets', { error, filters });
+    throw error;
+  }
+}
