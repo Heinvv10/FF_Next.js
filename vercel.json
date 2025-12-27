@@ -21,6 +21,10 @@
     {
       "path": "/api/cron/sync-action-items",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/qcontact-sync-cron",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
