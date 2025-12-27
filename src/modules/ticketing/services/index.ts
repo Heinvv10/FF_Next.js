@@ -24,8 +24,10 @@ export * from './attachmentService';
 // Escalation Service - Repeat Fault Escalation Management (subtask 3.2)
 export * from './escalationService';
 
+// Handover Service - Ownership Transfer & Snapshots (subtask 3.4)
+export * from './handoverService';
+
 // Additional services will be exported as they are implemented:
-// - handoverService (subtask 3.4)
 // - guaranteeService (subtask 3.5)
 // - qcontactService (phase 4)
 // - whatsappService (phase 5)
