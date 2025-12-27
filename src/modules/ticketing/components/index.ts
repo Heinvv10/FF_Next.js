@@ -30,7 +30,19 @@ export { SLAComplianceCard } from './Dashboard/SLAComplianceCard';
 export { WorkloadChart } from './Dashboard/WorkloadChart';
 export { RecentTickets } from './Dashboard/RecentTickets';
 
-// Components to be added in future subtasks:
-// - TicketList (subtask 5.12)
-// - TicketDetail (subtask 5.12)
-// - RiskAcceptance components (phase 2)
+// TicketList Components (✅ Completed - subtask 5.12)
+export { TicketList } from './TicketList/TicketList';
+export { TicketListItem } from './TicketList/TicketListItem';
+export { TicketFilters } from './TicketList/TicketFilters';
+export { TicketStatusBadge } from './TicketList/TicketStatusBadge';
+
+// TicketDetail Components (✅ Completed - subtask 5.12)
+export { TicketDetail } from './TicketDetail/TicketDetail';
+export { TicketHeader } from './TicketDetail/TicketHeader';
+export { TicketTimeline } from './TicketDetail/TicketTimeline';
+export { TicketActions } from './TicketDetail/TicketActions';
+
+// Common Components (✅ Completed - subtask 5.12)
+export { DRLookup } from './common/DRLookup';
+export { GuaranteeIndicator } from './common/GuaranteeIndicator';
+export { SLACountdown } from './common/SLACountdown';
