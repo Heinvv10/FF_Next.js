@@ -46,7 +46,23 @@ export type {
   ContractorLiabilityAssessmentResult
 } from './guaranteeCalculator';
 
+// Excel Parser (subtask 5.1) ✅
+export {
+  parseExcelFile,
+  validateRow,
+  detectDuplicates,
+  generatePreview,
+  createDefaultColumnMapping,
+  mapRowToTicket
+} from './excelParser';
+export type {
+  ExcelParseOptions,
+  ExcelParseResult,
+  ValidationResult,
+  DuplicateResult,
+  PreviewOptions
+} from './excelParser';
+
 // Utilities to be added in future subtasks:
 // - drLookup.ts - DR number lookup helpers
-// - excelParser.ts (subtask 5.1) - Excel file parsing
 // - slaCalculator.ts (subtask 5.8) - SLA calculations
