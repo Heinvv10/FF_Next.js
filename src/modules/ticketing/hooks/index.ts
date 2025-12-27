@@ -81,9 +81,32 @@ export {
   qcontactSyncKeys,
 } from './useQContactSync';
 
+// ==================== Ticket Management Hooks (Subtask 5.12) ====================
+
+/**
+ * Ticket management hooks for managing tickets list and individual tickets
+ *
+ * Exports:
+ * - useTickets: Fetch tickets list with filters and pagination
+ * - useCreateTicket: Create new ticket
+ * - ticketsKeys: Query keys for React Query
+ * - useTicket: Fetch single ticket by ID
+ * - useUpdateTicket: Update ticket details
+ * - useDeleteTicket: Soft delete ticket
+ */
+export {
+  useTickets,
+  useCreateTicket,
+  ticketsKeys,
+} from './useTickets';
+
+export {
+  useTicket,
+  useUpdateTicket,
+  useDeleteTicket,
+} from './useTicket';
+
 // Hooks to be added in future subtasks:
-// - useTickets (phase 2)
-// - useTicket (phase 2)
 // - useRiskAcceptance (phase 2)
 // - useEscalation (phase 3)
 // - useGuarantee (phase 3)
