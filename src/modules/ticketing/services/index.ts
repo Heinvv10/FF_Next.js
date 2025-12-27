@@ -18,6 +18,9 @@ export * from './verificationService';
 // Risk Acceptance Service (subtask 2.4)
 export * from './riskAcceptanceService';
 
+// Attachment Service - Firebase Storage Integration (subtask 2.8)
+export * from './attachmentService';
+
 // Additional services will be exported as they are implemented:
 // - handoverService (subtask 3.4)
 // - escalationService (subtask 3.2)
