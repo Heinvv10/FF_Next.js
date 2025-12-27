@@ -15,8 +15,10 @@ export * from './qaReadinessService';
 // Verification Service - 12-Step Workflow (subtask 2.3)
 export * from './verificationService';
 
+// Risk Acceptance Service (subtask 2.4)
+export * from './riskAcceptanceService';
+
 // Additional services will be exported as they are implemented:
-// - riskAcceptanceService (subtask 2.4)
 // - handoverService (subtask 3.4)
 // - escalationService (subtask 3.2)
 // - guaranteeService (subtask 3.5)
