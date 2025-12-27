@@ -21,10 +21,27 @@ export {
   verificationKeys,
 } from './useVerification';
 
+// ==================== QA Readiness Hooks (Subtask 2.10) ====================
+
+/**
+ * QA Readiness hooks for managing pre-QA validation checks
+ *
+ * Exports:
+ * - useQAReadinessStatus: Fetch current QA readiness status
+ * - useRunQAReadinessCheck: Run a new QA readiness check
+ * - useQAReadiness: Combined hook for status + check
+ * - qaReadinessKeys: Query keys for React Query
+ */
+export {
+  useQAReadinessStatus,
+  useRunQAReadinessCheck,
+  useQAReadiness,
+  qaReadinessKeys,
+} from './useQAReadiness';
+
 // Hooks to be added in future subtasks:
 // - useTickets (phase 2)
 // - useTicket (phase 2)
-// - useQAReadiness (subtask 2.10)
 // - useRiskAcceptance (phase 2)
 // - useHandover (phase 3)
 // - useEscalation (phase 3)

@@ -284,11 +284,42 @@
         }
       ],
       "status": "completed"
+    },
+    "2.8": {
+      "attempts": [
+        {
+          "session": 16,
+          "timestamp": "2025-12-27T05:04:16.064982",
+          "approach": "Implemented: Integrate Firebase Storage for photo uploads. Create attachment service and API.",
+          "success": true,
+          "error": null
+        },
+        {
+          "session": 18,
+          "timestamp": "2025-12-27T05:10:38.437404",
+          "approach": "Implemented: Integrate Firebase Storage for photo uploads. Create attachment service and API.",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "2.9": {
+      "attempts": [
+        {
+          "session": 17,
+          "timestamp": "2025-12-27T05:11:08.307178",
+          "approach": "Implemented: Create React hook for managing verification checklist state.",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
     }
   },
   "stuck_subtasks": [],
   "metadata": {
     "created_at": "2025-12-27T03:21:36.161471",
-    "last_updated": "2025-12-27T04:57:36.686246"
+    "last_updated": "2025-12-27T05:11:08.307182"
   }
 }
