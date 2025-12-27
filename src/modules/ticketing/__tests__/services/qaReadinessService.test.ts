@@ -487,10 +487,7 @@ describe('QAReadinessService', () => {
         },
       ];
 
-      vi.mocked(db.query).mockResolvedValueOnce({
-        rows: mockChecks,
-        rowCount: 2,
-      });
+      vi.mocked(db.query).mockResolvedValueOnce(mockChecks);
 
       // Act
       const result = await qaReadinessService.getReadinessHistory(mockTicketId);
@@ -513,10 +510,7 @@ describe('QAReadinessService', () => {
 
     it('should return empty array when no checks exist', async () => {
       // Arrange
-      vi.mocked(db.query).mockResolvedValueOnce({
-        rows: [],
-        rowCount: 0,
-      });
+      vi.mocked(db.query).mockResolvedValueOnce([]);
 
       // Act
       const result = await qaReadinessService.getReadinessHistory(mockTicketId);

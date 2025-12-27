@@ -256,15 +256,14 @@ export async function getReadinessHistory(ticketId: string): Promise<QAReadiness
 
   try {
     // 🟢 WORKING: Get all checks for ticket
-    const result = await query<QAReadinessCheck>(
+    const checks = await query<QAReadinessCheck>(
       `SELECT * FROM qa_readiness_checks
        WHERE ticket_id = $1
        ORDER BY checked_at DESC`,
       [ticketId]
     );
 
-    // Return rows array (query returns { rows, rowCount })
-    return result.rows;
+    return checks;
   } catch (error) {
     logger.error('Failed to get readiness history', {
       ticketId,
