@@ -14,11 +14,13 @@ export { FaultTrendAnalysis } from './FaultAttribution/FaultTrendAnalysis';
 // Handover Components (✅ Completed - subtask 3.10)
 export { HandoverWizard, HandoverSnapshot, HandoverHistory } from './Handover';
 
+// Escalation Components (✅ Completed - subtask 3.11)
+export { EscalationAlert, EscalationList, RepeatFaultMap } from './Escalation';
+
 // Components to be added in future subtasks:
 // - TicketList (subtask 5.12)
 // - TicketDetail (subtask 5.12)
 // - RiskAcceptance components (phase 2)
-// - Escalation components (subtask 3.11)
 // - WeeklyImport components (subtask 5.10)
 // - Dashboard components (subtask 5.11)
 // - QContactSync components (subtask 4.8)
