@@ -33,7 +33,13 @@ export * from './guaranteeService';
 // QContact HTTP Client - API Integration (subtask 4.1)
 export * from './qcontactClient';
 
+// QContact Inbound Sync Service (subtask 4.2)
+export * from './qcontactSyncInbound';
+
+// QContact Outbound Sync Service (subtask 4.3)
+export * from './qcontactSyncOutbound';
+
 // Additional services will be exported as they are implemented:
-// - qcontactSyncService (phase 4)
+// - qcontactSyncOrchestrator (subtask 4.4)
 // - whatsappService (phase 5)
 // - weeklyReportService (phase 5)
