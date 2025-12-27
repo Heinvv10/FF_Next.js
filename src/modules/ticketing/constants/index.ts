@@ -1,11 +1,22 @@
-// 🟢 WORKING: Constants for FibreFlow Ticketing Module
-// This file will export all constants for the ticketing module
+/**
+ * Ticketing Module - Constants Index
+ * 🟢 WORKING: Central export point for all ticketing constants
+ *
+ * Exports ticket statuses, types, priorities, fault causes,
+ * verification steps, and QA readiness check definitions.
+ */
 
-// Constants will be added in subtask 1.9:
-// - ticketStatus.ts - Ticket status enum values
-// - ticketTypes.ts - Ticket type enum values
-// - faultCauses.ts - 7 fault cause categories
-// - verificationSteps.ts - 12 standard verification steps
-// - readinessChecks.ts - QA readiness check requirements
+// Ticket Status Constants
+export * from './ticketStatus';
 
-export {};
+// Ticket Types, Priorities, and Sources
+export * from './ticketTypes';
+
+// Fault Cause Categories (7 categories)
+export * from './faultCauses';
+
+// 12 Standard Verification Steps
+export * from './verificationSteps';
+
+// QA Readiness Check Requirements
+export * from './readinessChecks';
