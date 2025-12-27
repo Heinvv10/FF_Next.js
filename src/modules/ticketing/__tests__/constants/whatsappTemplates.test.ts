@@ -1,6 +1,6 @@
 /**
  * WhatsApp Templates Tests
- * ⚪ UNTESTED: Test suite for WhatsApp notification templates
+ * 🟢 WORKING: Test suite for WhatsApp notification templates
  *
  * Tests template structure, variable replacement, and message formatting
  * for all notification types.
