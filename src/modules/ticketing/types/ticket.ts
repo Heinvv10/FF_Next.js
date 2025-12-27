@@ -7,6 +7,34 @@
  */
 
 /**
+ * DR (Drop) Lookup Result
+ * Result from querying SOW module for DR details
+ * 🟢 WORKING: Type definition for DR lookup service response
+ */
+export interface DRLookupData {
+  dr_number: string;
+  pole_number: string | null;
+  pon_number: number | null;
+  zone_number: number | null;
+  project_id: string | null;
+  project_name: string | null;
+  project_code: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  municipality: string | null;
+  cable_type: string | null;
+  cable_length: string | null;
+  status: string | null;
+}
+
+export interface DRLookupResult {
+  success: boolean;
+  data: DRLookupData | null;
+  error?: string;
+}
+
+/**
  * Ticket Source - Where the ticket originated from
  */
 export enum TicketSource {

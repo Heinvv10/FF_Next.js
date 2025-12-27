@@ -6,8 +6,10 @@
 // Ticket CRUD Service (subtask 1.5)
 export * from './ticketService';
 
+// DR Lookup Service (subtask 1.6)
+export * from './drLookupService';
+
 // Additional services will be exported as they are implemented:
-// - drLookupService (subtask 1.6)
 // - verificationService (subtask 2.3)
 // - qaReadinessService (subtask 2.2)
 // - riskAcceptanceService (subtask 2.4)
