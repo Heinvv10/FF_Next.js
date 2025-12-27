@@ -440,6 +440,35 @@ describe('QContact Outbound Sync Service', () => {
       expect(result.success).toBe(false);
       expect(result.error_message).toContain('API connection error');
     });
+
+    it('should handle ticket not found during closure', async () => {
+      // 🟢 WORKING: Test ticket not found scenario
+      const ticketId = 'nonexistent-ticket';
+
+      vi.mocked(queryOne).mockResolvedValueOnce(null);
+
+      const result = await pushTicketClosure(ticketId, 'Closure note');
+
+      expect(result.success).toBe(false);
+      expect(result.error_message).toContain('not found');
+    });
+
+    it('should skip closure for tickets without QContact ID', async () => {
+      // 🟢 WORKING: Test skip when ticket has no external_id
+      const ticketId = 'ticket-123';
+
+      vi.mocked(queryOne).mockResolvedValueOnce({
+        id: ticketId,
+        external_id: null,
+        source: 'manual',
+      });
+
+      const result = await pushTicketClosure(ticketId);
+
+      expect(result.success).toBe(true);
+      expect(result.qcontact_ticket_id).toBeNull();
+      expect(result.error_message).toContain('No QContact ID');
+    });
   });
 
   describe('syncOutboundUpdate', () => {
@@ -565,6 +594,55 @@ describe('QContact Outbound Sync Service', () => {
 
       expect(result.success).toBe(true);
       expect(result.qcontact_ticket_id).toBeNull();
+    });
+
+    it('should handle API errors during outbound update and log failure', async () => {
+      // 🟢 WORKING: Test error handling in syncOutboundUpdate
+      const ticketId = 'ticket-123';
+      const qcontactTicketId = 'QC-12345';
+      const changes = {
+        status: TicketStatus.CLOSED,
+      };
+
+      vi.mocked(queryOne).mockResolvedValueOnce({
+        id: ticketId,
+        external_id: qcontactTicketId,
+      });
+
+      const mockUpdateTicket = vi.fn().mockRejectedValueOnce(new Error('Network timeout'));
+      vi.mocked(getDefaultQContactClient).mockReturnValue({
+        updateTicket: mockUpdateTicket,
+      } as any);
+
+      // Mock fetch for error logging
+      vi.mocked(queryOne).mockResolvedValueOnce({
+        id: ticketId,
+        external_id: qcontactTicketId,
+      });
+
+      vi.mocked(queryOne).mockResolvedValueOnce({ id: 'log-123' });
+
+      const result = await syncOutboundUpdate(ticketId, changes);
+
+      expect(result.success).toBe(false);
+      expect(result.error_message).toContain('Network timeout');
+    });
+
+    it('should skip update when no changes provided', async () => {
+      // 🟢 WORKING: Test no changes scenario
+      const ticketId = 'ticket-123';
+      const qcontactTicketId = 'QC-12345';
+      const changes = {};
+
+      vi.mocked(queryOne).mockResolvedValueOnce({
+        id: ticketId,
+        external_id: qcontactTicketId,
+      });
+
+      const result = await syncOutboundUpdate(ticketId, changes);
+
+      expect(result.success).toBe(true);
+      expect(result.error_message).toContain('No changes to sync');
     });
   });
 
