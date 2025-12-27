@@ -61,6 +61,26 @@ export {
   handoverKeys,
 } from './useHandover';
 
+// ==================== QContact Sync Hooks (Subtask 4.8) ====================
+
+/**
+ * QContact Sync hooks for managing QContact bidirectional sync
+ *
+ * Exports:
+ * - useQContactSyncStatus: Fetch sync status overview
+ * - useQContactSyncLog: Fetch sync audit log
+ * - useTriggerManualSync: Trigger manual sync operation
+ * - useInvalidateSyncQueries: Invalidate sync queries for manual refresh
+ * - qcontactSyncKeys: Query keys for React Query
+ */
+export {
+  useQContactSyncStatus,
+  useQContactSyncLog,
+  useTriggerManualSync,
+  useInvalidateSyncQueries,
+  qcontactSyncKeys,
+} from './useQContactSync';
+
 // Hooks to be added in future subtasks:
 // - useTickets (phase 2)
 // - useTicket (phase 2)
