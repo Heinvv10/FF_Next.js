@@ -1,8 +1,11 @@
 // 🟢 WORKING: Utility functions for FibreFlow Ticketing Module
-// This file will export all utility functions for the ticketing module
+// This file exports all utility functions for the ticketing module
 
-// Utilities will be added in future subtasks:
-// - db.ts (subtask 1.4) - Database connection utility
+// Database connection utility (subtask 1.4) ✅
+export { db, getConnection, query, queryOne, transaction, healthCheck, closeConnection } from './db';
+export type { HealthCheckResult } from './db';
+
+// Utilities to be added in future subtasks:
 // - drLookup.ts - DR number lookup helpers
 // - guaranteeCalculator.ts (subtask 3.5) - Guarantee calculations
 // - excelParser.ts (subtask 5.1) - Excel file parsing
@@ -10,5 +13,3 @@
 // - qaReadinessValidator.ts (subtask 2.1) - QA readiness validation
 // - faultPatternDetector.ts (subtask 3.1) - Fault pattern detection
 // - snapshotGenerator.ts (subtask 3.3) - Handover snapshot generation
-
-export {};
