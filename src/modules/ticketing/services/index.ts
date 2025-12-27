@@ -50,3 +50,6 @@ export * from './weeklyReportService';
 
 // WhatsApp Service - WAHA API Integration (subtask 5.4)
 export * from './whatsappService';
+
+// Notification Triggers Service - Automatic WhatsApp Notifications (subtask 5.6)
+export * from './notificationTriggers';
