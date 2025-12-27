@@ -1,11 +1,13 @@
 /**
  * Ticket Attachments API Route
  *
- * 🟢 WORKING: Production-ready API endpoint for listing ticket attachments
+ * 🟢 WORKING: Production-ready API endpoint for attachment upload and listing
  *
- * GET /api/ticketing/tickets/[id]/attachments - List all attachments for a ticket
+ * POST /api/ticketing/tickets/[id]/attachments - Upload attachment
+ * GET  /api/ticketing/tickets/[id]/attachments - List all attachments for a ticket
  *
  * Features:
+ * - File upload to Firebase Storage
  * - Filter by file_type, is_evidence, verification_step_id
  * - Aggregated statistics (total size, evidence count)
  * - Proper error handling with standard API responses
@@ -14,10 +16,136 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createLogger } from '@/lib/logger';
-import { listAttachmentsForTicket } from '@/modules/ticketing/services/attachmentService';
-import { FileType, AttachmentFilters } from '@/modules/ticketing/types/attachment';
+import {
+  uploadAttachment,
+  listAttachmentsForTicket
+} from '@/modules/ticketing/services/attachmentService';
+import {
+  FileType,
+  AttachmentFilters,
+  FileUploadRequest
+} from '@/modules/ticketing/types/attachment';
 
 const logger = createLogger('ticketing:api:ticket-attachments');
+
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// ==================== POST /api/ticketing/tickets/[id]/attachments ====================
+
+/**
+ * 🟢 WORKING: Upload attachment (photo or document) to ticket
+ * Multipart form data upload with Firebase Storage integration
+ */
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: ticketId } = await params;
+
+    // Validate ticket ID format
+    if (!UUID_REGEX.test(ticketId)) {
+      logger.warn('Invalid ticket ID format', { ticket_id: ticketId });
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid ticket ID format. Must be a valid UUID.'
+          }
+        },
+        { status: 422 }
+      );
+    }
+
+    // Parse form data
+    const formData = await req.formData();
+    const file = formData.get('file') as File | null;
+    const uploadedBy = formData.get('uploaded_by') as string | null;
+    const isEvidenceStr = formData.get('is_evidence') as string | null;
+    const verificationStepId = formData.get('verification_step_id') as string | null;
+
+    // Validate required fields
+    if (!file) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'file is required'
+          }
+        },
+        { status: 422 }
+      );
+    }
+
+    if (!uploadedBy) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'uploaded_by is required'
+          }
+        },
+        { status: 422 }
+      );
+    }
+
+    // Parse boolean
+    const isEvidence = isEvidenceStr === 'true';
+
+    // Build upload request
+    const uploadRequest: FileUploadRequest = {
+      ticket_id: ticketId,
+      file,
+      filename: file.name,
+      uploaded_by: uploadedBy,
+      is_evidence: isEvidence,
+      verification_step_id: verificationStepId || undefined
+    };
+
+    logger.info('Uploading attachment', {
+      ticket_id: ticketId,
+      filename: file.name,
+      is_evidence: isEvidence
+    });
+
+    // Upload file
+    const result = await uploadAttachment(uploadRequest);
+
+    logger.info('Attachment uploaded successfully', {
+      attachment_id: result.attachment_id,
+      ticket_id: ticketId
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: result,
+        meta: {
+          timestamp: new Date().toISOString()
+        }
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    logger.error('Failed to upload attachment', { error });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'UPLOAD_ERROR',
+          message: 'Failed to upload attachment',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        }
+      },
+      { status: 500 }
+    );
+  }
+}
 
 // ==================== GET /api/ticketing/tickets/[id]/attachments ====================
 
@@ -30,6 +158,25 @@ export async function GET(
 ) {
   try {
     const { id: ticketId } = await params;
+
+    // Validate ticket ID format
+    if (!UUID_REGEX.test(ticketId)) {
+      logger.warn('Invalid ticket ID format', { ticket_id: ticketId });
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid ticket ID format. Must be a valid UUID.'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+          },
+        },
+        { status: 422 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
 
     // Parse filters from query params
@@ -56,7 +203,11 @@ export async function GET(
 
     logger.debug('Fetching attachments for ticket', { ticket_id: ticketId, filters });
 
-    const result = await listAttachmentsForTicket(ticketId, filters);
+    // Only pass filters if there are any (to match test expectations)
+    const result = await listAttachmentsForTicket(
+      ticketId,
+      Object.keys(filters).length > 0 ? filters : undefined
+    );
 
     return NextResponse.json({
       success: true,
@@ -68,29 +219,13 @@ export async function GET(
   } catch (error) {
     logger.error('Error fetching ticket attachments', { error });
 
-    // Handle validation errors (invalid UUID)
-    if (error instanceof Error && error.message.includes('Invalid')) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: error.message,
-          },
-          meta: {
-            timestamp: new Date().toISOString(),
-          },
-        },
-        { status: 422 }
-      );
-    }
-
     return NextResponse.json(
       {
         success: false,
         error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Failed to fetch attachments',
+          code: 'LIST_ERROR',
+          message: 'Failed to list attachments',
+          details: error instanceof Error ? error.message : 'Unknown error'
         },
         meta: {
           timestamp: new Date().toISOString(),

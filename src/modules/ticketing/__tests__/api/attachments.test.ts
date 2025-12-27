@@ -100,7 +100,7 @@ describe('POST /api/ticketing/tickets/[id]/attachments', () => {
       body: formData,
     });
 
-    const response = await POST(request, { params: { id: mockTicketId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(201);
@@ -142,7 +142,7 @@ describe('POST /api/ticketing/tickets/[id]/attachments', () => {
       body: formData,
     });
 
-    const response = await POST(request, { params: { id: mockTicketId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(201);
@@ -166,7 +166,7 @@ describe('POST /api/ticketing/tickets/[id]/attachments', () => {
       body: formData,
     });
 
-    const response = await POST(request, { params: { id: mockTicketId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(422);
@@ -187,7 +187,7 @@ describe('POST /api/ticketing/tickets/[id]/attachments', () => {
       body: formData,
     });
 
-    const response = await POST(request, { params: { id: mockTicketId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(422);
@@ -209,7 +209,7 @@ describe('POST /api/ticketing/tickets/[id]/attachments', () => {
       body: formData,
     });
 
-    const response = await POST(request, { params: { id: 'invalid-uuid' } });
+    const response = await POST(request, { params: Promise.resolve({ id: 'invalid-uuid' }) });
     const json = await response.json();
 
     expect(response.status).toBe(422);
@@ -235,7 +235,7 @@ describe('POST /api/ticketing/tickets/[id]/attachments', () => {
       body: formData,
     });
 
-    const response = await POST(request, { params: { id: mockTicketId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(500);
@@ -259,7 +259,7 @@ describe('GET /api/ticketing/tickets/[id]/attachments', () => {
       method: 'GET',
     });
 
-    const response = await GET(request, { params: { id: mockTicketId } });
+    const response = await GET(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(200);
@@ -283,7 +283,7 @@ describe('GET /api/ticketing/tickets/[id]/attachments', () => {
       { method: 'GET' }
     );
 
-    const response = await GET(request, { params: { id: mockTicketId } });
+    const response = await GET(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(200);
@@ -309,7 +309,7 @@ describe('GET /api/ticketing/tickets/[id]/attachments', () => {
       { method: 'GET' }
     );
 
-    const response = await GET(request, { params: { id: mockTicketId } });
+    const response = await GET(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(200);
@@ -331,7 +331,7 @@ describe('GET /api/ticketing/tickets/[id]/attachments', () => {
       { method: 'GET' }
     );
 
-    const response = await GET(request, { params: { id: mockTicketId } });
+    const response = await GET(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(200);
@@ -359,7 +359,7 @@ describe('GET /api/ticketing/tickets/[id]/attachments', () => {
       method: 'GET',
     });
 
-    const response = await GET(request, { params: { id: mockTicketId } });
+    const response = await GET(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(200);
@@ -375,7 +375,7 @@ describe('GET /api/ticketing/tickets/[id]/attachments', () => {
       method: 'GET',
     });
 
-    const response = await GET(request, { params: { id: 'invalid-uuid' } });
+    const response = await GET(request, { params: Promise.resolve({ id: 'invalid-uuid' }) });
     const json = await response.json();
 
     expect(response.status).toBe(422);
@@ -395,7 +395,7 @@ describe('GET /api/ticketing/tickets/[id]/attachments', () => {
       method: 'GET',
     });
 
-    const response = await GET(request, { params: { id: mockTicketId } });
+    const response = await GET(request, { params: Promise.resolve({ id: mockTicketId }) });
     const json = await response.json();
 
     expect(response.status).toBe(500);
