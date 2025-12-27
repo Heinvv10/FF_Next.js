@@ -1,0 +1,10 @@
+{
+  "discovered_files": {
+    "src/modules/ticketing/utils/faultPatternDetector.ts": {
+      "description": "Fault pattern detector utility completed (subtask 3.1). Provides detectFaultPattern() for single scope detection, checkMultiplePatterns() for parallel checking across pole/PON/zone/DR, and getDefaultThresholds(). Includes time window filtering (30 days default), existing escalation detection to prevent duplicates, and project-specific filtering. Default thresholds: pole=3, PON=5, zone=10, DR=2 faults. Returns FaultPatternDetectionResult with pattern_detected, fault_count, contributing_tickets, should_escalate flags, and human-readable recommendations. Fully tested with 27 tests covering all scope types and edge cases.",
+      "category": "utility",
+      "discovered_at": "2025-12-27T03:42:31.564235+00:00"
+    }
+  },
+  "last_updated": "2025-12-27T03:42:31.564246+00:00"
+}

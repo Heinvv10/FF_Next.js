@@ -21,9 +21,11 @@ export * from './riskAcceptanceService';
 // Attachment Service - Firebase Storage Integration (subtask 2.8)
 export * from './attachmentService';
 
+// Escalation Service - Repeat Fault Escalation Management (subtask 3.2)
+export * from './escalationService';
+
 // Additional services will be exported as they are implemented:
 // - handoverService (subtask 3.4)
-// - escalationService (subtask 3.2)
 // - guaranteeService (subtask 3.5)
 // - qcontactService (phase 4)
 // - whatsappService (phase 5)
