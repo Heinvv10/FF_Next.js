@@ -151,11 +151,49 @@
         }
       ],
       "status": "completed"
+    },
+    "2.1": {
+      "attempts": [
+        {
+          "session": 11,
+          "timestamp": "2025-12-27T04:16:13.357917",
+          "approach": "Implemented: Create utility to validate QA readiness checks: photos exist, DR/pole/PON/zone populated, ONT detail",
+          "success": true,
+          "error": null
+        },
+        {
+          "session": 9,
+          "timestamp": "2025-12-27T04:16:19.306545",
+          "approach": "Implemented: Create utility to validate QA readiness checks: photos exist, DR/pole/PON/zone populated, ONT detail",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "2.2": {
+      "attempts": [
+        {
+          "session": 10,
+          "timestamp": "2025-12-27T04:23:20.751462",
+          "approach": "Implemented: Implement service to run QA readiness checks and record results in qa_readiness_checks table.",
+          "success": true,
+          "error": null
+        },
+        {
+          "session": 12,
+          "timestamp": "2025-12-27T04:24:40.985109",
+          "approach": "Implemented: Implement service to run QA readiness checks and record results in qa_readiness_checks table.",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
     }
   },
   "stuck_subtasks": [],
   "metadata": {
     "created_at": "2025-12-27T03:21:36.161471",
-    "last_updated": "2025-12-27T04:11:02.472610"
+    "last_updated": "2025-12-27T04:24:40.985112"
   }
 }

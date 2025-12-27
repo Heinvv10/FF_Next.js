@@ -12,8 +12,10 @@ export * from './drLookupService';
 // QA Readiness Service (subtask 2.2)
 export * from './qaReadinessService';
 
+// Verification Service - 12-Step Workflow (subtask 2.3)
+export * from './verificationService';
+
 // Additional services will be exported as they are implemented:
-// - verificationService (subtask 2.3)
 // - riskAcceptanceService (subtask 2.4)
 // - handoverService (subtask 3.4)
 // - escalationService (subtask 3.2)
