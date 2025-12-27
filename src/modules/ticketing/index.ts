@@ -34,6 +34,11 @@
 // ============================================================================
 // Constants will be exported from constants/index.ts in subtask 1.9
 
+// ============================================================================
+// JOBS
+// ============================================================================
+// Background jobs will be exported from jobs/index.ts
+
 // Re-export everything from sub-modules
 export * from './types';
 export * from './services';
@@ -41,3 +46,4 @@ export * from './components';
 export * from './hooks';
 export * from './utils';
 export * from './constants';
+export * from './jobs';

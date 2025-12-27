@@ -61,11 +61,11 @@ describe('QContact Sync Background Job', () => {
         duration_seconds: 300,
         inbound_stats: {
           total_processed: 50,
-          successful: 45,
-          failed: 5,
+          successful: 50,
+          failed: 0,
           partial: 0,
           skipped: 0,
-          created: 40,
+          created: 45,
           updated: 5,
         },
         outbound_stats: {
@@ -77,9 +77,9 @@ describe('QContact Sync Background Job', () => {
           created: 0,
           updated: 20,
         },
-        total_success: 65,
-        total_failed: 5,
-        success_rate: 0.93,
+        total_success: 70,
+        total_failed: 0,
+        success_rate: 1.0,
         errors: [],
       };
 
@@ -109,7 +109,7 @@ describe('QContact Sync Background Job', () => {
       expect(result).toHaveProperty('status');
       expect(result).toHaveProperty('sync_result');
 
-      // Verify job succeeded
+      // Verify job succeeded (no failures = success)
       expect(result.status).toBe('success');
       expect(result.sync_result).toEqual(mockSyncResult);
     });
