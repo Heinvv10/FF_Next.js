@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Ticket Detail Page
  *
@@ -16,8 +18,6 @@
  */
 
 export const dynamic = 'force-dynamic';
-
-'use client';
 
 import { TicketDetail } from '@/modules/ticketing/components/TicketDetail/TicketDetail';
 import { useParams } from 'next/navigation';

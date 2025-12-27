@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Ticketing Dashboard Page
  *
@@ -12,8 +14,6 @@
  */
 
 export const dynamic = 'force-dynamic';
-
-'use client';
 
 import { TicketingDashboard } from '@/modules/ticketing/components/Dashboard/TicketingDashboard';
 

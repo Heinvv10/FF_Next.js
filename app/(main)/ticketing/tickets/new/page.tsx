@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Create Ticket Page
  *
@@ -14,8 +16,6 @@
  */
 
 export const dynamic = 'force-dynamic';
-
-'use client';
 
 import { ArrowLeft, Plus } from 'lucide-react';
 import Link from 'next/link';

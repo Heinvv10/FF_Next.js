@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Risk Acceptance Review Page
  *
@@ -12,8 +14,6 @@
  */
 
 export const dynamic = 'force-dynamic';
-
-'use client';
 
 import { useState } from 'react';
 

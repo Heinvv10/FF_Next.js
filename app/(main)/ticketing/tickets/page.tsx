@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Ticket List Page
  *
@@ -13,8 +15,6 @@
  */
 
 export const dynamic = 'force-dynamic';
-
-'use client';
 
 import { TicketList } from '@/modules/ticketing/components/TicketList/TicketList';
 import Link from 'next/link';
