@@ -48,5 +48,5 @@ export * from './qcontactSyncLogService';
 // Weekly Report Service - Import Management (subtask 5.2)
 export * from './weeklyReportService';
 
-// Additional services will be exported as they are implemented:
-// - whatsappService (phase 5)
+// WhatsApp Service - WAHA API Integration (subtask 5.4)
+export * from './whatsappService';
