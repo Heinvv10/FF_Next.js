@@ -4,10 +4,12 @@
 // Verification Components (✅ Completed - subtask 2.11)
 export { VerificationChecklist, VerificationStep, PhotoUpload } from './Verification';
 
+// QA Readiness Components (✅ Completed - subtask 2.12)
+export { QAReadinessCheck, ReadinessResults, ReadinessBlocker } from './QAReadiness';
+
 // Components to be added in future subtasks:
 // - TicketList (subtask 5.12)
 // - TicketDetail (subtask 5.12)
-// - QAReadinessCheck (subtask 2.12)
 // - RiskAcceptance components (phase 2)
 // - FaultAttribution components (subtask 3.9)
 // - Handover components (subtask 3.10)
