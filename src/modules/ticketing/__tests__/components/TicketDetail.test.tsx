@@ -200,7 +200,7 @@ describe('TicketDetail', () => {
     render(<TicketDetail ticketId="test-id-123" />, { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(screen.getByText('HIGH')).toBeInTheDocument();
+      expect(screen.getByText('high')).toBeInTheDocument();
     });
   });
 

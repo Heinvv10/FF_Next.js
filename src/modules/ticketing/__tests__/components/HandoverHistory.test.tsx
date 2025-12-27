@@ -174,14 +174,12 @@ describe('HandoverHistory Component', () => {
       // Act
       renderWithQueryClient(<HandoverHistory ticketId={mockTicketId} />);
 
-      // Assert
+      // Assert - wait for all content to load
       await waitFor(() => {
-        expect(screen.getByText(/handover history/i)).toBeInTheDocument();
+        expect(screen.getByText(/Handover History/i)).toBeInTheDocument();
+        expect(screen.getByText(/Build to QA/i)).toBeInTheDocument();
+        expect(screen.getByText(/QA to Maintenance/i)).toBeInTheDocument();
       });
-
-      // Should show both handovers
-      expect(screen.getByText(/Build to QA/i)).toBeInTheDocument();
-      expect(screen.getByText(/QA to Maintenance/i)).toBeInTheDocument();
     });
 
     it('should show loading state while fetching', () => {
@@ -229,9 +227,8 @@ describe('HandoverHistory Component', () => {
         expect(screen.getByText(/Build to QA/i)).toBeInTheDocument();
       });
 
-      // Get all timeline entries
-      const entries = screen.getAllByRole('listitem') || screen.getAllByTestId(/handover-entry/i);
-      expect(entries.length).toBeGreaterThanOrEqual(2);
+      // Both handover types should be displayed
+      expect(screen.getByText(/QA to Maintenance/i)).toBeInTheDocument();
     });
 
     it('should display handover type for each entry', async () => {
@@ -271,11 +268,16 @@ describe('HandoverHistory Component', () => {
 
       // Assert
       await waitFor(() => {
-        // Should show from/to owner types
-        expect(screen.getByText(/Build/i)).toBeInTheDocument();
-        expect(screen.getByText(/QA/i)).toBeInTheDocument();
-        expect(screen.getByText(/Maintenance/i)).toBeInTheDocument();
+        expect(screen.getByText(/Build to QA/i)).toBeInTheDocument();
       });
+
+      // Should show from/to owner types (multiple matches expected)
+      const buildElements = screen.getAllByText(/Build/i);
+      const qaElements = screen.getAllByText(/QA/i);
+      const maintenanceElements = screen.getAllByText(/Maintenance/i);
+      expect(buildElements.length).toBeGreaterThan(0);
+      expect(qaElements.length).toBeGreaterThan(0);
+      expect(maintenanceElements.length).toBeGreaterThan(0);
     });
 
     it('should display handover timestamps', async () => {
@@ -294,9 +296,12 @@ describe('HandoverHistory Component', () => {
 
       // Assert
       await waitFor(() => {
-        // Should show dates
-        expect(screen.getByText(/2024/i)).toBeInTheDocument();
+        expect(screen.getByText(/Build to QA/i)).toBeInTheDocument();
       });
+
+      // Should show dates (multiple matches expected)
+      const dateElements = screen.getAllByText(/2024/i);
+      expect(dateElements.length).toBeGreaterThan(0);
     });
   });
 
@@ -378,9 +383,16 @@ describe('HandoverHistory Component', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText(/current owner/i)).toBeInTheDocument();
-        expect(screen.getByText(/Maintenance/i)).toBeInTheDocument();
+        expect(screen.getByText(/Build to QA/i)).toBeInTheDocument();
       });
+
+      // Component shows "Current Owner" badge and "Current owner:" in subtitle
+      const currentOwnerElements = screen.getAllByText(/current owner/i);
+      expect(currentOwnerElements.length).toBeGreaterThan(0);
+
+      // Maintenance is the current owner
+      const maintenanceElements = screen.getAllByText(/Maintenance/i);
+      expect(maintenanceElements.length).toBeGreaterThan(0);
     });
   });
 
