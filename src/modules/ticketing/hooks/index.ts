@@ -39,11 +39,32 @@ export {
   qaReadinessKeys,
 } from './useQAReadiness';
 
+// ==================== Handover Hooks (Subtask 3.10) ====================
+
+/**
+ * Handover hooks for managing ticket ownership transfers and snapshots
+ *
+ * Exports:
+ * - useHandoverGateValidation: Validate handover gates before handover
+ * - useCreateHandover: Create handover snapshot
+ * - useHandoverHistory: Fetch handover history for a ticket
+ * - useHandover: Fetch specific handover by ID
+ * - useHandoverWizard: Combined hook for validation + creation
+ * - handoverKeys: Query keys for React Query
+ */
+export {
+  useHandoverGateValidation,
+  useCreateHandover,
+  useHandoverHistory,
+  useHandover,
+  useHandoverWizard,
+  handoverKeys,
+} from './useHandover';
+
 // Hooks to be added in future subtasks:
 // - useTickets (phase 2)
 // - useTicket (phase 2)
 // - useRiskAcceptance (phase 2)
-// - useHandover (phase 3)
 // - useEscalation (phase 3)
 // - useGuarantee (phase 3)
 // - useDashboard (phase 5)

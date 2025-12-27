@@ -38,6 +38,10 @@ interface HandoverSnapshotProps {
   compact?: boolean;
   /** Show all sections expanded by default */
   expandedByDefault?: boolean;
+  /** Show evidence links section */
+  showEvidence?: boolean;
+  /** Show decisions section */
+  showDecisions?: boolean;
 }
 
 /**
@@ -117,6 +121,8 @@ export function HandoverSnapshot({
   snapshot,
   compact = false,
   expandedByDefault = false,
+  showEvidence = false,
+  showDecisions = false,
 }: HandoverSnapshotProps) {
   const snapshotData = typeof snapshot.snapshot_data === 'string'
     ? JSON.parse(snapshot.snapshot_data)
@@ -142,13 +148,11 @@ export function HandoverSnapshot({
             </p>
           </div>
 
-          {/* Locked Indicator */}
-          {snapshot.is_locked && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium">
-              <Lock className="w-4 h-4" />
-              <span>Locked</span>
-            </div>
-          )}
+          {/* Locked Indicator - Snapshots are always locked (immutable) */}
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium">
+            <Lock className="w-4 h-4" />
+            <span>Locked</span>
+          </div>
         </div>
 
         {/* Ownership Transfer */}
@@ -286,84 +290,96 @@ export function HandoverSnapshot({
       </CollapsibleSection>
 
       {/* Evidence Links */}
-      {evidenceLinks.length > 0 && (
-        <CollapsibleSection
-          title="Evidence"
-          icon={Image}
-          count={evidenceLinks.length}
-          defaultExpanded={expandedByDefault}
-        >
-          <div className="space-y-2">
-            {evidenceLinks.map((evidence: any, index: number) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  {evidence.type === 'photo' ? (
-                    <Image className="w-4 h-4 text-blue-400" />
-                  ) : (
-                    <FileText className="w-4 h-4 text-green-400" />
-                  )}
-                  <div>
-                    <p className="text-sm font-medium text-white/90">{evidence.filename}</p>
-                    <p className="text-xs text-white/60">
-                      Uploaded {new Date(evidence.uploaded_at).toLocaleDateString()}
-                    </p>
+      {showEvidence && (
+        evidenceLinks.length > 0 ? (
+          <CollapsibleSection
+            title="Evidence"
+            icon={Image}
+            count={evidenceLinks.length}
+            defaultExpanded={expandedByDefault}
+          >
+            <div className="space-y-2">
+              {evidenceLinks.map((evidence: any, index: number) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    {evidence.type === 'photo' ? (
+                      <Image className="w-4 h-4 text-blue-400" />
+                    ) : (
+                      <FileText className="w-4 h-4 text-green-400" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-white/90">{evidence.filename}</p>
+                      <p className="text-xs text-white/60">
+                        Uploaded {new Date(evidence.uploaded_at).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
+                  {evidence.url && (
+                    <a
+                      href={evidence.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-400 hover:text-blue-300"
+                    >
+                      View
+                    </a>
+                  )}
                 </div>
-                {evidence.url && (
-                  <a
-                    href={evidence.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-400 hover:text-blue-300"
-                  >
-                    View
-                  </a>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
+          </CollapsibleSection>
+        ) : (
+          <div className="p-4 bg-white/5 border border-white/10 rounded-lg text-center">
+            <p className="text-sm text-white/60">No evidence attached</p>
           </div>
-        </CollapsibleSection>
+        )
       )}
 
       {/* Decisions */}
-      {decisions.length > 0 && (
-        <CollapsibleSection
-          title="Decisions"
-          icon={CheckCircle2}
-          count={decisions.length}
-          defaultExpanded={expandedByDefault}
-        >
-          <div className="space-y-3">
-            {decisions.map((decision: any, index: number) => (
-              <div
-                key={index}
-                className={cn(
-                  "p-3 rounded-lg border",
-                  decision.decision_type === 'risk_acceptance'
-                    ? "bg-yellow-500/10 border-yellow-500/20"
-                    : decision.decision_type === 'approval'
-                    ? "bg-green-500/10 border-green-500/20"
-                    : "bg-blue-500/10 border-blue-500/20"
-                )}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="px-2 py-1 bg-white/10 text-white/80 rounded text-xs font-medium uppercase">
-                    {decision.decision_type.replace(/_/g, ' ')}
-                  </span>
-                  <span className="text-xs text-white/60">
-                    {new Date(decision.decision_at).toLocaleString()}
-                  </span>
+      {showDecisions && (
+        decisions.length > 0 ? (
+          <CollapsibleSection
+            title="Decisions"
+            icon={CheckCircle2}
+            count={decisions.length}
+            defaultExpanded={expandedByDefault}
+          >
+            <div className="space-y-3">
+              {decisions.map((decision: any, index: number) => (
+                <div
+                  key={index}
+                  className={cn(
+                    "p-3 rounded-lg border",
+                    decision.decision_type === 'risk_acceptance'
+                      ? "bg-yellow-500/10 border-yellow-500/20"
+                      : decision.decision_type === 'approval'
+                      ? "bg-green-500/10 border-green-500/20"
+                      : "bg-blue-500/10 border-blue-500/20"
+                  )}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="px-2 py-1 bg-white/10 text-white/80 rounded text-xs font-medium uppercase">
+                      {decision.decision_type.replace(/_/g, ' ')}
+                    </span>
+                    <span className="text-xs text-white/60">
+                      {new Date(decision.decision_at).toLocaleString()}
+                    </span>
+                  </div>
+                  {decision.notes && (
+                    <p className="text-sm text-white/80">{decision.notes}</p>
+                  )}
                 </div>
-                {decision.notes && (
-                  <p className="text-sm text-white/80">{decision.notes}</p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
+          </CollapsibleSection>
+        ) : (
+          <div className="p-4 bg-white/5 border border-white/10 rounded-lg text-center">
+            <p className="text-sm text-white/60">No decisions recorded</p>
           </div>
-        </CollapsibleSection>
+        )
       )}
 
       {/* Guarantee Status */}

@@ -20,7 +20,6 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createLogger } from '@/lib/logger';
 import type {
   HandoverGateValidation,
   HandoverSnapshot,
@@ -28,8 +27,6 @@ import type {
   TicketHandoverHistory,
   HandoverType,
 } from '../types/handover';
-
-const logger = createLogger('ticketing:hooks:handover');
 
 // ==================== Query Keys ====================
 
@@ -239,18 +236,6 @@ export function useCreateHandover() {
 
       // Also invalidate validation queries as handover state has changed
       queryClient.invalidateQueries({ queryKey: handoverKeys.all });
-
-      logger.info('Handover snapshot created successfully', {
-        handover_id: data.id,
-        ticket_id: ticket_id,
-        handover_type: data.handover_type,
-      });
-    },
-    onError: (error, variables) => {
-      logger.error('Failed to create handover snapshot', {
-        error,
-        ticket_id: variables.ticket_id,
-      });
     },
   });
 }

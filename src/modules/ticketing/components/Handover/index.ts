@@ -1,13 +1,6 @@
-// 🟢 WORKING: Handover components for ownership transfer and audit trail
-// This file exports handover-related React components
-
 /**
- * Handover components for managing ticket ownership transfers
- *
- * Exports:
- * - HandoverWizard: Interactive wizard for validating and completing handovers
- * - HandoverSnapshot: Display immutable snapshot of ticket state at handover
- * - HandoverHistory: Timeline view of all handovers for a ticket
+ * Handover Components
+ * 🟢 WORKING: All handover components for ownership transfer and audit trail
  */
 
 export { HandoverWizard } from './HandoverWizard';
