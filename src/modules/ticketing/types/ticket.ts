@@ -45,6 +45,7 @@ export enum TicketSource {
   INCIDENT = 'incident',
   REVENUE = 'revenue',
   ONT_SWAP = 'ont_swap',
+  MANUAL = 'manual', // Manually created tickets via UI
 }
 
 /**
