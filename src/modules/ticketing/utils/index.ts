@@ -63,6 +63,23 @@ export type {
   PreviewOptions
 } from './excelParser';
 
+// SLA Calculator (subtask 5.8) ✅
+export {
+  calculateSLACompliance,
+  isTicketOverdue,
+  calculateResolutionTime,
+  calculateSLATimeRemaining
+} from './slaCalculator';
+export type {
+  SLAComplianceInput,
+  SLAComplianceResult,
+  OverdueCheckInput,
+  OverdueCheckResult,
+  SLATimeRemainingInput,
+  SLATimeRemainingResult,
+  ResolutionTimeInput,
+  ResolutionTimeResult
+} from './slaCalculator';
+
 // Utilities to be added in future subtasks:
 // - drLookup.ts - DR number lookup helpers
-// - slaCalculator.ts (subtask 5.8) - SLA calculations

@@ -53,3 +53,6 @@ export * from './whatsappService';
 
 // Notification Triggers Service - Automatic WhatsApp Notifications (subtask 5.6)
 export * from './notificationTriggers';
+
+// Dashboard Service - Statistics & Metrics (subtask 5.8)
+export * from './dashboardService';
