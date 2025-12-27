@@ -16,8 +16,8 @@ import type {
   TicketPriority,
   FaultCause,
   GuaranteeStatus
-} from '@/modules/ticketing/types/ticket';
-import * as ticketService from '@/modules/ticketing/services/ticketService';
+} from '../../../../../src/modules/ticketing/types/ticket';
+import * as ticketService from '../../../../../src/modules/ticketing/services/ticketService';
 
 const logger = createLogger({ context: 'TicketDetailAPI' });
 
