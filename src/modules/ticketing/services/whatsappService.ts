@@ -307,17 +307,25 @@ export class WhatsAppService {
         error instanceof WAHAError &&
         error.code !== WAHAErrorCode.TEMPLATE_ERROR
       ) {
-        await this.storeNotification({
-          ticket_id: request.ticket_id || null,
-          recipient_type: request.recipient_type,
-          recipient_phone: request.recipient_phone,
-          recipient_name: request.recipient_name || null,
-          message_template: request.template_id || null,
-          message_content: request.message_content || '',
-          status: NotificationStatus.FAILED,
-          waha_message_id: null,
-          error_message: error.message,
-        });
+        try {
+          await this.storeNotification({
+            ticket_id: request.ticket_id || null,
+            recipient_type: request.recipient_type,
+            recipient_phone: request.recipient_phone,
+            recipient_name: request.recipient_name || null,
+            message_template: request.template_id || null,
+            message_content: request.message_content || '',
+            status: NotificationStatus.FAILED,
+            waha_message_id: null,
+            error_message: error.message,
+          });
+        } catch (storeError) {
+          // Log but don't let storage failure override the original error
+          logger.warn('Failed to store notification in database', {
+            storeError: storeError instanceof Error ? storeError.message : 'Unknown',
+            originalError: error.message,
+          });
+        }
       }
 
       throw error;
