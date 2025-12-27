@@ -33,6 +33,12 @@ export * from './qcontact';
 // Weekly report import types
 export * from './weeklyReport';
 
+// Attachment types
+export * from './attachment';
+
+// Note types
+export * from './note';
+
 /**
  * Common API response wrapper
  */
