@@ -467,6 +467,14 @@ describe('GuaranteeService (TDD)', () => {
         reason: 'Guarantee status pending classification'
       };
 
+      const mockLiabilityResult = {
+        is_liable: false,
+        reason: 'Guarantee status pending classification',
+        guarantee_status: GuaranteeStatus.PENDING_CLASSIFICATION,
+        fault_cause: FaultCause.WORKMANSHIP,
+        billing_impact: 'pending' as const
+      };
+
       // Mock database calls
       vi.mocked(db.queryOne).mockResolvedValueOnce(mockTicket);
       vi.mocked(db.queryOne).mockResolvedValueOnce(mockGuaranteePeriod);
@@ -474,6 +482,7 @@ describe('GuaranteeService (TDD)', () => {
       // Mock calculator calls
       vi.mocked(calculator.classifyGuaranteeStatus).mockReturnValue(mockClassificationResult);
       vi.mocked(calculator.determineBillingClassification).mockReturnValue(mockBillingResult);
+      vi.mocked(calculator.assessContractorLiability).mockReturnValue(mockLiabilityResult);
 
       // Mock ticket update
       vi.mocked(db.query).mockResolvedValue([]);
@@ -557,6 +566,14 @@ describe('GuaranteeService (TDD)', () => {
         reason: 'Client caused damage - client liable'
       };
 
+      const mockLiabilityResult = {
+        is_liable: false,
+        reason: 'Client damage - client liable',
+        guarantee_status: GuaranteeStatus.UNDER_GUARANTEE,
+        fault_cause: FaultCause.CLIENT_DAMAGE,
+        billing_impact: 'client_pays' as const
+      };
+
       // Mock database calls
       vi.mocked(db.queryOne).mockResolvedValueOnce(mockTicket);
       vi.mocked(db.queryOne).mockResolvedValueOnce(mockGuaranteePeriod);
@@ -564,6 +581,7 @@ describe('GuaranteeService (TDD)', () => {
       // Mock calculator calls
       vi.mocked(calculator.classifyGuaranteeStatus).mockReturnValue(mockClassificationResult);
       vi.mocked(calculator.determineBillingClassification).mockReturnValue(mockBillingResult);
+      vi.mocked(calculator.assessContractorLiability).mockReturnValue(mockLiabilityResult);
 
       // Mock ticket update
       vi.mocked(db.query).mockResolvedValue([]);

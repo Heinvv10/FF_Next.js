@@ -27,8 +27,10 @@ export * from './escalationService';
 // Handover Service - Ownership Transfer & Snapshots (subtask 3.4)
 export * from './handoverService';
 
+// Guarantee Service - Guarantee Classification & Billing Determination (subtask 3.5)
+export * from './guaranteeService';
+
 // Additional services will be exported as they are implemented:
-// - guaranteeService (subtask 3.5)
 // - qcontactService (phase 4)
 // - whatsappService (phase 5)
 // - weeklyReportService (phase 5)

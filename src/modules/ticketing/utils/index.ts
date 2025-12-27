@@ -28,8 +28,25 @@ export type {
   GeneratedSnapshot
 } from './snapshotGenerator';
 
+// Guarantee Calculator (subtask 3.5) ✅
+export {
+  calculateGuaranteeExpiry,
+  classifyGuaranteeStatus,
+  determineBillingClassification,
+  assessContractorLiability
+} from './guaranteeCalculator';
+export type {
+  GuaranteeExpiryInput,
+  GuaranteeExpiryResult,
+  GuaranteeClassificationInput,
+  GuaranteeClassificationResult,
+  BillingDeterminationInput,
+  BillingDeterminationResult,
+  ContractorLiabilityInput,
+  ContractorLiabilityAssessmentResult
+} from './guaranteeCalculator';
+
 // Utilities to be added in future subtasks:
 // - drLookup.ts - DR number lookup helpers
-// - guaranteeCalculator.ts (subtask 3.5) - Guarantee calculations
 // - excelParser.ts (subtask 5.1) - Excel file parsing
 // - slaCalculator.ts (subtask 5.8) - SLA calculations
