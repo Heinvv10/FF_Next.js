@@ -20,3 +20,6 @@ export * from './verificationSteps';
 
 // QA Readiness Check Requirements
 export * from './readinessChecks';
+
+// WhatsApp Notification Templates
+export * from './whatsappTemplates';
