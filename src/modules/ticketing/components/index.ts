@@ -11,11 +11,13 @@ export { QAReadinessCheck, ReadinessResults, ReadinessBlocker } from './QAReadin
 export { FaultCauseSelector } from './FaultAttribution/FaultCauseSelector';
 export { FaultTrendAnalysis } from './FaultAttribution/FaultTrendAnalysis';
 
+// Handover Components (✅ Completed - subtask 3.10)
+export { HandoverWizard, HandoverSnapshot, HandoverHistory } from './Handover';
+
 // Components to be added in future subtasks:
 // - TicketList (subtask 5.12)
 // - TicketDetail (subtask 5.12)
 // - RiskAcceptance components (phase 2)
-// - Handover components (subtask 3.10)
 // - Escalation components (subtask 3.11)
 // - WeeklyImport components (subtask 5.10)
 // - Dashboard components (subtask 5.11)
