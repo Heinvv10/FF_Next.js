@@ -448,11 +448,30 @@
         }
       ],
       "status": "completed"
+    },
+    "3.5": {
+      "attempts": [
+        {
+          "session": 26,
+          "timestamp": "2025-12-27T06:17:12.993368",
+          "approach": "Implemented: Implement service for guarantee classification and billing determination.",
+          "success": true,
+          "error": null
+        },
+        {
+          "session": 25,
+          "timestamp": "2025-12-27T06:18:21.003121",
+          "approach": "Implemented: Implement service for guarantee classification and billing determination.",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
     }
   },
   "stuck_subtasks": [],
   "metadata": {
     "created_at": "2025-12-27T03:21:36.161471",
-    "last_updated": "2025-12-27T06:03:00.373547"
+    "last_updated": "2025-12-27T06:18:21.003129"
   }
 }
