@@ -30,7 +30,10 @@ export * from './handoverService';
 // Guarantee Service - Guarantee Classification & Billing Determination (subtask 3.5)
 export * from './guaranteeService';
 
+// QContact HTTP Client - API Integration (subtask 4.1)
+export * from './qcontactClient';
+
 // Additional services will be exported as they are implemented:
-// - qcontactService (phase 4)
+// - qcontactSyncService (phase 4)
 // - whatsappService (phase 5)
 // - weeklyReportService (phase 5)
