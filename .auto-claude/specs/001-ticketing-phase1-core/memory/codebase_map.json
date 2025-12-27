@@ -4,7 +4,12 @@
       "description": "Fault pattern detector utility completed (subtask 3.1). Provides detectFaultPattern() for single scope detection, checkMultiplePatterns() for parallel checking across pole/PON/zone/DR, and getDefaultThresholds(). Includes time window filtering (30 days default), existing escalation detection to prevent duplicates, and project-specific filtering. Default thresholds: pole=3, PON=5, zone=10, DR=2 faults. Returns FaultPatternDetectionResult with pattern_detected, fault_count, contributing_tickets, should_escalate flags, and human-readable recommendations. Fully tested with 27 tests covering all scope types and edge cases.",
       "category": "utility",
       "discovered_at": "2025-12-27T03:42:31.564235+00:00"
+    },
+    "src/modules/ticketing/services/qcontactClient.ts": {
+      "description": "QContact API client (subtask 4.1). Provides createQContactClient() factory and QContactClient class for QContact integration. Methods: getTicket(), listTickets(), createTicket(), updateTicket(), addNote(), healthCheck(). Features: Bearer token auth, automatic retry with exponential backoff (500/502/503/504/429), timeout handling, QContactError class with error codes (AUTHENTICATION, NOT_FOUND, VALIDATION, SERVER_ERROR, NETWORK, TIMEOUT, RATE_LIMITED, PARSE). Uses types from types/qcontact.ts. 50 tests, 92.6% coverage.",
+      "category": "service",
+      "discovered_at": "2025-12-27T05:16:18.799269+00:00"
     }
   },
-  "last_updated": "2025-12-27T03:42:31.564246+00:00"
+  "last_updated": "2025-12-27T05:16:18.799277+00:00"
 }
