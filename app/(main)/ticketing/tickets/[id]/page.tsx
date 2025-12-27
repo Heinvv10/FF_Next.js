@@ -1,34 +1,14 @@
-'use client';
-
 /**
- * Ticket Detail Page
+ * Ticket Detail Page (Server Component Wrapper)
  *
- * Displays full ticket information including:
- * - Ticket header with status and key info
- * - Verification checklist (12-step workflow)
- * - QA Readiness panel
- * - Risk acceptance section
- * - Fault attribution selector
- * - Handover history
- * - Timeline/activity log
- * - Attachments
- * - Notes
- *
- * 🟢 WORKING: Ticket detail page integrates TicketDetail component
+ * This is a Server Component that wraps the client-side TicketDetailPageClient.
+ * The dynamic export forces dynamic rendering to avoid prerendering issues with Clerk.
  */
 
 export const dynamic = 'force-dynamic';
 
-import { TicketDetail } from '@/modules/ticketing/components/TicketDetail/TicketDetail';
-import { useParams } from 'next/navigation';
+import TicketDetailPageClient from './client';
 
 export default function TicketDetailPage() {
-  const params = useParams();
-  const ticketId = params.id as string;
-
-  return (
-    <div className="p-6">
-      <TicketDetail ticketId={ticketId} />
-    </div>
-  );
+  return <TicketDetailPageClient />;
 }

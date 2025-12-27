@@ -16,7 +16,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Upload,
   FileSpreadsheet,
@@ -50,7 +50,7 @@ interface WeeklyImportWizardProps {
  * 🟢 WORKING: Multi-step wizard for weekly report imports
  */
 export function WeeklyImportWizard({ onComplete, onCancel }: WeeklyImportWizardProps) {
-  const { user } = useUser();
+  const { currentUser } = useAuth();
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState<WizardStep>('upload');
@@ -102,7 +102,7 @@ export function WeeklyImportWizard({ onComplete, onCancel }: WeeklyImportWizardP
 
   // 🟢 WORKING: Parse uploaded file
   const handleParseFile = useCallback(async () => {
-    if (!selectedFile || !user?.id) {
+    if (!selectedFile || !currentUser?.id) {
       return;
     }
 
@@ -143,11 +143,11 @@ export function WeeklyImportWizard({ onComplete, onCancel }: WeeklyImportWizardP
     } finally {
       setIsParsing(false);
     }
-  }, [selectedFile, user]);
+  }, [selectedFile, currentUser]);
 
   // 🟢 WORKING: Start import process
   const handleStartImport = useCallback(async () => {
-    if (!selectedFile || !user?.id || !previewData) {
+    if (!selectedFile || !currentUser?.id || !previewData) {
       return;
     }
 
@@ -168,7 +168,7 @@ export function WeeklyImportWizard({ onComplete, onCancel }: WeeklyImportWizardP
         body: JSON.stringify({
           filename: selectedFile.name,
           data: Array.from(new Uint8Array(buffer)),
-          user_id: user.id,
+          user_id: currentUser.id,
         }),
       });
 
@@ -193,7 +193,7 @@ export function WeeklyImportWizard({ onComplete, onCancel }: WeeklyImportWizardP
       setCurrentStep('preview');
       setIsImporting(false);
     }
-  }, [selectedFile, user, previewData]);
+  }, [selectedFile, currentUser, previewData]);
 
   // 🟢 WORKING: Poll for import progress
   const startProgressPolling = useCallback((id: string) => {

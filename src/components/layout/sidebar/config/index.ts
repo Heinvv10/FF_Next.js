@@ -11,4 +11,5 @@ export { analyticsSection } from './analyticsSection';
 export { communicationsSection } from './communicationsSection';
 export { fieldOperationsSection } from './fieldOperationsSection';
 export { systemSection } from './systemSection';
+export { ticketingSection } from './ticketingSection';
 export * from './types';
