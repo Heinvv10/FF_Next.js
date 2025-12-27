@@ -247,6 +247,35 @@ describe('QContact Outbound Sync Service', () => {
         assigned_to: null,
       });
     });
+
+    it('should handle assignment API errors and log failure', async () => {
+      // 🟢 WORKING: Test error handling during assignment push
+      const ticketId = 'ticket-123';
+      const qcontactTicketId = 'QC-12345';
+
+      vi.mocked(queryOne).mockResolvedValueOnce({
+        id: ticketId,
+        external_id: qcontactTicketId,
+      });
+
+      const mockUpdateTicket = vi.fn().mockRejectedValueOnce(new Error('Assignment update failed'));
+      vi.mocked(getDefaultQContactClient).mockReturnValue({
+        updateTicket: mockUpdateTicket,
+      } as any);
+
+      // Mock fetch for error logging
+      vi.mocked(queryOne).mockResolvedValueOnce({
+        id: ticketId,
+        external_id: qcontactTicketId,
+      });
+
+      vi.mocked(queryOne).mockResolvedValueOnce({ id: 'log-123' });
+
+      const result = await pushAssignment(ticketId, 'user-456', 'John Doe');
+
+      expect(result.success).toBe(false);
+      expect(result.error_message).toContain('Assignment update failed');
+    });
   });
 
   describe('pushNote', () => {
@@ -321,6 +350,67 @@ describe('QContact Outbound Sync Service', () => {
 
       expect(result.success).toBe(false);
       expect(result.error_message).toContain('empty');
+    });
+
+    it('should handle ticket not found during note push', async () => {
+      // 🟢 WORKING: Test ticket not found scenario
+      const ticketId = 'nonexistent-ticket';
+      const noteContent = 'Test note';
+
+      vi.mocked(queryOne).mockResolvedValueOnce(null);
+
+      const result = await pushNote(ticketId, noteContent, false);
+
+      expect(result.success).toBe(false);
+      expect(result.error_message).toContain('not found');
+    });
+
+    it('should skip note push for tickets without QContact ID', async () => {
+      // 🟢 WORKING: Test skip when ticket has no external_id
+      const ticketId = 'ticket-123';
+      const noteContent = 'Test note';
+
+      vi.mocked(queryOne).mockResolvedValueOnce({
+        id: ticketId,
+        external_id: null,
+        source: 'manual',
+      });
+
+      const result = await pushNote(ticketId, noteContent, false);
+
+      expect(result.success).toBe(true);
+      expect(result.qcontact_ticket_id).toBeNull();
+      expect(result.error_message).toContain('No QContact ID');
+    });
+
+    it('should handle note push API errors and log failure', async () => {
+      // 🟢 WORKING: Test error handling on API failure
+      const ticketId = 'ticket-123';
+      const qcontactTicketId = 'QC-12345';
+      const noteContent = 'Test note';
+
+      vi.mocked(queryOne).mockResolvedValueOnce({
+        id: ticketId,
+        external_id: qcontactTicketId,
+      });
+
+      const mockAddNote = vi.fn().mockRejectedValueOnce(new Error('QContact service unavailable'));
+      vi.mocked(getDefaultQContactClient).mockReturnValue({
+        addNote: mockAddNote,
+      } as any);
+
+      // Mock fetch for error logging
+      vi.mocked(queryOne).mockResolvedValueOnce({
+        id: ticketId,
+        external_id: qcontactTicketId,
+      });
+
+      vi.mocked(queryOne).mockResolvedValueOnce({ id: 'log-123' });
+
+      const result = await pushNote(ticketId, noteContent, false);
+
+      expect(result.success).toBe(false);
+      expect(result.error_message).toContain('QContact service unavailable');
     });
   });
 
