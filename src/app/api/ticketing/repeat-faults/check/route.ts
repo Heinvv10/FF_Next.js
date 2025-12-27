@@ -27,12 +27,17 @@ import {
   detectFaultPattern,
   getDefaultThresholds,
 } from '@/modules/ticketing/utils/faultPatternDetector';
-import type { EscalationScopeType } from '@/modules/ticketing/types/escalation';
+import { EscalationScopeType } from '@/modules/ticketing/types/escalation';
 
 const logger = createLogger('ticketing:api:repeat-faults:check');
 
 // Valid enum values for validation
-const VALID_SCOPE_TYPES: EscalationScopeType[] = ['pole', 'pon', 'zone', 'dr'];
+const VALID_SCOPE_TYPES: EscalationScopeType[] = [
+  EscalationScopeType.POLE,
+  EscalationScopeType.PON,
+  EscalationScopeType.ZONE,
+  EscalationScopeType.DR,
+];
 
 /**
  * Validation error response

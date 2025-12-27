@@ -15,10 +15,10 @@
  */
 
 import { query } from './db';
+import { EscalationScopeType } from '../types/escalation';
 import type {
   FaultPatternDetectionResult,
   ContributingTicket,
-  EscalationScopeType,
 } from '../types/escalation';
 
 /**
@@ -196,7 +196,7 @@ async function checkExistingEscalation(
 
   const result = await query<{ id: string }>(queryText, [scope_type, scope_value]);
 
-  if (result.length > 0) {
+  if (result && result.length > 0 && result[0]) {
     return result[0].id;
   }
 
@@ -259,7 +259,7 @@ export async function checkMultiplePatterns(
   if (ticketData.pole_number) {
     checks.push(
       detectFaultPattern({
-        scope_type: 'pole',
+        scope_type: EscalationScopeType.POLE,
         scope_value: ticketData.pole_number,
         time_window_days: thresholds.time_window_days,
         threshold: thresholds.pole_threshold,
@@ -272,7 +272,7 @@ export async function checkMultiplePatterns(
   if (ticketData.pon_number) {
     checks.push(
       detectFaultPattern({
-        scope_type: 'pon',
+        scope_type: EscalationScopeType.PON,
         scope_value: ticketData.pon_number,
         time_window_days: thresholds.time_window_days,
         threshold: thresholds.pon_threshold,
@@ -285,7 +285,7 @@ export async function checkMultiplePatterns(
   if (ticketData.zone_id) {
     checks.push(
       detectFaultPattern({
-        scope_type: 'zone',
+        scope_type: EscalationScopeType.ZONE,
         scope_value: ticketData.zone_id,
         time_window_days: thresholds.time_window_days,
         threshold: thresholds.zone_threshold,
@@ -298,7 +298,7 @@ export async function checkMultiplePatterns(
   if (ticketData.dr_number) {
     checks.push(
       detectFaultPattern({
-        scope_type: 'dr',
+        scope_type: EscalationScopeType.DR,
         scope_value: ticketData.dr_number,
         time_window_days: thresholds.time_window_days,
         threshold: thresholds.dr_threshold,

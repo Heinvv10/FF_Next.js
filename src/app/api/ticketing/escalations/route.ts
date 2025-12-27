@@ -14,19 +14,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createLogger } from '@/lib/logger';
 import { listEscalations } from '@/modules/ticketing/services/escalationService';
-import type {
-  EscalationFilters,
+import {
   EscalationScopeType,
   EscalationStatus,
   EscalationType,
 } from '@/modules/ticketing/types/escalation';
+import type { EscalationFilters } from '@/modules/ticketing/types/escalation';
 
 const logger = createLogger('ticketing:api:escalations');
 
 // Valid enum values for validation
-const VALID_SCOPE_TYPES: EscalationScopeType[] = ['pole', 'pon', 'zone', 'dr'];
-const VALID_STATUSES: EscalationStatus[] = ['open', 'investigating', 'resolved', 'no_action'];
-const VALID_ESCALATION_TYPES: EscalationType[] = ['investigation', 'inspection', 'replacement'];
+const VALID_SCOPE_TYPES: EscalationScopeType[] = [
+  EscalationScopeType.POLE,
+  EscalationScopeType.PON,
+  EscalationScopeType.ZONE,
+  EscalationScopeType.DR,
+];
+const VALID_STATUSES: EscalationStatus[] = [
+  EscalationStatus.OPEN,
+  EscalationStatus.INVESTIGATING,
+  EscalationStatus.RESOLVED,
+  EscalationStatus.NO_ACTION,
+];
+const VALID_ESCALATION_TYPES: EscalationType[] = [
+  EscalationType.INVESTIGATION,
+  EscalationType.INSPECTION,
+  EscalationType.REPLACEMENT,
+];
 
 // ==================== GET /api/ticketing/escalations ====================
 
