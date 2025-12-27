@@ -45,6 +45,8 @@ export * from './qcontactSyncOrchestrator';
 // QContact Sync Log Service - Sync Status & Audit Logs (subtask 4.5)
 export * from './qcontactSyncLogService';
 
+// Weekly Report Service - Import Management (subtask 5.2)
+export * from './weeklyReportService';
+
 // Additional services will be exported as they are implemented:
 // - whatsappService (phase 5)
-// - weeklyReportService (phase 5)
