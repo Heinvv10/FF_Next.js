@@ -7,11 +7,14 @@ export { VerificationChecklist, VerificationStep, PhotoUpload } from './Verifica
 // QA Readiness Components (✅ Completed - subtask 2.12)
 export { QAReadinessCheck, ReadinessResults, ReadinessBlocker } from './QAReadiness';
 
+// Fault Attribution Components (✅ Completed - subtask 3.9)
+export { FaultCauseSelector } from './FaultAttribution/FaultCauseSelector';
+export { FaultTrendAnalysis } from './FaultAttribution/FaultTrendAnalysis';
+
 // Components to be added in future subtasks:
 // - TicketList (subtask 5.12)
 // - TicketDetail (subtask 5.12)
 // - RiskAcceptance components (phase 2)
-// - FaultAttribution components (subtask 3.9)
 // - Handover components (subtask 3.10)
 // - Escalation components (subtask 3.11)
 // - WeeklyImport components (subtask 5.10)
