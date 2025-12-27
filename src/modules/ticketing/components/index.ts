@@ -21,9 +21,11 @@ export { EscalationAlert, EscalationList, RepeatFaultMap } from './Escalation';
 export { SyncDashboard, SyncTrigger, SyncAuditLog } from './QContact';
 export type { AuditLogFilters } from './QContact';
 
+// Weekly Import Components (✅ Completed - subtask 5.10)
+export { WeeklyImportWizard, ImportPreview, ImportResults } from './WeeklyImport';
+
 // Components to be added in future subtasks:
 // - TicketList (subtask 5.12)
 // - TicketDetail (subtask 5.12)
 // - RiskAcceptance components (phase 2)
-// - WeeklyImport components (subtask 5.10)
 // - Dashboard components (subtask 5.11)

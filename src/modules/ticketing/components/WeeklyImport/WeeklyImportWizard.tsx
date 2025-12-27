@@ -496,6 +496,7 @@ function PreviewStep({
       {/* Actions */}
       <div className="flex items-center justify-between pt-4 border-t border-white/10">
         <button
+          type="button"
           onClick={onBack}
           className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white/90 transition-colors flex items-center gap-2"
         >
@@ -504,6 +505,7 @@ function PreviewStep({
         </button>
 
         <button
+          type="button"
           onClick={onImport}
           disabled={!preview.can_proceed || isImporting}
           className={cn(
@@ -596,6 +598,7 @@ function ResultsStep({
       {/* Actions */}
       <div className="flex items-center justify-center pt-4 border-t border-white/10">
         <button
+          type="button"
           onClick={onReset}
           className="px-6 py-2.5 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-all flex items-center gap-2"
         >

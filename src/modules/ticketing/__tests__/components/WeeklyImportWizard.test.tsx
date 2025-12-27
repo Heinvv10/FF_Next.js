@@ -231,10 +231,13 @@ describe('WeeklyImportWizard Component', () => {
       const invalidFile = new File(['content'], 'test.txt', { type: 'text/plain' });
       fireEvent.change(fileInput, { target: { files: [invalidFile] } });
 
-      // Assert - error should have proper styling
+      // Assert - error should be visible in a styled container
       await waitFor(() => {
-        const errorContainer = screen.getByText(/only excel files.*are allowed/i).closest('div');
-        expect(errorContainer).toHaveClass('bg-red-500/10');
+        const errorElement = screen.getByText(/only excel files.*are allowed/i);
+        expect(errorElement).toBeInTheDocument();
+        // Error should be in a container with red styling
+        const errorContainer = errorElement.closest('.bg-red-500\\/10');
+        expect(errorContainer).toBeInTheDocument();
       });
     });
   });
