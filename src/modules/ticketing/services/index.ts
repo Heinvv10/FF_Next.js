@@ -42,6 +42,9 @@ export * from './qcontactSyncOutbound';
 // QContact Sync Orchestrator - Full Bidirectional Sync (subtask 4.4)
 export * from './qcontactSyncOrchestrator';
 
+// QContact Sync Log Service - Sync Status & Audit Logs (subtask 4.5)
+export * from './qcontactSyncLogService';
+
 // Additional services will be exported as they are implemented:
 // - whatsappService (phase 5)
 // - weeklyReportService (phase 5)
