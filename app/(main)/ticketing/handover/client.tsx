@@ -24,8 +24,8 @@ export default function HandoverCenterPageClient() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Handover Center</h1>
-        <p className="text-gray-600">Manage ticket handovers between Build, QA, and Maintenance teams</p>
+        <h1 className="text-2xl font-bold text-[var(--ff-text-primary)]">Handover Center</h1>
+        <p className="text-[var(--ff-text-secondary)]">Manage ticket handovers between Build, QA, and Maintenance teams</p>
       </div>
 
       {/* View Toggle */}
@@ -35,7 +35,7 @@ export default function HandoverCenterPageClient() {
           className={`px-4 py-2 rounded-lg transition-colors ${
             !showHistory
               ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              : 'bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] hover:bg-[var(--ff-bg-tertiary)]'
           }`}
         >
           Create Handover
@@ -45,7 +45,7 @@ export default function HandoverCenterPageClient() {
           className={`px-4 py-2 rounded-lg transition-colors ${
             showHistory
               ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              : 'bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] hover:bg-[var(--ff-bg-tertiary)]'
           }`}
         >
           View History
@@ -58,9 +58,9 @@ export default function HandoverCenterPageClient() {
       ) : (
         <div>
           {/* Pending Handovers List */}
-          <div className="mb-6 bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4">Tickets Pending Handover</h2>
-            <p className="text-gray-500">
+          <div className="mb-6 bg-[var(--ff-bg-secondary)] rounded-lg shadow-md p-6 border border-[var(--ff-border-light)]">
+            <h2 className="text-lg font-semibold mb-4 text-[var(--ff-text-primary)]">Tickets Pending Handover</h2>
+            <p className="text-[var(--ff-text-tertiary)]">
               Select a ticket to create a handover snapshot
             </p>
             {/* 🔵 MOCK: Pending tickets list will be implemented with API integration */}

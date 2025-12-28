@@ -191,7 +191,7 @@ export function EscalationAlert({
               {/* Message */}
               <h3
                 className={cn(
-                  'font-semibold text-white',
+                  'font-semibold text-[var(--ff-text-primary)]',
                   compact ? 'text-sm' : 'text-base'
                 )}
               >
@@ -203,7 +203,7 @@ export function EscalationAlert({
             {dismissible && onDismiss && (
               <button
                 onClick={handleDismiss}
-                className="ml-2 text-white/40 hover:text-white/80 transition-colors flex-shrink-0"
+                className="ml-2 text-[var(--ff-text-tertiary)] hover:text-[var(--ff-text-primary)] transition-colors flex-shrink-0"
                 aria-label="Dismiss alert"
               >
                 <X className="w-4 h-4" />
@@ -214,7 +214,7 @@ export function EscalationAlert({
           {/* Details */}
           <div
             className={cn(
-              'mt-2 space-y-1 text-white/80',
+              'mt-2 space-y-1 text-[var(--ff-text-primary)]',
               compact ? 'text-xs' : 'text-sm'
             )}
           >
@@ -222,19 +222,19 @@ export function EscalationAlert({
               <span className="font-medium">
                 {formatScopeLabel(alert.scope_type)}: {alert.scope_value}
               </span>
-              <span className="text-white/60">•</span>
+              <span className="text-[var(--ff-text-secondary)]">•</span>
               <span>
                 {alert.fault_count} fault{alert.fault_count !== 1 ? 's' : ''} detected
               </span>
-              <span className="text-white/60">•</span>
-              <span className="text-white/60">{formatTime(alert.created_at)}</span>
+              <span className="text-[var(--ff-text-secondary)]">•</span>
+              <span className="text-[var(--ff-text-secondary)]">{formatTime(alert.created_at)}</span>
             </div>
           </div>
 
           {/* Recommended action */}
           {!compact && alert.recommended_action && (
             <div className="mt-3 p-3 bg-black/20 rounded-lg">
-              <p className="text-xs text-white/90">
+              <p className="text-xs text-[var(--ff-text-primary)]">
                 <span className="font-semibold">Recommended Action:</span>{' '}
                 {alert.recommended_action}
               </p>
@@ -243,7 +243,7 @@ export function EscalationAlert({
 
           {/* View details link */}
           {onClick && !compact && (
-            <div className="mt-3 flex items-center text-xs text-white/60 hover:text-white/90 transition-colors">
+            <div className="mt-3 flex items-center text-xs text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] transition-colors">
               <span>View escalation details</span>
               <ExternalLink className="w-3 h-3 ml-1" />
             </div>

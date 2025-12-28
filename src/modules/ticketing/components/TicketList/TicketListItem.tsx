@@ -51,7 +51,7 @@ function getPriorityBadgeStyle(priority: string): string {
     critical: 'text-red-500 font-bold',
   };
 
-  return priorityColors[priority] || 'text-white/60';
+  return priorityColors[priority] || 'text-[var(--ff-text-secondary)]';
 }
 
 /**
@@ -89,12 +89,12 @@ export function TicketListItem({ ticket, compact = false, onClick }: TicketListI
         </div>
 
         {/* Title */}
-        <h3 className="text-white font-medium mb-2 line-clamp-1">
+        <h3 className="text-[var(--ff-text-primary)] font-medium mb-2 line-clamp-1">
           {ticket.title}
         </h3>
 
         {/* Meta Information */}
-        <div className="flex items-center gap-3 flex-wrap text-xs text-white/60">
+        <div className="flex items-center gap-3 flex-wrap text-xs text-[var(--ff-text-secondary)]">
           {/* Status Badge */}
           <TicketStatusBadge status={ticket.status} compact showIcon={false} />
 
@@ -123,14 +123,14 @@ export function TicketListItem({ ticket, compact = false, onClick }: TicketListI
 
         {/* Fault Cause (if maintenance ticket) */}
         {ticket.ticket_type === 'maintenance' && ticket.fault_cause && (
-          <div className="mt-2 text-xs text-white/50">
+          <div className="mt-2 text-xs text-[var(--ff-text-tertiary)]">
             <span className="capitalize">{ticket.fault_cause.replace(/_/g, ' ')}</span>
           </div>
         )}
       </div>
 
       {/* Right side: Action icon */}
-      <ArrowRight className="w-5 h-5 text-white/40 flex-shrink-0 mt-1" />
+      <ArrowRight className="w-5 h-5 text-[var(--ff-text-tertiary)] flex-shrink-0 mt-1" />
     </div>
   );
 
@@ -141,7 +141,7 @@ export function TicketListItem({ ticket, compact = false, onClick }: TicketListI
         type="button"
         onClick={() => onClick(ticket)}
         className={cn(
-          'block w-full text-left bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors',
+          'block w-full text-left bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg hover:bg-[var(--ff-bg-tertiary)] transition-colors',
           compact ? 'p-3' : 'p-4'
         )}
       >
@@ -155,7 +155,7 @@ export function TicketListItem({ ticket, compact = false, onClick }: TicketListI
     <Link
       href={`/ticketing/tickets/${ticket.id}`}
       className={cn(
-        'block bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors',
+        'block bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg hover:bg-[var(--ff-bg-tertiary)] transition-colors',
         compact ? 'p-3' : 'p-4'
       )}
     >

@@ -53,39 +53,39 @@ export function ImportPreview({ preview }: ImportPreviewProps) {
 
       {/* Preview Title */}
       <div>
-        <h3 className="text-base font-medium text-white/90">Preview Import Data</h3>
-        <p className="text-sm text-white/60 mt-1">
+        <h3 className="text-base font-medium text-[var(--ff-text-primary)]">Preview Import Data</h3>
+        <p className="text-sm text-[var(--ff-text-secondary)] mt-1">
           Review the first few rows to ensure data is correctly formatted
         </p>
       </div>
 
       {/* Sample Rows Table */}
       {preview.sample_rows.length > 0 && (
-        <div className="overflow-x-auto border border-white/10 rounded-lg">
+        <div className="overflow-x-auto border border-[var(--ff-border-light)] rounded-lg">
           <table className="w-full text-sm">
-            <thead className="bg-white/5 border-b border-white/10">
+            <thead className="bg-[var(--ff-bg-tertiary)] border-b border-[var(--ff-border-light)]">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                   Row
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                   Title
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                   DR Number
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                   Pole
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-white/70 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                   PON
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/10">
+            <tbody className="divide-y divide-[var(--ff-border-light)]">
               {preview.sample_rows.map((row) => (
                 <SampleRow key={row.row_number} row={row} />
               ))}
@@ -99,7 +99,7 @@ export function ImportPreview({ preview }: ImportPreviewProps) {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-yellow-400" />
-            <h3 className="text-base font-medium text-white/90">
+            <h3 className="text-base font-medium text-[var(--ff-text-primary)]">
               Validation Issues ({preview.validation_errors.length})
             </h3>
           </div>
@@ -169,7 +169,7 @@ function StatCard({
     <div className={cn('p-4 border rounded-lg', colorClasses[color])}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs text-white/60">{label}</p>
+          <p className="text-xs text-[var(--ff-text-secondary)]">{label}</p>
           <p className="text-2xl font-semibold mt-1">{value}</p>
         </div>
         <div className="opacity-50">{icon}</div>
@@ -183,17 +183,17 @@ function StatCard({
  */
 function SampleRow({ row }: { row: ImportRow }) {
   return (
-    <tr className="hover:bg-white/5 transition-colors">
-      <td className="px-4 py-3 text-white/50 font-mono text-xs">{row.row_number}</td>
-      <td className="px-4 py-3 text-white/90 max-w-xs truncate">{row.title || '-'}</td>
-      <td className="px-4 py-3 text-white/70">
-        <span className="px-2 py-1 bg-white/10 rounded text-xs">
+    <tr className="hover:bg-[var(--ff-bg-tertiary)] transition-colors">
+      <td className="px-4 py-3 text-[var(--ff-text-tertiary)] font-mono text-xs">{row.row_number}</td>
+      <td className="px-4 py-3 text-[var(--ff-text-primary)] max-w-xs truncate">{row.title || '-'}</td>
+      <td className="px-4 py-3 text-[var(--ff-text-secondary)]">
+        <span className="px-2 py-1 bg-[var(--ff-bg-tertiary)] rounded text-xs">
           {row.ticket_type || '-'}
         </span>
       </td>
-      <td className="px-4 py-3 text-white/70 font-mono text-xs">{row.dr_number || '-'}</td>
-      <td className="px-4 py-3 text-white/70 font-mono text-xs">{row.pole_number || '-'}</td>
-      <td className="px-4 py-3 text-white/70 font-mono text-xs">{row.pon_number || '-'}</td>
+      <td className="px-4 py-3 text-[var(--ff-text-secondary)] font-mono text-xs">{row.dr_number || '-'}</td>
+      <td className="px-4 py-3 text-[var(--ff-text-secondary)] font-mono text-xs">{row.pole_number || '-'}</td>
+      <td className="px-4 py-3 text-[var(--ff-text-secondary)] font-mono text-xs">{row.pon_number || '-'}</td>
     </tr>
   );
 }
@@ -223,7 +223,7 @@ function ValidationErrorItem({ error }: { error: ImportValidationError }) {
               Row {error.row_number}
             </span>
             {error.field_name && (
-              <span className="text-xs text-white/50">
+              <span className="text-xs text-[var(--ff-text-tertiary)]">
                 • {error.field_name}
               </span>
             )}

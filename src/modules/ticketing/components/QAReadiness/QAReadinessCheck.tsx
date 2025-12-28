@@ -114,9 +114,9 @@ export function QAReadinessCheck({
   // 🟢 WORKING: Loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8 bg-white/5 border border-white/10 rounded-lg">
-        <Loader2 className="w-6 h-6 text-white/60 animate-spin" />
-        <span className="ml-2 text-white/60">Loading QA readiness status...</span>
+      <div className="flex items-center justify-center p-8 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg">
+        <Loader2 className="w-6 h-6 text-[var(--ff-text-secondary)] animate-spin" />
+        <span className="ml-2 text-[var(--ff-text-secondary)]">Loading QA readiness status...</span>
       </div>
     );
   }
@@ -136,9 +136,9 @@ export function QAReadinessCheck({
   // 🟢 WORKING: Empty state (should not happen with our API design)
   if (!status) {
     return (
-      <div className="flex items-center justify-center p-8 bg-white/5 border border-white/10 rounded-lg">
-        <AlertCircle className="w-6 h-6 text-white/60" />
-        <span className="ml-2 text-white/60">No readiness status available</span>
+      <div className="flex items-center justify-center p-8 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg">
+        <AlertCircle className="w-6 h-6 text-[var(--ff-text-secondary)]" />
+        <span className="ml-2 text-[var(--ff-text-secondary)]">No readiness status available</span>
       </div>
     );
   }
@@ -146,11 +146,11 @@ export function QAReadinessCheck({
   return (
     <div className="space-y-4">
       {/* Header with status and run button */}
-      <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+      <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-white">QA Readiness Status</h3>
-            <p className="text-sm text-white/60">{status.next_action}</p>
+            <h3 className="text-lg font-semibold text-[var(--ff-text-primary)]">QA Readiness Status</h3>
+            <p className="text-sm text-[var(--ff-text-secondary)]">{status.next_action}</p>
           </div>
 
           <button
@@ -195,7 +195,7 @@ export function QAReadinessCheck({
             {status.is_ready ? '✓ Ready for QA' : '✗ Not Ready'}
           </div>
           {status.last_check_at && (
-            <span className="ml-3 text-sm text-white/60">
+            <span className="ml-3 text-sm text-[var(--ff-text-secondary)]">
               Last checked: {new Date(status.last_check_at).toLocaleString()}
             </span>
           )}
@@ -230,18 +230,18 @@ export function QAReadinessCheck({
 
       {/* Detailed results (if check has been run) */}
       {status.last_check && (
-        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-          <h4 className="text-md font-semibold text-white mb-3">Detailed Check Results</h4>
+        <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
+          <h4 className="text-md font-semibold text-[var(--ff-text-primary)] mb-3">Detailed Check Results</h4>
           <ReadinessResults check={status.last_check} />
         </div>
       )}
 
       {/* No check run yet message */}
       {!status.last_check && (
-        <div className="bg-white/5 border border-white/10 rounded-lg p-6 text-center">
-          <AlertCircle className="w-12 h-12 text-white/40 mx-auto mb-3" />
-          <p className="text-white/60 mb-2">No readiness checks have been run yet</p>
-          <p className="text-sm text-white/40">
+        <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6 text-center">
+          <AlertCircle className="w-12 h-12 text-[var(--ff-text-tertiary)] mx-auto mb-3" />
+          <p className="text-[var(--ff-text-secondary)] mb-2">No readiness checks have been run yet</p>
+          <p className="text-sm text-[var(--ff-text-tertiary)]">
             Click "Run Readiness Check" to validate QA requirements
           </p>
         </div>
@@ -249,7 +249,7 @@ export function QAReadinessCheck({
 
       {/* Last run timestamp (if check was just run) */}
       {lastRunAt && (
-        <div className="text-center text-sm text-white/40">
+        <div className="text-center text-sm text-[var(--ff-text-tertiary)]">
           Check completed at {lastRunAt.toLocaleTimeString()}
         </div>
       )}

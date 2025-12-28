@@ -74,8 +74,8 @@ export default function EscalationsPageClient() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Escalation Management</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-bold text-[var(--ff-text-primary)]">Escalation Management</h1>
+        <p className="text-[var(--ff-text-secondary)]">
           Track and resolve repeat faults and infrastructure-level issues
         </p>
       </div>
@@ -101,7 +101,7 @@ export default function EscalationsPageClient() {
           className={`px-4 py-2 rounded-lg transition-colors ${
             activeView === 'list'
               ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              : 'bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] hover:bg-[var(--ff-bg-tertiary)]'
           }`}
         >
           Escalation List
@@ -111,7 +111,7 @@ export default function EscalationsPageClient() {
           className={`px-4 py-2 rounded-lg transition-colors ${
             activeView === 'map'
               ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              : 'bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] hover:bg-[var(--ff-bg-tertiary)]'
           }`}
         >
           Fault Map
@@ -120,7 +120,7 @@ export default function EscalationsPageClient() {
 
       {/* Content Area */}
       {activeView === 'list' ? (
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-[var(--ff-bg-secondary)] rounded-lg shadow-md p-6 border border-[var(--ff-border-light)]">
           <EscalationList
             escalations={escalations}
             isLoading={isLoading}
@@ -129,8 +129,8 @@ export default function EscalationsPageClient() {
           />
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4">Repeat Fault Patterns</h2>
+        <div className="bg-[var(--ff-bg-secondary)] rounded-lg shadow-md p-6 border border-[var(--ff-border-light)]">
+          <h2 className="text-lg font-semibold mb-4 text-[var(--ff-text-primary)]">Repeat Fault Patterns</h2>
           <RepeatFaultMap />
         </div>
       )}

@@ -173,7 +173,7 @@ export function TicketActions({ ticket, compact = false, onActionComplete }: Tic
                   'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
                   isPrimary
                     ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white'
+                    : 'bg-[var(--ff-bg-secondary)] hover:bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)]'
                 )}
               >
                 {isLoading ? (
@@ -222,7 +222,7 @@ export function TicketActions({ ticket, compact = false, onActionComplete }: Tic
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
               disabled={isLoading}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--ff-bg-secondary)] hover:bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>

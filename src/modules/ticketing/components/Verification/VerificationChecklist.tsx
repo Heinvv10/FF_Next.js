@@ -112,8 +112,8 @@ export function VerificationChecklist({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-6 h-6 text-white/60 animate-spin" />
-        <span className="ml-2 text-white/60">Loading verification steps...</span>
+        <Loader2 className="w-6 h-6 text-[var(--ff-text-secondary)] animate-spin" />
+        <span className="ml-2 text-[var(--ff-text-secondary)]">Loading verification steps...</span>
       </div>
     );
   }
@@ -133,9 +133,9 @@ export function VerificationChecklist({
   // 🟢 WORKING: Empty state (no steps)
   if (!steps || !Array.isArray(steps) || steps.length === 0) {
     return (
-      <div className="flex items-center justify-center p-8 bg-white/5 border border-white/10 rounded-lg">
-        <AlertCircle className="w-6 h-6 text-white/60" />
-        <span className="ml-2 text-white/60">
+      <div className="flex items-center justify-center p-8 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg">
+        <AlertCircle className="w-6 h-6 text-[var(--ff-text-secondary)]" />
+        <span className="ml-2 text-[var(--ff-text-secondary)]">
           No verification steps found. Please initialize verification steps first.
         </span>
       </div>
@@ -146,11 +146,11 @@ export function VerificationChecklist({
     <div className="space-y-4">
       {/* Progress header */}
       {progress && (
-        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+        <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-lg font-semibold text-white">Verification Progress</h3>
-              <p className="text-sm text-white/60">
+              <h3 className="text-lg font-semibold text-[var(--ff-text-primary)]">Verification Progress</h3>
+              <p className="text-sm text-[var(--ff-text-secondary)]">
                 {progress.completed_steps}/{progress.total_steps} steps completed
               </p>
             </div>
@@ -161,14 +161,14 @@ export function VerificationChecklist({
               </div>
             ) : (
               <div className="text-right">
-                <div className="text-2xl font-bold text-white">{progress.progress_percentage}%</div>
-                <div className="text-xs text-white/60">{progress.pending_steps} remaining</div>
+                <div className="text-2xl font-bold text-[var(--ff-text-primary)]">{progress.progress_percentage}%</div>
+                <div className="text-xs text-[var(--ff-text-secondary)]">{progress.pending_steps} remaining</div>
               </div>
             )}
           </div>
 
           {/* Progress bar */}
-          <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-[var(--ff-bg-tertiary)] rounded-full h-3 overflow-hidden">
             <div
               className={cn(
                 'h-3 rounded-full transition-all duration-500',
@@ -198,7 +198,7 @@ export function VerificationChecklist({
 
             return (
               <div key={category}>
-                <h4 className="text-sm font-semibold text-white/80 uppercase tracking-wide mb-3">
+                <h4 className="text-sm font-semibold text-[var(--ff-text-primary)] uppercase tracking-wide mb-3">
                   {category}
                 </h4>
                 <ul className="space-y-3">

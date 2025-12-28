@@ -113,7 +113,7 @@ export function DRLookup({
           placeholder="e.g., DR12345"
           disabled={disabled || isLoading}
           className={cn(
-            'w-full pl-4 pr-24 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed',
+            'w-full pl-4 pr-24 py-2 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg text-[var(--ff-text-primary)] placeholder:text-[var(--ff-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed',
             error && 'border-red-500/50 focus:ring-red-500/50',
             drData && 'border-green-500/50 focus:ring-green-500/50'
           )}
@@ -156,32 +156,32 @@ export function DRLookup({
           <div className="grid grid-cols-2 gap-3 text-xs">
             {drData.pole_number && (
               <div>
-                <span className="text-white/60">Pole:</span>{' '}
-                <span className="text-white font-mono">{drData.pole_number}</span>
+                <span className="text-green-700 dark:text-green-300/70">Pole:</span>{' '}
+                <span className="text-green-800 dark:text-green-200 font-mono">{drData.pole_number}</span>
               </div>
             )}
             {drData.pon_number && (
               <div>
-                <span className="text-white/60">PON:</span>{' '}
-                <span className="text-white font-mono">{drData.pon_number}</span>
+                <span className="text-green-700 dark:text-green-300/70">PON:</span>{' '}
+                <span className="text-green-800 dark:text-green-200 font-mono">{drData.pon_number}</span>
               </div>
             )}
             {drData.zone_number && (
               <div>
-                <span className="text-white/60">Zone:</span>{' '}
-                <span className="text-white font-mono">{drData.zone_number}</span>
+                <span className="text-green-700 dark:text-green-300/70">Zone:</span>{' '}
+                <span className="text-green-800 dark:text-green-200 font-mono">{drData.zone_number}</span>
               </div>
             )}
             {drData.project_name && (
               <div className="col-span-2">
-                <span className="text-white/60">Project:</span>{' '}
-                <span className="text-white">{drData.project_name}</span>
+                <span className="text-green-700 dark:text-green-300/70">Project:</span>{' '}
+                <span className="text-green-800 dark:text-green-200">{drData.project_name}</span>
               </div>
             )}
             {drData.address && (
               <div className="col-span-2 flex items-start gap-1">
-                <MapPin className="w-3 h-3 text-white/60 mt-0.5 flex-shrink-0" />
-                <span className="text-white">{drData.address}</span>
+                <MapPin className="w-3 h-3 text-green-700 dark:text-green-300/70 mt-0.5 flex-shrink-0" />
+                <span className="text-green-800 dark:text-green-200">{drData.address}</span>
               </div>
             )}
           </div>

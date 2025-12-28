@@ -118,7 +118,7 @@ function getStatusStyles(status: EscalationStatus): {
       };
     default:
       return {
-        container: 'bg-white/10 text-white/60 border-white/10',
+        container: 'bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-secondary)] border-[var(--ff-border-light)]',
         icon: <AlertTriangle className="w-3 h-3" />,
       };
   }
@@ -181,8 +181,8 @@ function EscalationCard({
   return (
     <div
       className={cn(
-        'p-4 rounded-lg border border-white/10 bg-white/5 transition-all',
-        onClick && 'cursor-pointer hover:bg-white/10 hover:border-white/20',
+        'p-4 rounded-lg border border-[var(--ff-border-light)] bg-[var(--ff-bg-secondary)] transition-all',
+        onClick && 'cursor-pointer hover:bg-[var(--ff-bg-tertiary)] hover:border-[var(--ff-border-light)]',
         compact && 'p-3'
       )}
       onClick={onClick ? handleClick : undefined}
@@ -194,28 +194,28 @@ function EscalationCard({
         {/* Left side - Scope info */}
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-2">
-            <div className="text-white/60">{getScopeTypeIcon(escalation.scope_type)}</div>
+            <div className="text-[var(--ff-text-secondary)]">{getScopeTypeIcon(escalation.scope_type)}</div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-xs text-white/60">
+                <span className="text-xs text-[var(--ff-text-secondary)]">
                   {getScopeTypeLabel(escalation.scope_type)}
                 </span>
               </div>
-              <h3 className={cn('font-semibold text-white', compact ? 'text-sm' : 'text-base')}>
+              <h3 className={cn('font-semibold text-[var(--ff-text-primary)]', compact ? 'text-sm' : 'text-base')}>
                 {escalation.scope_value}
               </h3>
             </div>
           </div>
 
           {/* Fault count */}
-          <div className="flex items-center space-x-4 text-sm text-white/80">
+          <div className="flex items-center space-x-4 text-sm text-[var(--ff-text-primary)]">
             <div className="flex items-center">
               <AlertTriangle className="w-4 h-4 mr-1 text-orange-400" />
               <span>
                 {escalation.fault_count} fault{escalation.fault_count !== 1 ? 's' : ''}
               </span>
-              <span className="mx-2 text-white/40">|</span>
-              <span className="text-white/60">Threshold: {escalation.fault_threshold}</span>
+              <span className="mx-2 text-[var(--ff-text-tertiary)]">|</span>
+              <span className="text-[var(--ff-text-secondary)]">Threshold: {escalation.fault_threshold}</span>
             </div>
           </div>
 
@@ -230,7 +230,7 @@ function EscalationCard({
           )}
 
           {/* Created date */}
-          <div className="mt-2 text-xs text-white/60">
+          <div className="mt-2 text-xs text-[var(--ff-text-secondary)]">
             Created {formatDate(escalation.created_at)}
           </div>
         </div>
@@ -248,15 +248,15 @@ function EscalationCard({
           </span>
 
           {onClick && (
-            <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-white/80 transition-colors" />
+            <ChevronRight className="w-5 h-5 text-[var(--ff-text-tertiary)] group-hover:text-[var(--ff-text-primary)] transition-colors" />
           )}
         </div>
       </div>
 
       {/* Contributing tickets count */}
       {!compact && escalation.contributing_tickets && escalation.contributing_tickets.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-white/10">
-          <p className="text-xs text-white/60">
+        <div className="mt-3 pt-3 border-t border-[var(--ff-border-light)]">
+          <p className="text-xs text-[var(--ff-text-secondary)]">
             {escalation.contributing_tickets.length} contributing ticket
             {escalation.contributing_tickets.length !== 1 ? 's' : ''}
           </p>
@@ -312,8 +312,8 @@ export function EscalationList({
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white/60 mx-auto mb-4" />
-          <p className="text-white/60">Loading escalations...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--ff-text-secondary)] mx-auto mb-4" />
+          <p className="text-[var(--ff-text-secondary)]">Loading escalations...</p>
         </div>
       </div>
     );
@@ -339,8 +339,8 @@ export function EscalationList({
     return (
       <div className="text-center py-12">
         <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-white mb-2">No Escalations</h3>
-        <p className="text-white/60">No repeat fault escalations detected.</p>
+        <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-2">No Escalations</h3>
+        <p className="text-[var(--ff-text-secondary)]">No repeat fault escalations detected.</p>
       </div>
     );
   }
@@ -349,14 +349,14 @@ export function EscalationList({
     <div className="space-y-4">
       {/* Filters */}
       {showFilters && (
-        <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg border border-white/10">
-          <Filter className="w-4 h-4 text-white/60" />
+        <div className="flex items-center space-x-4 p-4 bg-[var(--ff-bg-secondary)] rounded-lg border border-[var(--ff-border-light)]">
+          <Filter className="w-4 h-4 text-[var(--ff-text-secondary)]" />
 
           {/* Status filter */}
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as EscalationStatus | 'all')}
-            className="px-3 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="px-3 py-1.5 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded text-sm text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           >
             <option value="all">All Statuses</option>
             <option value="open">Open</option>
@@ -369,7 +369,7 @@ export function EscalationList({
           <select
             value={filterScope}
             onChange={(e) => setFilterScope(e.target.value as EscalationScopeType | 'all')}
-            className="px-3 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="px-3 py-1.5 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded text-sm text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           >
             <option value="all">All Scopes</option>
             <option value="pole">Pole</option>
@@ -379,7 +379,7 @@ export function EscalationList({
           </select>
 
           {/* Results count */}
-          <div className="flex-1 text-right text-sm text-white/60">
+          <div className="flex-1 text-right text-sm text-[var(--ff-text-secondary)]">
             {filteredEscalations.length} escalation{filteredEscalations.length !== 1 ? 's' : ''}
           </div>
         </div>
@@ -390,11 +390,11 @@ export function EscalationList({
         <div key={groupKey}>
           {/* Group header */}
           {groupBy !== 'none' && (
-            <h3 className="text-sm font-semibold text-white/80 mb-3 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-[var(--ff-text-primary)] mb-3 uppercase tracking-wider">
               {groupBy === 'scope_type'
                 ? getScopeTypeLabel(groupKey as EscalationScopeType)
                 : formatStatusLabel(groupKey as EscalationStatus)}
-              <span className="ml-2 text-white/40">({groupEscalations.length})</span>
+              <span className="ml-2 text-[var(--ff-text-tertiary)]">({groupEscalations.length})</span>
             </h3>
           )}
 
@@ -415,9 +415,9 @@ export function EscalationList({
       {/* Empty filtered state */}
       {filteredEscalations.length === 0 && escalations.length > 0 && (
         <div className="text-center py-12">
-          <Filter className="w-12 h-12 text-white/40 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">No Results</h3>
-          <p className="text-white/60">No escalations match the selected filters.</p>
+          <Filter className="w-12 h-12 text-[var(--ff-text-tertiary)] mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-2">No Results</h3>
+          <p className="text-[var(--ff-text-secondary)]">No escalations match the selected filters.</p>
         </div>
       )}
     </div>

@@ -195,13 +195,13 @@ export function PhotoUpload({
         <img
           src={photoUrl}
           alt="Photo for step"
-          className="w-full h-full object-cover rounded-lg border border-white/20"
+          className="w-full h-full object-cover rounded-lg border border-[var(--ff-border-light)]"
         />
 
         {/* Verified badge */}
         {photoVerified && (
           <div className="absolute -top-1 -right-1 bg-green-500 rounded-full p-1">
-            <CheckCircle className="w-3 h-3 text-white" />
+            <CheckCircle className="w-3 h-3 text-[var(--ff-text-primary)]" />
           </div>
         )}
 
@@ -212,7 +212,7 @@ export function PhotoUpload({
             className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 rounded-full p-1 transition-colors"
             title="Delete photo"
           >
-            <X className="w-3 h-3 text-white" />
+            <X className="w-3 h-3 text-[var(--ff-text-primary)]" />
           </button>
         )}
       </div>
@@ -244,7 +244,7 @@ export function PhotoUpload({
           compact ? 'p-2' : 'p-4',
           isDragging
             ? 'border-blue-400 bg-blue-400/10'
-            : 'border-white/20 hover:border-white/40',
+            : 'border-[var(--ff-border-light)] hover:border-[var(--ff-border-light)]',
           disabled || isUploading ? 'opacity-50 cursor-not-allowed' : '',
           error ? 'border-red-400' : ''
         )}
@@ -252,21 +252,21 @@ export function PhotoUpload({
         {isUploading ? (
           // Upload progress
           <div className="flex flex-col items-center justify-center space-y-2">
-            <div className="w-full bg-white/10 rounded-full h-2">
+            <div className="w-full bg-[var(--ff-bg-tertiary)] rounded-full h-2">
               <div
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-xs text-white/60">Uploading... {uploadProgress}%</p>
+            <p className="text-xs text-[var(--ff-text-secondary)]">Uploading... {uploadProgress}%</p>
           </div>
         ) : (
           // Upload prompt
           <div className={cn('flex items-center justify-center', compact ? 'space-x-1' : 'space-x-2')}>
             {compact ? (
               <>
-                <Upload className="w-4 h-4 text-white/60" />
-                <span className="text-xs text-white/80">Upload Photo</span>
+                <Upload className="w-4 h-4 text-[var(--ff-text-secondary)]" />
+                <span className="text-xs text-[var(--ff-text-primary)]">Upload Photo</span>
               </>
             ) : (
               <VelocityButton

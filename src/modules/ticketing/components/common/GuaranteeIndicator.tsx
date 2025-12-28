@@ -80,7 +80,7 @@ function getGuaranteeConfig(status: GuaranteeStatus | string | null) {
     configs[status] || {
       label: status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' '),
       icon: Shield,
-      color: 'bg-white/10 text-white/80 border-white/20',
+      color: 'bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-secondary)] border-[var(--ff-border-light)]',
       description: 'Unknown guarantee status',
     }
   );
@@ -129,14 +129,14 @@ export function GuaranteeIndicator({
   // 🟢 WORKING: Detailed mode - full card
   if (detailed) {
     return (
-      <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+      <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
         <div className="flex items-start gap-3 mb-3">
           <div className={cn('p-2 rounded-lg', config.color)}>
             <Icon className="w-5 h-5" />
           </div>
           <div className="flex-1">
-            <h4 className="text-sm font-semibold text-white mb-1">{config.label}</h4>
-            <p className="text-xs text-white/60">{config.description}</p>
+            <h4 className="text-sm font-semibold text-[var(--ff-text-primary)] mb-1">{config.label}</h4>
+            <p className="text-xs text-[var(--ff-text-secondary)]">{config.description}</p>
           </div>
         </div>
 
@@ -144,9 +144,9 @@ export function GuaranteeIndicator({
           {/* Expiry Date */}
           {expiryDate && (
             <div className="flex items-center gap-2 text-xs">
-              <Calendar className="w-3 h-3 text-white/40" />
-              <span className="text-white/60">Expires:</span>
-              <span className={cn('text-white', isExpired && 'text-red-400')}>
+              <Calendar className="w-3 h-3 text-[var(--ff-text-tertiary)]" />
+              <span className="text-[var(--ff-text-secondary)]">Expires:</span>
+              <span className={cn('text-[var(--ff-text-primary)]', isExpired && 'text-red-400')}>
                 {isExpired ? 'Expired ' : ''}
                 {formatDistanceToNow(expiryDate, { addSuffix: !isExpired })}
               </span>
@@ -156,8 +156,8 @@ export function GuaranteeIndicator({
           {/* Billable Status */}
           {isBillable !== null && isBillable !== undefined && (
             <div className="flex items-center gap-2 text-xs">
-              <DollarSign className="w-3 h-3 text-white/40" />
-              <span className="text-white/60">Billable:</span>
+              <DollarSign className="w-3 h-3 text-[var(--ff-text-tertiary)]" />
+              <span className="text-[var(--ff-text-secondary)]">Billable:</span>
               <span
                 className={cn(
                   'px-2 py-0.5 rounded font-medium',
@@ -174,9 +174,9 @@ export function GuaranteeIndicator({
           {/* Billing Classification */}
           {billingClassification && (
             <div className="flex items-center gap-2 text-xs">
-              <DollarSign className="w-3 h-3 text-white/40" />
-              <span className="text-white/60">Classification:</span>
-              <span className="text-white capitalize">
+              <DollarSign className="w-3 h-3 text-[var(--ff-text-tertiary)]" />
+              <span className="text-[var(--ff-text-secondary)]">Classification:</span>
+              <span className="text-[var(--ff-text-primary)] capitalize">
                 {billingClassification.replace(/_/g, ' ')}
               </span>
             </div>
@@ -203,7 +203,7 @@ export function GuaranteeIndicator({
 
       {/* Expiry Info */}
       {expiryDate && (
-        <span className="flex items-center gap-1 text-xs text-white/60">
+        <span className="flex items-center gap-1 text-xs text-[var(--ff-text-secondary)]">
           <Calendar className="w-3 h-3" />
           {isExpired ? (
             <span className="text-red-400">

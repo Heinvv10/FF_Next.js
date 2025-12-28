@@ -303,8 +303,8 @@ export function WeeklyImportWizard({ onComplete, onCancel }: WeeklyImportWizardP
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">Weekly Report Import</h2>
-          <p className="text-sm text-white/60 mt-1">
+          <h2 className="text-xl font-semibold text-[var(--ff-text-primary)]">Weekly Report Import</h2>
+          <p className="text-sm text-[var(--ff-text-secondary)] mt-1">
             {currentStep === 'upload' && 'Upload and parse Excel file'}
             {currentStep === 'preview' && 'Review and validate data before import'}
             {currentStep === 'importing' && 'Importing tickets from report'}
@@ -315,11 +315,11 @@ export function WeeklyImportWizard({ onComplete, onCancel }: WeeklyImportWizardP
         {/* Step indicator */}
         <div className="flex items-center gap-2">
           <StepIndicator step={1} current={currentStep === 'upload'} label="Upload" />
-          <div className="w-8 h-0.5 bg-white/10" />
+          <div className="w-8 h-0.5 bg-[var(--ff-border-light)]" />
           <StepIndicator step={2} current={currentStep === 'preview'} label="Preview" />
-          <div className="w-8 h-0.5 bg-white/10" />
+          <div className="w-8 h-0.5 bg-[var(--ff-border-light)]" />
           <StepIndicator step={3} current={currentStep === 'importing'} label="Import" />
-          <div className="w-8 h-0.5 bg-white/10" />
+          <div className="w-8 h-0.5 bg-[var(--ff-border-light)]" />
           <StepIndicator step={4} current={currentStep === 'results'} label="Results" />
         </div>
       </div>
@@ -385,12 +385,12 @@ function StepIndicator({
           'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all',
           current
             ? 'bg-blue-600 text-white'
-            : 'bg-white/5 text-white/40'
+            : 'bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-tertiary)]'
         )}
       >
         {step}
       </div>
-      <span className={cn('text-xs', current ? 'text-white/90' : 'text-white/40')}>
+      <span className={cn('text-xs', current ? 'text-[var(--ff-text-primary)]' : 'text-[var(--ff-text-tertiary)]')}>
         {label}
       </span>
     </div>
@@ -418,8 +418,8 @@ function FileUploadStep({
       </div>
 
       <div className="text-center space-y-2">
-        <h3 className="text-lg font-medium text-white">Upload Weekly Report</h3>
-        <p className="text-sm text-white/60 max-w-md">
+        <h3 className="text-lg font-medium text-[var(--ff-text-primary)]">Upload Weekly Report</h3>
+        <p className="text-sm text-[var(--ff-text-secondary)] max-w-md">
           Select an Excel file (.xlsx or .xls) containing weekly ticket data to upload and import
         </p>
       </div>
@@ -428,14 +428,14 @@ function FileUploadStep({
       <div className="w-full max-w-md">
         <label
           htmlFor="file-upload"
-          className="flex flex-col items-center gap-4 p-8 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-blue-500/50 hover:bg-white/5 transition-all"
+          className="flex flex-col items-center gap-4 p-8 border-2 border-dashed border-[var(--ff-border-light)] rounded-lg cursor-pointer hover:border-blue-500/50 hover:bg-[var(--ff-bg-tertiary)] transition-all"
         >
-          <Upload className="w-8 h-8 text-white/40" />
+          <Upload className="w-8 h-8 text-[var(--ff-text-tertiary)]" />
           <div className="text-center">
-            <p className="text-sm font-medium text-white/90">
+            <p className="text-sm font-medium text-[var(--ff-text-primary)]">
               {selectedFile ? selectedFile.name : 'Choose file or drag and drop'}
             </p>
-            <p className="text-xs text-white/50 mt-1">Excel files only (.xlsx, .xls)</p>
+            <p className="text-xs text-[var(--ff-text-tertiary)] mt-1">Excel files only (.xlsx, .xls)</p>
           </div>
           <input
             id="file-upload"
@@ -494,11 +494,11 @@ function PreviewStep({
       <ImportPreview preview={preview} />
 
       {/* Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-white/10">
+      <div className="flex items-center justify-between pt-4 border-t border-[var(--ff-border-light)]">
         <button
           type="button"
           onClick={onBack}
-          className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white/90 transition-colors flex items-center gap-2"
+          className="px-4 py-2 text-sm font-medium text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] transition-colors flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back</span>
@@ -514,7 +514,7 @@ function PreviewStep({
             'disabled:opacity-50 disabled:cursor-not-allowed',
             preview.can_proceed
               ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-white/10 text-white/40 cursor-not-allowed'
+              : 'bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-tertiary)] cursor-not-allowed'
           )}
         >
           {isImporting ? (
@@ -542,8 +542,8 @@ function ImportingStep({ progress }: { progress: ImportProgressUpdate | null }) 
       </div>
 
       <div className="text-center space-y-2">
-        <h3 className="text-lg font-medium text-white">Importing Tickets</h3>
-        <p className="text-sm text-white/60">
+        <h3 className="text-lg font-medium text-[var(--ff-text-primary)]">Importing Tickets</h3>
+        <p className="text-sm text-[var(--ff-text-secondary)]">
           Please wait while we import tickets from the weekly report
         </p>
       </div>
@@ -551,7 +551,7 @@ function ImportingStep({ progress }: { progress: ImportProgressUpdate | null }) 
       {/* Progress Bar */}
       {progress && (
         <div className="w-full max-w-md space-y-3">
-          <div className="relative h-2 bg-white/10 rounded-full overflow-hidden">
+          <div className="relative h-2 bg-[var(--ff-bg-tertiary)] rounded-full overflow-hidden">
             <div
               className="absolute inset-y-0 left-0 bg-blue-600 transition-all duration-300"
               style={{ width: `${progress.progress_percentage}%` }}
@@ -559,19 +559,19 @@ function ImportingStep({ progress }: { progress: ImportProgressUpdate | null }) 
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-white/60">
+            <span className="text-[var(--ff-text-secondary)]">
               {progress.processed_rows} / {progress.total_rows} rows
             </span>
-            <span className="text-white/90 font-medium">{progress.progress_percentage}%</span>
+            <span className="text-[var(--ff-text-primary)] font-medium">{progress.progress_percentage}%</span>
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-4">
-            <div className="p-3 bg-white/5 rounded-lg">
-              <p className="text-xs text-white/50">Imported</p>
+            <div className="p-3 bg-[var(--ff-bg-secondary)] rounded-lg">
+              <p className="text-xs text-[var(--ff-text-tertiary)]">Imported</p>
               <p className="text-lg font-semibold text-green-400">{progress.imported_count}</p>
             </div>
-            <div className="p-3 bg-white/5 rounded-lg">
-              <p className="text-xs text-white/50">Errors</p>
+            <div className="p-3 bg-[var(--ff-bg-secondary)] rounded-lg">
+              <p className="text-xs text-[var(--ff-text-tertiary)]">Errors</p>
               <p className="text-lg font-semibold text-red-400">{progress.error_count}</p>
             </div>
           </div>
@@ -596,7 +596,7 @@ function ResultsStep({
       <ImportResults result={result} />
 
       {/* Actions */}
-      <div className="flex items-center justify-center pt-4 border-t border-white/10">
+      <div className="flex items-center justify-center pt-4 border-t border-[var(--ff-border-light)]">
         <button
           type="button"
           onClick={onReset}

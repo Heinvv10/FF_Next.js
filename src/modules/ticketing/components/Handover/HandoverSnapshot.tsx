@@ -88,28 +88,28 @@ function CollapsibleSection({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className="border border-white/10 rounded-lg overflow-hidden">
+    <div className="border border-[var(--ff-border-light)] rounded-lg overflow-hidden">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition-colors"
+        className="w-full flex items-center justify-between p-4 bg-[var(--ff-bg-secondary)] hover:bg-[var(--ff-bg-tertiary)] transition-colors"
       >
         <div className="flex items-center gap-3">
-          <Icon className="w-5 h-5 text-white/60" />
-          <span className="font-medium text-white">{title}</span>
+          <Icon className="w-5 h-5 text-[var(--ff-text-secondary)]" />
+          <span className="font-medium text-[var(--ff-text-primary)]">{title}</span>
           {count !== undefined && (
-            <span className="px-2 py-0.5 bg-white/10 text-white/70 rounded text-xs font-medium">
+            <span className="px-2 py-0.5 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-secondary)] rounded text-xs font-medium">
               {count}
             </span>
           )}
         </div>
         {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-white/60" />
+          <ChevronUp className="w-5 h-5 text-[var(--ff-text-secondary)]" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-white/60" />
+          <ChevronDown className="w-5 h-5 text-[var(--ff-text-secondary)]" />
         )}
       </button>
 
-      {isExpanded && <div className="p-4 bg-white/[0.02]">{children}</div>}
+      {isExpanded && <div className="p-4">{children}</div>}
     </div>
   );
 }
@@ -137,14 +137,14 @@ export function HandoverSnapshot({
   return (
     <div className="space-y-4">
       {/* Header - Handover Info */}
-      <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-xl font-bold text-white mb-2">
+            <h3 className="text-xl font-bold text-[var(--ff-text-primary)] mb-2">
               {formatHandoverType(snapshot.handover_type)}
             </h3>
-            <p className="text-sm text-white/60">
-              Ticket: <span className="font-mono text-white/80">{snapshotData.ticket_uid}</span>
+            <p className="text-sm text-[var(--ff-text-secondary)]">
+              Ticket: <span className="font-mono text-[var(--ff-text-primary)]">{snapshotData.ticket_uid}</span>
             </p>
           </div>
 
@@ -157,11 +157,11 @@ export function HandoverSnapshot({
 
         {/* Ownership Transfer */}
         {(snapshot.from_owner_type || snapshot.to_owner_type) && (
-          <div className="flex items-center gap-4 p-3 bg-white/5 rounded-lg">
+          <div className="flex items-center gap-4 p-3 bg-[var(--ff-bg-secondary)] rounded-lg">
             <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm font-medium">
               {formatOwnerType(snapshot.from_owner_type)}
             </span>
-            <ArrowRight className="w-4 h-4 text-white/40" />
+            <ArrowRight className="w-4 h-4 text-[var(--ff-text-tertiary)]" />
             <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-medium">
               {formatOwnerType(snapshot.to_owner_type)}
             </span>
@@ -169,18 +169,18 @@ export function HandoverSnapshot({
         )}
 
         {/* Metadata */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 pt-4 border-t border-white/10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 pt-4 border-t border-[var(--ff-border-light)]">
           <div className="flex items-center gap-2 text-sm">
-            <Calendar className="w-4 h-4 text-white/40" />
-            <span className="text-white/60">Handover At:</span>
-            <span className="text-white/90">
+            <Calendar className="w-4 h-4 text-[var(--ff-text-tertiary)]" />
+            <span className="text-[var(--ff-text-secondary)]">Handover At:</span>
+            <span className="text-[var(--ff-text-primary)]">
               {new Date(snapshot.handover_at).toLocaleString()}
             </span>
           </div>
           <div className="flex items-center gap-2 text-sm">
-            <User className="w-4 h-4 text-white/40" />
-            <span className="text-white/60">Handover By:</span>
-            <span className="text-white/90 font-mono">{snapshot.handover_by.slice(0, 8)}</span>
+            <User className="w-4 h-4 text-[var(--ff-text-tertiary)]" />
+            <span className="text-[var(--ff-text-secondary)]">Handover By:</span>
+            <span className="text-[var(--ff-text-primary)] font-mono">{snapshot.handover_by.slice(0, 8)}</span>
           </div>
         </div>
       </div>
@@ -194,83 +194,83 @@ export function HandoverSnapshot({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Basic Info */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-white/80 uppercase tracking-wide">Basic Information</h4>
+            <h4 className="text-sm font-semibold text-[var(--ff-text-primary)] uppercase tracking-wide">Basic Information</h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Title:</span>
-                <span className="text-white/90 text-right">{snapshotData.title}</span>
+                <span className="text-[var(--ff-text-secondary)]">Title:</span>
+                <span className="text-[var(--ff-text-primary)] text-right">{snapshotData.title}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Status:</span>
-                <span className="text-white/90">{snapshotData.status}</span>
+                <span className="text-[var(--ff-text-secondary)]">Status:</span>
+                <span className="text-[var(--ff-text-primary)]">{snapshotData.status}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Priority:</span>
-                <span className="text-white/90">{snapshotData.priority}</span>
+                <span className="text-[var(--ff-text-secondary)]">Priority:</span>
+                <span className="text-[var(--ff-text-primary)]">{snapshotData.priority}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Type:</span>
-                <span className="text-white/90">{snapshotData.ticket_type}</span>
+                <span className="text-[var(--ff-text-secondary)]">Type:</span>
+                <span className="text-[var(--ff-text-primary)]">{snapshotData.ticket_type}</span>
               </div>
             </div>
           </div>
 
           {/* Location Data */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-white/80 uppercase tracking-wide">Location</h4>
+            <h4 className="text-sm font-semibold text-[var(--ff-text-primary)] uppercase tracking-wide">Location</h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">DR Number:</span>
-                <span className="text-white/90">{snapshotData.dr_number || 'N/A'}</span>
+                <span className="text-[var(--ff-text-secondary)]">DR Number:</span>
+                <span className="text-[var(--ff-text-primary)]">{snapshotData.dr_number || 'N/A'}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Pole:</span>
-                <span className="text-white/90">{snapshotData.pole_number || 'N/A'}</span>
+                <span className="text-[var(--ff-text-secondary)]">Pole:</span>
+                <span className="text-[var(--ff-text-primary)]">{snapshotData.pole_number || 'N/A'}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">PON:</span>
-                <span className="text-white/90">{snapshotData.pon_number || 'N/A'}</span>
+                <span className="text-[var(--ff-text-secondary)]">PON:</span>
+                <span className="text-[var(--ff-text-primary)]">{snapshotData.pon_number || 'N/A'}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Zone:</span>
-                <span className="text-white/90">{snapshotData.zone_id || 'N/A'}</span>
+                <span className="text-[var(--ff-text-secondary)]">Zone:</span>
+                <span className="text-[var(--ff-text-primary)]">{snapshotData.zone_id || 'N/A'}</span>
               </div>
             </div>
           </div>
 
           {/* Equipment Data */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-white/80 uppercase tracking-wide">Equipment</h4>
+            <h4 className="text-sm font-semibold text-[var(--ff-text-primary)] uppercase tracking-wide">Equipment</h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">ONT Serial:</span>
-                <span className="text-white/90 font-mono">{snapshotData.ont_serial || 'N/A'}</span>
+                <span className="text-[var(--ff-text-secondary)]">ONT Serial:</span>
+                <span className="text-[var(--ff-text-primary)] font-mono">{snapshotData.ont_serial || 'N/A'}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">ONT RX Level:</span>
-                <span className="text-white/90">
+                <span className="text-[var(--ff-text-secondary)]">ONT RX Level:</span>
+                <span className="text-[var(--ff-text-primary)]">
                   {snapshotData.ont_rx_level !== null ? `${snapshotData.ont_rx_level} dBm` : 'N/A'}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">ONT Model:</span>
-                <span className="text-white/90">{snapshotData.ont_model || 'N/A'}</span>
+                <span className="text-[var(--ff-text-secondary)]">ONT Model:</span>
+                <span className="text-[var(--ff-text-primary)]">{snapshotData.ont_model || 'N/A'}</span>
               </div>
             </div>
           </div>
 
           {/* Verification Progress */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-white/80 uppercase tracking-wide">Progress</h4>
+            <h4 className="text-sm font-semibold text-[var(--ff-text-primary)] uppercase tracking-wide">Progress</h4>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">Verification:</span>
-                <span className="text-white/90">
+                <span className="text-[var(--ff-text-secondary)]">Verification:</span>
+                <span className="text-[var(--ff-text-primary)]">
                   {snapshotData.verification_steps_completed} / {snapshotData.verification_steps_total}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-white/60">QA Ready:</span>
+                <span className="text-[var(--ff-text-secondary)]">QA Ready:</span>
                 <span className={cn(
                   "font-medium",
                   snapshotData.qa_ready ? "text-green-400" : "text-red-400"
@@ -280,8 +280,8 @@ export function HandoverSnapshot({
               </div>
               {snapshotData.fault_cause && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/60">Fault Cause:</span>
-                  <span className="text-white/90">{snapshotData.fault_cause}</span>
+                  <span className="text-[var(--ff-text-secondary)]">Fault Cause:</span>
+                  <span className="text-[var(--ff-text-primary)]">{snapshotData.fault_cause}</span>
                 </div>
               )}
             </div>
@@ -302,7 +302,7 @@ export function HandoverSnapshot({
               {evidenceLinks.map((evidence: any, index: number) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-[var(--ff-bg-secondary)] rounded-lg"
                 >
                   <div className="flex items-center gap-3">
                     {evidence.type === 'photo' ? (
@@ -311,8 +311,8 @@ export function HandoverSnapshot({
                       <FileText className="w-4 h-4 text-green-400" />
                     )}
                     <div>
-                      <p className="text-sm font-medium text-white/90">{evidence.filename}</p>
-                      <p className="text-xs text-white/60">
+                      <p className="text-sm font-medium text-[var(--ff-text-primary)]">{evidence.filename}</p>
+                      <p className="text-xs text-[var(--ff-text-secondary)]">
                         Uploaded {new Date(evidence.uploaded_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -332,8 +332,8 @@ export function HandoverSnapshot({
             </div>
           </CollapsibleSection>
         ) : (
-          <div className="p-4 bg-white/5 border border-white/10 rounded-lg text-center">
-            <p className="text-sm text-white/60">No evidence attached</p>
+          <div className="p-4 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg text-center">
+            <p className="text-sm text-[var(--ff-text-secondary)]">No evidence attached</p>
           </div>
         )
       )}
@@ -361,32 +361,32 @@ export function HandoverSnapshot({
                   )}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="px-2 py-1 bg-white/10 text-white/80 rounded text-xs font-medium uppercase">
+                    <span className="px-2 py-1 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] rounded text-xs font-medium uppercase">
                       {decision.decision_type.replace(/_/g, ' ')}
                     </span>
-                    <span className="text-xs text-white/60">
+                    <span className="text-xs text-[var(--ff-text-secondary)]">
                       {new Date(decision.decision_at).toLocaleString()}
                     </span>
                   </div>
                   {decision.notes && (
-                    <p className="text-sm text-white/80">{decision.notes}</p>
+                    <p className="text-sm text-[var(--ff-text-primary)]">{decision.notes}</p>
                   )}
                 </div>
               ))}
             </div>
           </CollapsibleSection>
         ) : (
-          <div className="p-4 bg-white/5 border border-white/10 rounded-lg text-center">
-            <p className="text-sm text-white/60">No decisions recorded</p>
+          <div className="p-4 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg text-center">
+            <p className="text-sm text-[var(--ff-text-secondary)]">No decisions recorded</p>
           </div>
         )
       )}
 
       {/* Guarantee Status */}
       {snapshot.guarantee_status && (
-        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+        <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
           <div className="flex items-center justify-between">
-            <span className="text-white/60">Guarantee Status:</span>
+            <span className="text-[var(--ff-text-secondary)]">Guarantee Status:</span>
             <span className={cn(
               "px-3 py-1 rounded-full text-sm font-medium",
               snapshot.guarantee_status === 'under_guarantee'

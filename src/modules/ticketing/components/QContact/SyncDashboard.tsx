@@ -59,8 +59,8 @@ export function SyncDashboard({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-6 h-6 text-white/60 animate-spin" />
-        <span className="ml-2 text-white/60">Loading sync status...</span>
+        <Loader2 className="w-6 h-6 text-[var(--ff-text-secondary)] animate-spin" />
+        <span className="ml-2 text-[var(--ff-text-secondary)]">Loading sync status...</span>
       </div>
     );
   }
@@ -80,9 +80,9 @@ export function SyncDashboard({
   // 🟢 WORKING: Empty state
   if (!syncStatus) {
     return (
-      <div className="flex items-center justify-center p-8 bg-white/5 border border-white/10 rounded-lg">
-        <AlertCircle className="w-6 h-6 text-white/60" />
-        <span className="ml-2 text-white/60">
+      <div className="flex items-center justify-center p-8 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg">
+        <AlertCircle className="w-6 h-6 text-[var(--ff-text-secondary)]" />
+        <span className="ml-2 text-[var(--ff-text-secondary)]">
           No sync status available
         </span>
       </div>
@@ -93,10 +93,10 @@ export function SyncDashboard({
     <div className={cn('space-y-4', compact && 'space-y-2')}>
       {/* Header with refresh button */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Sync Status</h3>
+        <h3 className="text-lg font-semibold text-[var(--ff-text-primary)]">Sync Status</h3>
         <button
           onClick={handleRefresh}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--ff-text-primary)] hover:text-[var(--ff-text-primary)] bg-[var(--ff-bg-secondary)] hover:bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg transition-colors"
           aria-label="Refresh sync status"
         >
           <RefreshCw className="w-4 h-4" />
@@ -106,7 +106,7 @@ export function SyncDashboard({
 
       {/* Health Status Card */}
       <div className={cn(
-        'bg-white/5 border rounded-lg p-4',
+        'bg-[var(--ff-bg-secondary)] border rounded-lg p-4',
         syncStatus.is_healthy ? 'border-green-500/20' : 'border-red-500/20'
       )}>
         <div className="flex items-center justify-between">
@@ -123,10 +123,10 @@ export function SyncDashboard({
               />
             )}
             <div>
-              <h4 className="font-medium text-white">
+              <h4 className="font-medium text-[var(--ff-text-primary)]">
                 {syncStatus.is_healthy ? 'Healthy' : 'Unhealthy'}
               </h4>
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-[var(--ff-text-secondary)]">
                 System health status
               </p>
             </div>
@@ -135,8 +135,8 @@ export function SyncDashboard({
 
         {/* Health Issues */}
         {!syncStatus.is_healthy && syncStatus.health_issues.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-white/10">
-            <p className="text-sm font-medium text-white/80 mb-2">Issues:</p>
+          <div className="mt-3 pt-3 border-t border-[var(--ff-border-light)]">
+            <p className="text-sm font-medium text-[var(--ff-text-primary)] mb-2">Issues:</p>
             <ul className="space-y-1">
               {syncStatus.health_issues.map((issue, index) => (
                 <li key={index} className="text-sm text-red-400 flex items-start gap-2">
@@ -155,62 +155,62 @@ export function SyncDashboard({
         compact ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
       )}>
         {/* Success Rate */}
-        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+        <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-4 h-4 text-green-400" />
-            <p className="text-sm text-white/60">Success Rate (7d)</p>
+            <p className="text-sm text-[var(--ff-text-secondary)]">Success Rate (7d)</p>
           </div>
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold text-[var(--ff-text-primary)]">
             {syncStatus.success_rate_last_7d.toFixed(1)}%
           </p>
         </div>
 
         {/* Pending Outbound */}
-        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+        <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <ArrowUpCircle className="w-4 h-4 text-blue-400" />
-            <p className="text-sm text-white/60">Pending Outbound</p>
+            <p className="text-sm text-[var(--ff-text-secondary)]">Pending Outbound</p>
           </div>
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold text-[var(--ff-text-primary)]">
             {syncStatus.pending_outbound}
           </p>
         </div>
 
         {/* Pending Inbound */}
-        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+        <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <ArrowDownCircle className="w-4 h-4 text-purple-400" />
-            <p className="text-sm text-white/60">Pending Inbound</p>
+            <p className="text-sm text-[var(--ff-text-secondary)]">Pending Inbound</p>
           </div>
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold text-[var(--ff-text-primary)]">
             {syncStatus.pending_inbound}
           </p>
         </div>
 
         {/* Failed (24h) */}
-        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+        <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle className="w-4 h-4 text-red-400" />
-            <p className="text-sm text-white/60">Failed (24h)</p>
+            <p className="text-sm text-[var(--ff-text-secondary)]">Failed (24h)</p>
           </div>
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold text-[var(--ff-text-primary)]">
             {syncStatus.failed_last_24h}
           </p>
         </div>
       </div>
 
       {/* Last Sync Info */}
-      <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+      <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <Clock className="w-5 h-5 text-white/60 mt-0.5" />
+          <Clock className="w-5 h-5 text-[var(--ff-text-secondary)] mt-0.5" />
           <div className="flex-1">
-            <h4 className="font-medium text-white mb-1">Last Sync</h4>
+            <h4 className="font-medium text-[var(--ff-text-primary)] mb-1">Last Sync</h4>
             {syncStatus.last_sync_at ? (
               <div className="space-y-1">
-                <p className="text-sm text-white/80">
+                <p className="text-sm text-[var(--ff-text-primary)]">
                   {formatDistanceToNow(new Date(syncStatus.last_sync_at), { addSuffix: true })}
                 </p>
-                <div className="flex items-center gap-4 text-sm text-white/60">
+                <div className="flex items-center gap-4 text-sm text-[var(--ff-text-secondary)]">
                   <span>
                     Status:{' '}
                     <span className={cn(
@@ -230,7 +230,7 @@ export function SyncDashboard({
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-white/60">No sync performed yet</p>
+              <p className="text-sm text-[var(--ff-text-secondary)]">No sync performed yet</p>
             )}
           </div>
         </div>

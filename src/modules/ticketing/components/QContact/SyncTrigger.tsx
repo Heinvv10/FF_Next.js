@@ -78,7 +78,7 @@ function SyncDirectionSelector({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-white">Sync Direction</label>
+      <label className="text-sm font-medium text-[var(--ff-text-primary)]">Sync Direction</label>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {options.map((option) => {
           const Icon = option.icon;
@@ -93,17 +93,17 @@ function SyncDirectionSelector({
                 'p-3 rounded-lg border transition-all text-left',
                 isSelected
                   ? 'bg-blue-500/20 border-blue-500/50'
-                  : 'bg-white/5 border-white/10 hover:bg-white/10',
+                  : 'bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)] hover:bg-[var(--ff-bg-tertiary)]',
                 disabled && 'opacity-50 cursor-not-allowed'
               )}
             >
               <div className="flex items-center mb-2">
-                <Icon className={cn('w-5 h-5 mr-2', isSelected ? 'text-blue-400' : 'text-white/60')} />
-                <span className={cn('font-medium', isSelected ? 'text-blue-400' : 'text-white')}>
+                <Icon className={cn('w-5 h-5 mr-2', isSelected ? 'text-blue-400' : 'text-[var(--ff-text-secondary)]')} />
+                <span className={cn('font-medium', isSelected ? 'text-blue-400' : 'text-[var(--ff-text-primary)]')}>
                   {option.label}
                 </span>
               </div>
-              <p className="text-xs text-white/60">{option.description}</p>
+              <p className="text-xs text-[var(--ff-text-secondary)]">{option.description}</p>
             </button>
           );
         })}
@@ -140,7 +140,7 @@ function SyncResultDisplay({ result }: { result: FullSyncResult }) {
             Sync {isSuccess ? 'Completed Successfully' : 'Completed with Issues'}
           </span>
         </div>
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-[var(--ff-text-secondary)]">
           Duration: {Math.round(result.duration_seconds)}s | Success Rate:{' '}
           {Math.round(result.success_rate * 100)}%
         </p>
@@ -150,15 +150,15 @@ function SyncResultDisplay({ result }: { result: FullSyncResult }) {
       <div className="grid grid-cols-2 gap-4">
         {/* Inbound Stats */}
         {result.inbound_stats.total_processed > 0 && (
-          <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
+          <div className="p-4 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg">
             <div className="flex items-center mb-2">
               <Download className="w-4 h-4 text-blue-400 mr-2" />
-              <span className="text-sm font-medium text-white">Inbound</span>
+              <span className="text-sm font-medium text-[var(--ff-text-primary)]">Inbound</span>
             </div>
-            <div className="space-y-1 text-xs text-white/60">
+            <div className="space-y-1 text-xs text-[var(--ff-text-secondary)]">
               <div className="flex justify-between">
                 <span>Processed:</span>
-                <span className="text-white">{result.inbound_stats.total_processed}</span>
+                <span className="text-[var(--ff-text-primary)]">{result.inbound_stats.total_processed}</span>
               </div>
               <div className="flex justify-between">
                 <span>Successful:</span>
@@ -182,15 +182,15 @@ function SyncResultDisplay({ result }: { result: FullSyncResult }) {
 
         {/* Outbound Stats */}
         {result.outbound_stats.total_processed > 0 && (
-          <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
+          <div className="p-4 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg">
             <div className="flex items-center mb-2">
               <Upload className="w-4 h-4 text-purple-400 mr-2" />
-              <span className="text-sm font-medium text-white">Outbound</span>
+              <span className="text-sm font-medium text-[var(--ff-text-primary)]">Outbound</span>
             </div>
-            <div className="space-y-1 text-xs text-white/60">
+            <div className="space-y-1 text-xs text-[var(--ff-text-secondary)]">
               <div className="flex justify-between">
                 <span>Processed:</span>
-                <span className="text-white">{result.outbound_stats.total_processed}</span>
+                <span className="text-[var(--ff-text-primary)]">{result.outbound_stats.total_processed}</span>
               </div>
               <div className="flex justify-between">
                 <span>Successful:</span>
@@ -224,7 +224,7 @@ function SyncResultDisplay({ result }: { result: FullSyncResult }) {
               </div>
             ))}
             {result.errors.length > 5 && (
-              <p className="text-xs text-white/60">
+              <p className="text-xs text-[var(--ff-text-secondary)]">
                 ...and {result.errors.length - 5} more error{result.errors.length - 5 !== 1 ? 's' : ''}
               </p>
             )}
@@ -292,8 +292,8 @@ export function SyncTrigger({ onTriggerSync, disabled = false, compact = false }
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h3 className="text-xl font-bold text-white mb-1">Manual Sync Trigger</h3>
-        <p className="text-sm text-white/60">
+        <h3 className="text-xl font-bold text-[var(--ff-text-primary)] mb-1">Manual Sync Trigger</h3>
+        <p className="text-sm text-[var(--ff-text-secondary)]">
           Manually trigger a sync operation with custom options
         </p>
       </div>
@@ -309,18 +309,18 @@ export function SyncTrigger({ onTriggerSync, disabled = false, compact = false }
       <div className="space-y-4">
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center text-sm text-white/60 hover:text-white transition-all"
+          className="flex items-center text-sm text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] transition-all"
         >
           <Settings className="w-4 h-4 mr-2" />
           {showAdvanced ? 'Hide' : 'Show'} Advanced Options
         </button>
 
         {showAdvanced && (
-          <div className="space-y-4 p-4 bg-white/5 border border-white/10 rounded-lg">
+          <div className="space-y-4 p-4 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg">
             {/* Date Range */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
+                <label className="block text-sm font-medium text-[var(--ff-text-primary)] mb-2">
                   <Calendar className="w-4 h-4 inline mr-1" />
                   Start Date
                 </label>
@@ -329,11 +329,11 @@ export function SyncTrigger({ onTriggerSync, disabled = false, compact = false }
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   disabled={isSyncing || disabled}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg text-[var(--ff-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
+                <label className="block text-sm font-medium text-[var(--ff-text-primary)] mb-2">
                   <Calendar className="w-4 h-4 inline mr-1" />
                   End Date
                 </label>
@@ -342,7 +342,7 @@ export function SyncTrigger({ onTriggerSync, disabled = false, compact = false }
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                   disabled={isSyncing || disabled}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg text-[var(--ff-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -355,11 +355,11 @@ export function SyncTrigger({ onTriggerSync, disabled = false, compact = false }
                 checked={forceResync}
                 onChange={(e) => setForceResync(e.target.checked)}
                 disabled={isSyncing || disabled}
-                className="w-4 h-4 text-blue-600 bg-white/10 border-white/10 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-blue-600 bg-[var(--ff-bg-tertiary)] border-[var(--ff-border-light)] rounded focus:ring-blue-500"
               />
-              <label htmlFor="forceResync" className="ml-2 text-sm text-white">
+              <label htmlFor="forceResync" className="ml-2 text-sm text-[var(--ff-text-primary)]">
                 Force Resync{' '}
-                <span className="text-white/60">(Re-sync even if already synced)</span>
+                <span className="text-[var(--ff-text-secondary)]">(Re-sync even if already synced)</span>
               </label>
             </div>
           </div>
@@ -374,8 +374,8 @@ export function SyncTrigger({ onTriggerSync, disabled = false, compact = false }
           className={cn(
             'flex items-center px-6 py-3 rounded-lg font-semibold transition-all',
             isSyncing || disabled
-              ? 'bg-white/10 text-white/40 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
+              ? 'bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-tertiary)] cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700 text-[var(--ff-text-primary)]'
           )}
         >
           {isSyncing ? (
@@ -392,7 +392,7 @@ export function SyncTrigger({ onTriggerSync, disabled = false, compact = false }
         </button>
 
         {isSyncing && (
-          <div className="text-sm text-white/60">
+          <div className="text-sm text-[var(--ff-text-secondary)]">
             Sync in progress... This may take a few minutes.
           </div>
         )}

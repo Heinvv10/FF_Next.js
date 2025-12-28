@@ -151,21 +151,21 @@ export function ReadinessResults({ check, compact = false }: ReadinessResultsPro
               </span>
             </div>
           )}
-          <p className="text-xs text-white/60 mt-1">
+          <p className="text-xs text-[var(--ff-text-secondary)] mt-1">
             Checked on {formatCheckTime(check.checked_at)}
           </p>
         </div>
 
         <div className="text-right">
-          <div className="text-2xl font-bold text-white">{progress.percentage}%</div>
-          <div className="text-xs text-white/60">
+          <div className="text-2xl font-bold text-[var(--ff-text-primary)]">{progress.percentage}%</div>
+          <div className="text-xs text-[var(--ff-text-secondary)]">
             {progress.passed} of {progress.total} checks passed
           </div>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+      <div className="w-full bg-[var(--ff-bg-tertiary)] rounded-full h-2 overflow-hidden">
         <div
           className={cn(
             'h-2 rounded-full transition-all duration-500',
@@ -190,7 +190,7 @@ export function ReadinessResults({ check, compact = false }: ReadinessResultsPro
                 ? 'bg-green-500/5 border-green-500/20'
                 : item.passed === false
                 ? 'bg-red-500/10 border-red-500/20'
-                : 'bg-white/5 border-white/10',
+                : 'bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)]',
               compact && 'p-2'
             )}
           >
@@ -213,14 +213,14 @@ export function ReadinessResults({ check, compact = false }: ReadinessResultsPro
                       ? 'text-green-400'
                       : item.passed === false
                       ? 'text-red-400'
-                      : 'text-white/60',
+                      : 'text-[var(--ff-text-secondary)]',
                     compact && 'text-sm'
                   )}
                 >
                   {item.label}
                 </p>
                 {item.name === 'photos_exist' && check.photos_count !== null && (
-                  <span className="text-xs text-white/60">
+                  <span className="text-xs text-[var(--ff-text-secondary)]">
                     {check.photos_count}/{check.photos_required_count || 3} photos
                   </span>
                 )}
@@ -231,7 +231,7 @@ export function ReadinessResults({ check, compact = false }: ReadinessResultsPro
                 <div className="mt-2 space-y-1">
                   <p className="text-sm text-red-300">{item.failureInfo.reason}</p>
                   {(item.failureInfo.expected !== undefined || item.failureInfo.actual !== undefined) && (
-                    <div className="flex items-center space-x-4 text-xs text-white/60">
+                    <div className="flex items-center space-x-4 text-xs text-[var(--ff-text-secondary)]">
                       {item.failureInfo.expected !== undefined && (
                         <span>
                           Expected: <span className="text-green-400">{item.failureInfo.expected}</span>

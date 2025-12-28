@@ -22,8 +22,8 @@ export default function TicketsListPageClient() {
     <div className="p-6">
       <div className="mb-6 flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tickets</h1>
-          <p className="text-gray-600">View and manage all tickets</p>
+          <h1 className="text-2xl font-bold text-[var(--ff-text-primary)]">Tickets</h1>
+          <p className="text-[var(--ff-text-secondary)]">View and manage all tickets</p>
         </div>
         <Link
           href="/ticketing/tickets/new"

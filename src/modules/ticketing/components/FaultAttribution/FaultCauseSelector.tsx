@@ -88,7 +88,7 @@ export function FaultCauseSelector({
       warning: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
       info: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
       success: 'text-green-400 bg-green-500/10 border-green-500/20',
-      default: 'text-white/60 bg-white/5 border-white/10',
+      default: 'text-[var(--ff-text-secondary)] bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)]',
     };
     return colorMap[metadata.color] || colorMap.default;
   };
@@ -97,7 +97,7 @@ export function FaultCauseSelector({
     <div className={cn('space-y-4', compact && 'space-y-2')}>
       {/* Fault Cause Selection */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-white/90">
+        <label className="block text-sm font-medium text-[var(--ff-text-primary)]">
           Fault Cause {required && <span className="text-red-400">*</span>}
         </label>
 
@@ -109,12 +109,12 @@ export function FaultCauseSelector({
             disabled={disabled}
             required={required}
             className={cn(
-              'w-full px-4 py-3 bg-white/5 border rounded-lg',
-              'text-white/90 placeholder-white/40',
+              'w-full px-4 py-3 bg-[var(--ff-bg-secondary)] border rounded-lg',
+              'text-[var(--ff-text-primary)] placeholder-[var(--ff-text-tertiary)]',
               'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'transition-all duration-200',
-              error ? 'border-red-500/50' : 'border-white/10',
+              error ? 'border-red-500/50' : 'border-[var(--ff-border-light)]',
               compact && 'py-2 text-sm'
             )}
           >
@@ -196,7 +196,7 @@ export function FaultCauseSelector({
       {/* Details Input (only shown when cause selected) */}
       {value && (
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-white/90">
+          <label className="block text-sm font-medium text-[var(--ff-text-primary)]">
             Fault Details {required && <span className="text-red-400">*</span>}
           </label>
 
@@ -209,25 +209,25 @@ export function FaultCauseSelector({
               placeholder="Describe the fault in detail (e.g., specific location, what failed, observations)..."
               rows={compact ? 3 : 4}
               className={cn(
-                'w-full px-4 py-3 bg-white/5 border rounded-lg',
-                'text-white/90 placeholder-white/40',
+                'w-full px-4 py-3 bg-[var(--ff-bg-secondary)] border rounded-lg',
+                'text-[var(--ff-text-primary)] placeholder-[var(--ff-text-tertiary)]',
                 'focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
                 'transition-all duration-200 resize-none',
-                error ? 'border-red-500/50' : 'border-white/10',
+                error ? 'border-red-500/50' : 'border-[var(--ff-border-light)]',
                 compact && 'py-2 text-sm'
               )}
             />
 
             {/* Character Count */}
             {showCharacterCount && (
-              <div className="absolute bottom-2 right-2 text-xs text-white/40">
+              <div className="absolute bottom-2 right-2 text-xs text-[var(--ff-text-tertiary)]">
                 {details.length}
               </div>
             )}
           </div>
 
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-[var(--ff-text-tertiary)]">
             Provide specific details to help identify root cause and prevent recurrence
           </p>
         </div>

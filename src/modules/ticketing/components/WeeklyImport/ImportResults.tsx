@@ -94,7 +94,7 @@ export function ImportResults({ result }: ImportResultsProps) {
 
       {/* Duration */}
       {result.duration_seconds > 0 && (
-        <div className="flex items-center gap-2 text-sm text-white/60">
+        <div className="flex items-center gap-2 text-sm text-[var(--ff-text-secondary)]">
           <Clock className="w-4 h-4" />
           <span>
             Completed in {formatDuration(result.duration_seconds)}
@@ -107,7 +107,7 @@ export function ImportResults({ result }: ImportResultsProps) {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-red-400" />
-            <h3 className="text-base font-medium text-white/90">
+            <h3 className="text-base font-medium text-[var(--ff-text-primary)]">
               Import Errors ({result.errors.length})
             </h3>
           </div>
@@ -117,8 +117,8 @@ export function ImportResults({ result }: ImportResultsProps) {
               <ImportErrorItem key={index} error={error} />
             ))}
             {result.errors.length > 20 && (
-              <div className="p-3 bg-white/5 border border-white/10 rounded-lg text-center">
-                <p className="text-sm text-white/60">
+              <div className="p-3 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg text-center">
+                <p className="text-sm text-[var(--ff-text-secondary)]">
                   ... and {result.errors.length - 20} more errors
                 </p>
               </div>
@@ -185,7 +185,7 @@ function StatCard({
     <div className={cn('p-4 border rounded-lg', colorClasses[color])}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs text-white/60">{label}</p>
+          <p className="text-xs text-[var(--ff-text-secondary)]">{label}</p>
           <p className="text-2xl font-semibold mt-1">{value}</p>
         </div>
         <div className="opacity-50">{icon}</div>
@@ -211,7 +211,7 @@ function ImportErrorItem({ error }: { error: ImportError }) {
               {error.error_type}
             </span>
             {error.field_name && (
-              <span className="text-xs text-white/50">
+              <span className="text-xs text-[var(--ff-text-tertiary)]">
                 • {error.field_name}
               </span>
             )}

@@ -98,7 +98,7 @@ function HandoverTimelineEntry({
     <div className="relative">
       {/* Timeline connector */}
       {!isLatest && (
-        <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-white/10" />
+        <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-[var(--ff-border-light)]" />
       )}
 
       {/* Timeline entry */}
@@ -124,14 +124,14 @@ function HandoverTimelineEntry({
           <div
             className={cn(
               'border rounded-lg overflow-hidden',
-              isLatest ? 'border-green-500/30 bg-green-500/5' : 'border-white/10 bg-white/5'
+              isLatest ? 'border-green-500/30 bg-green-500/5' : 'border-[var(--ff-border-light)] bg-[var(--ff-bg-secondary)]'
             )}
           >
             {/* Header */}
             <div className="p-4">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h4 className="text-base font-semibold text-white mb-1">
+                  <h4 className="text-base font-semibold text-[var(--ff-text-primary)] mb-1">
                     {formatHandoverType(handover.handover_type)}
                   </h4>
                   {isLatest && (
@@ -159,23 +159,23 @@ function HandoverTimelineEntry({
 
               {/* Ownership transfer */}
               {(handover.from_owner_type || handover.to_owner_type) && (
-                <div className="flex items-center gap-3 mb-3 p-2 bg-white/5 rounded-lg">
-                  <span className="text-sm text-white/60">
+                <div className="flex items-center gap-3 mb-3 p-2 bg-[var(--ff-bg-secondary)] rounded-lg">
+                  <span className="text-sm text-[var(--ff-text-secondary)]">
                     {formatOwnerType(handover.from_owner_type)}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-white/40" />
-                  <span className="text-sm text-white/80 font-medium">
+                  <ArrowRight className="w-4 h-4 text-[var(--ff-text-tertiary)]" />
+                  <span className="text-sm text-[var(--ff-text-primary)] font-medium">
                     {formatOwnerType(handover.to_owner_type)}
                   </span>
                 </div>
               )}
 
               {/* Metadata */}
-              <div className="flex flex-wrap gap-4 text-xs text-white/60">
+              <div className="flex flex-wrap gap-4 text-xs text-[var(--ff-text-secondary)]">
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" />
                   <span>{new Date(handover.handover_at).toLocaleString()}</span>
-                  <span className="text-white/40">
+                  <span className="text-[var(--ff-text-tertiary)]">
                     ({formatRelativeTime(handover.handover_at)})
                   </span>
                 </div>
@@ -188,7 +188,7 @@ function HandoverTimelineEntry({
 
             {/* Expanded snapshot details */}
             {showDetails && (
-              <div className="border-t border-white/10 p-4 bg-white/[0.02]">
+              <div className="border-t border-[var(--ff-border-light)] p-4">
                 <HandoverSnapshotDisplay snapshot={handover} compact />
               </div>
             )}
@@ -230,11 +230,11 @@ export function HandoverHistory({
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8 bg-white/5 border border-white/10 rounded-lg">
-        <div className="flex items-center gap-3 text-white/60">
+      <div className="flex items-center justify-center p-8 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg">
+        <div className="flex items-center gap-3 text-[var(--ff-text-secondary)]">
           <div
             role="status"
-            className="w-5 h-5 border-2 border-white/20 border-t-white/60 rounded-full animate-spin"
+            className="w-5 h-5 border-2 border-[var(--ff-border-light)] border-t-[var(--ff-text-secondary)] rounded-full animate-spin"
           />
           <span>Loading handover history...</span>
         </div>
@@ -264,14 +264,14 @@ export function HandoverHistory({
   // Empty state
   if (!history || history.handovers.length === 0) {
     return (
-      <div className="p-8 bg-white/5 border border-white/10 rounded-lg text-center">
+      <div className="p-8 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg text-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-            <Clock className="w-6 h-6 text-white/40" />
+          <div className="w-12 h-12 rounded-full bg-[var(--ff-bg-tertiary)] flex items-center justify-center">
+            <Clock className="w-6 h-6 text-[var(--ff-text-tertiary)]" />
           </div>
           <div>
-            <p className="text-white/90 font-medium">No Handover History</p>
-            <p className="text-sm text-white/60 mt-1">
+            <p className="text-[var(--ff-text-primary)] font-medium">No Handover History</p>
+            <p className="text-sm text-[var(--ff-text-secondary)] mt-1">
               This ticket has not been handed over yet
             </p>
           </div>
@@ -285,8 +285,8 @@ export function HandoverHistory({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-white">Handover History</h3>
-          <p className="text-sm text-white/60 mt-1">
+          <h3 className="text-lg font-semibold text-[var(--ff-text-primary)]">Handover History</h3>
+          <p className="text-sm text-[var(--ff-text-secondary)] mt-1">
             {history.total_handovers} handover{history.total_handovers !== 1 ? 's' : ''}
             {history.current_owner_type && (
               <span>

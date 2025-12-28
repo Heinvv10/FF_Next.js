@@ -148,9 +148,9 @@ function getSeverityStyles(severity: 'critical' | 'high' | 'medium' | 'low'): {
       };
     default:
       return {
-        bg: 'bg-white/10',
-        border: 'border-white/20',
-        text: 'text-white/60',
+        bg: 'bg-[var(--ff-bg-tertiary)]',
+        border: 'border-[var(--ff-border-light)]',
+        text: 'text-[var(--ff-text-secondary)]',
         glow: '',
       };
   }
@@ -215,7 +215,7 @@ function LocationCard({
       </div>
 
       {/* Location value */}
-      <div className={cn('font-bold text-white mb-2', compact ? 'text-sm' : 'text-lg')}>
+      <div className={cn('font-bold text-[var(--ff-text-primary)] mb-2', compact ? 'text-sm' : 'text-lg')}>
         {location.scope_value}
       </div>
 
@@ -225,7 +225,7 @@ function LocationCard({
           <span className="font-semibold">{location.fault_count}</span> fault
           {location.fault_count !== 1 ? 's' : ''}
         </div>
-        <div className={cn('text-white/40', compact ? 'text-[10px]' : 'text-xs')}>
+        <div className={cn('text-[var(--ff-text-tertiary)]', compact ? 'text-[10px]' : 'text-xs')}>
           Limit: {location.threshold}
         </div>
       </div>
@@ -345,9 +345,9 @@ export function RepeatFaultMap({
   if (escalations.length === 0) {
     return (
       <div className="text-center py-12">
-        <Grid3x3 className="w-12 h-12 text-white/40 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-white mb-2">No Fault Patterns</h3>
-        <p className="text-white/60">No repeat fault patterns detected yet.</p>
+        <Grid3x3 className="w-12 h-12 text-[var(--ff-text-tertiary)] mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-2">No Fault Patterns</h3>
+        <p className="text-[var(--ff-text-secondary)]">No repeat fault patterns detected yet.</p>
       </div>
     );
   }
@@ -355,14 +355,14 @@ export function RepeatFaultMap({
   return (
     <div className="space-y-4">
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-4 p-4 bg-white/5 rounded-lg border border-white/10">
+      <div className="flex flex-wrap items-center gap-4 p-4 bg-[var(--ff-bg-secondary)] rounded-lg border border-[var(--ff-border-light)]">
         {/* Scope filter */}
         <div className="flex items-center space-x-2">
-          <Filter className="w-4 h-4 text-white/60" />
+          <Filter className="w-4 h-4 text-[var(--ff-text-secondary)]" />
           <select
             value={selectedScope}
             onChange={(e) => setSelectedScope(e.target.value as EscalationScopeType | 'all')}
-            className="px-3 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="px-3 py-1.5 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded text-sm text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           >
             <option value="all">All Scopes</option>
             <option value="pole">Poles</option>
@@ -374,11 +374,11 @@ export function RepeatFaultMap({
 
         {/* Sort */}
         <div className="flex items-center space-x-2">
-          <TrendingUp className="w-4 h-4 text-white/60" />
+          <TrendingUp className="w-4 h-4 text-[var(--ff-text-secondary)]" />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'count' | 'severity' | 'recent')}
-            className="px-3 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="px-3 py-1.5 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded text-sm text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           >
             <option value="severity">By Severity</option>
             <option value="count">By Fault Count</option>
@@ -391,19 +391,19 @@ export function RepeatFaultMap({
           {stats.critical > 0 && (
             <div className="flex items-center text-red-400">
               <span className="font-semibold">{stats.critical}</span>
-              <span className="ml-1 text-white/60">critical</span>
+              <span className="ml-1 text-[var(--ff-text-secondary)]">critical</span>
             </div>
           )}
           {stats.high > 0 && (
             <div className="flex items-center text-orange-400">
               <span className="font-semibold">{stats.high}</span>
-              <span className="ml-1 text-white/60">high</span>
+              <span className="ml-1 text-[var(--ff-text-secondary)]">high</span>
             </div>
           )}
           {stats.medium > 0 && (
             <div className="flex items-center text-yellow-400">
               <span className="font-semibold">{stats.medium}</span>
-              <span className="ml-1 text-white/60">medium</span>
+              <span className="ml-1 text-[var(--ff-text-secondary)]">medium</span>
             </div>
           )}
         </div>
@@ -411,7 +411,7 @@ export function RepeatFaultMap({
 
       {/* Legend */}
       {!compact && (
-        <div className="flex items-center space-x-6 text-xs text-white/60">
+        <div className="flex items-center space-x-6 text-xs text-[var(--ff-text-secondary)]">
           <span className="font-medium">Severity:</span>
           <div className="flex items-center space-x-1">
             <div className="w-3 h-3 rounded bg-red-500" />
@@ -454,9 +454,9 @@ export function RepeatFaultMap({
       {/* Empty filtered state */}
       {sortedLocations.length === 0 && locations.length === 0 && escalations.length > 0 && (
         <div className="text-center py-12">
-          <Filter className="w-12 h-12 text-white/40 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">No Results</h3>
-          <p className="text-white/60">No locations match the selected filters.</p>
+          <Filter className="w-12 h-12 text-[var(--ff-text-tertiary)] mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-2">No Results</h3>
+          <p className="text-[var(--ff-text-secondary)]">No locations match the selected filters.</p>
         </div>
       )}
     </div>

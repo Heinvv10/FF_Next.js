@@ -84,8 +84,8 @@ export function VerificationStep({
   return (
     <li
       className={cn(
-        'group relative border border-white/10 rounded-lg transition-all hover:border-white/20',
-        step.is_complete ? 'bg-green-500/5' : 'bg-white/5',
+        'group relative border border-[var(--ff-border-light)] rounded-lg transition-all hover:border-[var(--ff-border-light)]',
+        step.is_complete ? 'bg-green-500/5' : 'bg-[var(--ff-bg-secondary)]',
         compact ? 'p-3' : 'p-4'
       )}
     >
@@ -98,8 +98,8 @@ export function VerificationStep({
               'flex items-center justify-center rounded-full font-semibold',
               compact ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm',
               step.is_complete
-                ? 'bg-green-500 text-white'
-                : 'bg-white/10 text-white/60'
+                ? 'bg-green-500 text-[var(--ff-text-primary)]'
+                : 'bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-secondary)]'
             )}
           >
             {step.is_complete ? <Check className="w-5 h-5" /> : step.step_number}
@@ -130,13 +130,13 @@ export function VerificationStep({
                 className={cn(
                   'font-semibold',
                   compact ? 'text-sm' : 'text-base',
-                  step.is_complete ? 'text-white' : 'text-white/80'
+                  step.is_complete ? 'text-[var(--ff-text-primary)]' : 'text-[var(--ff-text-primary)]'
                 )}
               >
                 {step.step_name}
               </h4>
               {!compact && step.step_description && (
-                <p className="text-sm text-white/60 mt-1">{step.step_description}</p>
+                <p className="text-sm text-[var(--ff-text-secondary)] mt-1">{step.step_description}</p>
               )}
             </div>
 
@@ -155,8 +155,8 @@ export function VerificationStep({
           {template.photo_required && (
             <div className="mt-3">
               <div className="flex items-center gap-2 mb-2">
-                <Camera className="w-4 h-4 text-white/60" />
-                <span className="text-xs font-medium text-white/80">Photo Required</span>
+                <Camera className="w-4 h-4 text-[var(--ff-text-secondary)]" />
+                <span className="text-xs font-medium text-[var(--ff-text-primary)]">Photo Required</span>
                 {step.photo_verified && (
                   <span className="text-xs text-green-400 flex items-center gap-1">
                     <Check className="w-3 h-3" />
@@ -178,14 +178,14 @@ export function VerificationStep({
 
           {/* Notes */}
           {step.notes && (
-            <div className="mt-3 p-2 bg-white/5 rounded border border-white/10">
-              <p className="text-xs text-white/70 italic">{step.notes}</p>
+            <div className="mt-3 p-2 bg-[var(--ff-bg-secondary)] rounded border border-[var(--ff-border-light)]">
+              <p className="text-xs text-[var(--ff-text-secondary)] italic">{step.notes}</p>
             </div>
           )}
 
           {/* Completion info */}
           {step.is_complete && step.completed_at && (
-            <div className="mt-3 flex items-center gap-4 text-xs text-white/60">
+            <div className="mt-3 flex items-center gap-4 text-xs text-[var(--ff-text-secondary)]">
               <div className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 <span>

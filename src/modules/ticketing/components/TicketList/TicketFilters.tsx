@@ -58,13 +58,13 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
       <div className="flex items-center gap-3">
         {/* Search Input */}
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ff-text-tertiary)]" />
           <input
             type="text"
             placeholder="Search tickets..."
             value={filters.search || ''}
             onChange={(e) => handleFilterChange('search', e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="w-full pl-10 pr-4 py-2 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg text-[var(--ff-text-primary)] placeholder:text-[var(--ff-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           />
         </div>
 
@@ -75,8 +75,8 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors',
             showFilters
-              ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
-              : 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10'
+              ? 'bg-blue-500/20 border-blue-500/30 text-blue-600 dark:text-blue-400'
+              : 'bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)] text-[var(--ff-text-secondary)] hover:bg-[var(--ff-bg-tertiary)]'
           )}
         >
           <Filter className="w-4 h-4" />
@@ -93,7 +93,7 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
           <button
             type="button"
             onClick={handleClearFilters}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] text-[var(--ff-text-secondary)] hover:bg-[var(--ff-bg-tertiary)] transition-colors"
             aria-label="Clear all filters"
           >
             <X className="w-4 h-4" />
@@ -105,18 +105,18 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
       {/* Filter Panel */}
       {showFilters && (
         <div className={cn(
-          'grid gap-4 p-4 bg-white/5 border border-white/10 rounded-lg',
+          'grid gap-4 p-4 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg',
           compact ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
         )}>
           {/* Status Filter */}
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
+            <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-2">
               Status
             </label>
             <select
               value={filters.status || ''}
               onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="">All Statuses</option>
               <option value="open">Open</option>
@@ -135,13 +135,13 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
 
           {/* Type Filter */}
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
+            <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-2">
               Type
             </label>
             <select
               value={filters.ticket_type || ''}
               onChange={(e) => handleFilterChange('ticket_type', e.target.value)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="">All Types</option>
               <option value="maintenance">Maintenance</option>
@@ -154,13 +154,13 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
 
           {/* Priority Filter */}
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
+            <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-2">
               Priority
             </label>
             <select
               value={filters.priority || ''}
               onChange={(e) => handleFilterChange('priority', e.target.value)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="">All Priorities</option>
               <option value="low">Low</option>
@@ -173,7 +173,7 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
 
           {/* QA Ready Filter */}
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
+            <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-2">
               QA Status
             </label>
             <select
@@ -181,7 +181,7 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
               onChange={(e) =>
                 handleFilterChange('qa_ready', e.target.value === '' ? undefined : e.target.value === 'true')
               }
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="">All</option>
               <option value="true">QA Ready</option>
@@ -191,7 +191,7 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
 
           {/* SLA Breach Filter */}
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
+            <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-2">
               SLA Status
             </label>
             <select
@@ -199,7 +199,7 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
               onChange={(e) =>
                 handleFilterChange('sla_breached', e.target.value === '' ? undefined : e.target.value === 'true')
               }
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <option value="">All</option>
               <option value="true">SLA Breached</option>
@@ -209,7 +209,7 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
 
           {/* DR Number Filter */}
           <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
+            <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-2">
               DR Number
             </label>
             <input
@@ -217,7 +217,7 @@ export function TicketFilters({ filters, onFiltersChange, compact = false }: Tic
               placeholder="e.g., DR12345"
               value={filters.dr_number || ''}
               onChange={(e) => handleFilterChange('dr_number', e.target.value)}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg text-[var(--ff-text-primary)] placeholder:text-[var(--ff-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             />
           </div>
         </div>

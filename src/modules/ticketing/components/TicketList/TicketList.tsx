@@ -82,8 +82,8 @@ export function TicketList({
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 text-white/60 animate-spin mx-auto mb-3" />
-          <p className="text-white/60">Loading tickets...</p>
+          <Loader2 className="w-8 h-8 text-[var(--ff-text-secondary)] animate-spin mx-auto mb-3" />
+          <p className="text-[var(--ff-text-secondary)]">Loading tickets...</p>
         </div>
       </div>
     );
@@ -121,9 +121,9 @@ export function TicketList({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Tickets</h2>
+          <h2 className="text-2xl font-bold text-[var(--ff-text-primary)]">Tickets</h2>
           {pagination && (
-            <p className="text-sm text-white/60 mt-1">
+            <p className="text-sm text-[var(--ff-text-secondary)] mt-1">
               {pagination.total} total tickets
             </p>
           )}
@@ -133,7 +133,7 @@ export function TicketList({
           type="button"
           onClick={handleRefresh}
           disabled={isLoading}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] bg-[var(--ff-bg-secondary)] hover:bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Refresh tickets"
         >
           <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
@@ -152,11 +152,11 @@ export function TicketList({
 
       {/* Empty State */}
       {tickets.length === 0 && !isLoading && (
-        <div className="bg-white/5 border border-white/10 rounded-lg p-12">
+        <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-12">
           <div className="flex flex-col items-center justify-center text-center">
-            <FileText className="w-16 h-16 text-white/20 mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">No tickets found</h3>
-            <p className="text-sm text-white/60 mb-4">
+            <FileText className="w-16 h-16 text-[var(--ff-text-tertiary)] mb-4" />
+            <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-2">No tickets found</h3>
+            <p className="text-sm text-[var(--ff-text-secondary)] mb-4">
               {Object.keys(filters).some(k => k !== 'page' && k !== 'pageSize' && filters[k as keyof TicketFiltersType])
                 ? 'Try adjusting your filters to see more results'
                 : 'No tickets have been created yet'}
@@ -192,7 +192,7 @@ export function TicketList({
           {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
             <div className="flex items-center justify-between pt-4">
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-[var(--ff-text-secondary)]">
                 Showing {((pagination.page - 1) * pagination.pageSize) + 1} to{' '}
                 {Math.min(pagination.page * pagination.pageSize, pagination.total)} of{' '}
                 {pagination.total} tickets
@@ -203,14 +203,14 @@ export function TicketList({
                   type="button"
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page === 1 || isLoading}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] bg-[var(--ff-bg-secondary)] hover:bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Previous
                 </button>
 
-                <span className="text-sm text-white/60 px-4">
+                <span className="text-sm text-[var(--ff-text-secondary)] px-4">
                   Page {pagination.page} of {pagination.totalPages}
                 </span>
 
@@ -218,7 +218,7 @@ export function TicketList({
                   type="button"
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages || isLoading}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] bg-[var(--ff-bg-secondary)] hover:bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Next page"
                 >
                   Next

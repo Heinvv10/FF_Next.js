@@ -68,11 +68,11 @@ export function ReadinessBlocker({
             <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
             <div className="ml-3 flex-1">
               <h4 className="font-semibold text-green-400">Ready for QA</h4>
-              <p className={cn('text-white/80', compact ? 'text-sm' : 'text-base')}>
+              <p className={cn('text-[var(--ff-text-primary)]', compact ? 'text-sm' : 'text-base')}>
                 All requirements met. You can proceed to QA review.
               </p>
               {lastCheck && (
-                <p className="text-xs text-white/60 mt-1">
+                <p className="text-xs text-[var(--ff-text-secondary)] mt-1">
                   Last verified: {new Date(lastCheck.checked_at).toLocaleString()}
                 </p>
               )}
@@ -101,7 +101,7 @@ export function ReadinessBlocker({
             <AlertTriangle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
             <div className="ml-3 flex-1">
               <h4 className="font-semibold text-red-400">Cannot Start QA</h4>
-              <p className={cn('text-white/80', compact ? 'text-sm' : 'text-base')}>
+              <p className={cn('text-[var(--ff-text-primary)]', compact ? 'text-sm' : 'text-base')}>
                 This ticket does not meet QA requirements. Please resolve the issues below.
               </p>
             </div>
@@ -129,8 +129,8 @@ export function ReadinessBlocker({
             disabled={true}
             className={cn(
               'w-full flex items-center justify-center px-4 py-3 rounded-lg font-semibold',
-              'bg-white/5 text-white/40 cursor-not-allowed',
-              'border border-white/10',
+              'bg-[var(--ff-bg-secondary)] text-[var(--ff-text-tertiary)] cursor-not-allowed',
+              'border border-[var(--ff-border-light)]',
               compact && 'py-2 text-sm'
             )}
           >
@@ -138,7 +138,7 @@ export function ReadinessBlocker({
             {buttonText} (Blocked)
           </button>
 
-          <p className="text-xs text-center text-white/60">
+          <p className="text-xs text-center text-[var(--ff-text-secondary)]">
             Resolve all issues and re-run the readiness check to proceed
           </p>
         </div>
@@ -151,7 +151,7 @@ export function ReadinessBlocker({
             <AlertCircle className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-0.5" />
             <div className="ml-3 flex-1">
               <h4 className="font-semibold text-yellow-400">Readiness Check Required</h4>
-              <p className={cn('text-white/80', compact ? 'text-sm' : 'text-base')}>
+              <p className={cn('text-[var(--ff-text-primary)]', compact ? 'text-sm' : 'text-base')}>
                 Run readiness check first to verify QA requirements.
               </p>
             </div>
@@ -162,8 +162,8 @@ export function ReadinessBlocker({
             disabled={true}
             className={cn(
               'w-full flex items-center justify-center px-4 py-3 rounded-lg font-semibold',
-              'bg-white/5 text-white/40 cursor-not-allowed',
-              'border border-white/10',
+              'bg-[var(--ff-bg-secondary)] text-[var(--ff-text-tertiary)] cursor-not-allowed',
+              'border border-[var(--ff-border-light)]',
               compact && 'py-2 text-sm'
             )}
           >

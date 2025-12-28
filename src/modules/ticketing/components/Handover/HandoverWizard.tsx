@@ -163,7 +163,7 @@ export function HandoverWizard({
   if (isValidating) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="flex items-center gap-3 text-white/60">
+        <div className="flex items-center gap-3 text-[var(--ff-text-secondary)]">
           <Loader2 className="w-5 h-5 animate-spin" />
           <span>Validating handover gates...</span>
         </div>
@@ -197,10 +197,10 @@ export function HandoverWizard({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">
+          <h2 className="text-xl font-semibold text-[var(--ff-text-primary)]">
             {getHandoverTypeName(handoverType)} Handover
           </h2>
-          <p className="text-sm text-white/60 mt-1">
+          <p className="text-sm text-[var(--ff-text-secondary)] mt-1">
             Validate gates and complete handover process
           </p>
         </div>
@@ -214,24 +214,24 @@ export function HandoverWizard({
 
       {/* Ownership Transfer */}
       {showOwnershipFields && (fromOwnerType || toOwnerType) && (
-        <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
-          <h3 className="text-sm font-medium text-white/90 mb-3">Ownership Transfer</h3>
+        <div className="p-4 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg">
+          <h3 className="text-sm font-medium text-[var(--ff-text-primary)] mb-3">Ownership Transfer</h3>
           <div className="flex items-center gap-3">
             {fromOwnerType && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg flex-1">
-                <span className="text-sm text-white/60">From:</span>
-                <span className="text-sm font-medium text-white/90">
+              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--ff-bg-secondary)] rounded-lg flex-1">
+                <span className="text-sm text-[var(--ff-text-secondary)]">From:</span>
+                <span className="text-sm font-medium text-[var(--ff-text-primary)]">
                   {getOwnerTypeName(fromOwnerType)}
                 </span>
               </div>
             )}
             {fromOwnerType && toOwnerType && (
-              <ArrowRight className="w-5 h-5 text-white/40 flex-shrink-0" />
+              <ArrowRight className="w-5 h-5 text-[var(--ff-text-tertiary)] flex-shrink-0" />
             )}
             {toOwnerType && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg flex-1">
-                <span className="text-sm text-white/60">To:</span>
-                <span className="text-sm font-medium text-white/90">
+              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--ff-bg-secondary)] rounded-lg flex-1">
+                <span className="text-sm text-[var(--ff-text-secondary)]">To:</span>
+                <span className="text-sm font-medium text-[var(--ff-text-primary)]">
                   {getOwnerTypeName(toOwnerType)}
                 </span>
               </div>
@@ -242,7 +242,7 @@ export function HandoverWizard({
 
       {/* Handover Checklist */}
       <div className="space-y-4">
-        <h3 className="text-base font-medium text-white/90">Handover Checklist</h3>
+        <h3 className="text-base font-medium text-[var(--ff-text-primary)]">Handover Checklist</h3>
 
         {/* Gates Passed */}
         {gatesPassed.length > 0 && (
@@ -264,8 +264,8 @@ export function HandoverWizard({
 
         {/* No gates to display */}
         {gatesPassed.length === 0 && gatesFailed.length === 0 && (
-          <div className="p-4 bg-white/5 border border-white/10 rounded-lg text-center">
-            <p className="text-sm text-white/60">No gates to validate</p>
+          <div className="p-4 bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg text-center">
+            <p className="text-sm text-[var(--ff-text-secondary)]">No gates to validate</p>
           </div>
         )}
       </div>
@@ -309,12 +309,12 @@ export function HandoverWizard({
       )}
 
       {/* Actions */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--ff-border-light)]">
         {onCancel && (
           <button
             onClick={onCancel}
             disabled={isCreating}
-            className="px-4 py-2 text-sm font-medium text-white/70 hover:text-white/90 transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
@@ -327,8 +327,8 @@ export function HandoverWizard({
             'focus:outline-none focus:ring-2 focus:ring-blue-500/50',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             canHandover
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-white/10 text-white/40 cursor-not-allowed'
+              ? 'bg-blue-600 hover:bg-blue-700 text-[var(--ff-text-primary)]'
+              : 'bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-tertiary)] cursor-not-allowed'
           )}
         >
           {isCreating ? (
@@ -376,7 +376,7 @@ function GateCheckItem({
           {gate.message}
         </p>
         {gate.required && (
-          <p className="text-xs text-white/50 mt-0.5">Required gate</p>
+          <p className="text-xs text-[var(--ff-text-tertiary)] mt-0.5">Required gate</p>
         )}
       </div>
     </div>
@@ -396,7 +396,7 @@ function BlockingIssueItem({ issue }: { issue: HandoverBlocker }) {
       case 'medium':
         return 'text-yellow-300 bg-yellow-500/10 border-yellow-500/20';
       default:
-        return 'text-white/70 bg-white/5 border-white/10';
+        return 'text-[var(--ff-text-secondary)] bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)]';
     }
   };
 

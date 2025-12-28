@@ -56,11 +56,11 @@ function getPriorityBadgeStyle(priority: string): string {
  */
 export function TicketHeader({ ticket, backLink = '/ticketing/tickets' }: TicketHeaderProps) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+    <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
       {/* Back Button */}
       <Link
         href={backLink}
-        className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white mb-4 transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] mb-4 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to tickets
@@ -69,7 +69,7 @@ export function TicketHeader({ ticket, backLink = '/ticketing/tickets' }: Ticket
       {/* Ticket UID and Badges */}
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-bold text-white mb-2">{ticket.ticket_uid}</h1>
+          <h1 className="text-3xl font-bold text-[var(--ff-text-primary)] mb-2">{ticket.ticket_uid}</h1>
 
           <div className="flex items-center gap-2 flex-wrap">
             <TicketStatusBadge status={ticket.status} showIcon />
@@ -104,17 +104,17 @@ export function TicketHeader({ ticket, backLink = '/ticketing/tickets' }: Ticket
       </div>
 
       {/* Title */}
-      <h2 className="text-xl font-semibold text-white mb-4">{ticket.title}</h2>
+      <h2 className="text-xl font-semibold text-[var(--ff-text-primary)] mb-4">{ticket.title}</h2>
 
       {/* Meta Information */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-white/10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-[var(--ff-border-light)]">
         {/* Created */}
         <div>
-          <div className="flex items-center gap-2 text-sm text-white/60 mb-1">
+          <div className="flex items-center gap-2 text-sm text-[var(--ff-text-secondary)] mb-1">
             <Clock className="w-4 h-4" />
             Created
           </div>
-          <p className="text-sm text-white">
+          <p className="text-sm text-[var(--ff-text-primary)]">
             {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
           </p>
         </div>
@@ -122,11 +122,11 @@ export function TicketHeader({ ticket, backLink = '/ticketing/tickets' }: Ticket
         {/* Updated */}
         {ticket.updated_at && (
           <div>
-            <div className="flex items-center gap-2 text-sm text-white/60 mb-1">
+            <div className="flex items-center gap-2 text-sm text-[var(--ff-text-secondary)] mb-1">
               <Clock className="w-4 h-4" />
               Updated
             </div>
-            <p className="text-sm text-white">
+            <p className="text-sm text-[var(--ff-text-primary)]">
               {formatDistanceToNow(new Date(ticket.updated_at), { addSuffix: true })}
             </p>
           </div>
@@ -135,22 +135,22 @@ export function TicketHeader({ ticket, backLink = '/ticketing/tickets' }: Ticket
         {/* Assigned To */}
         {ticket.assigned_to && (
           <div>
-            <div className="flex items-center gap-2 text-sm text-white/60 mb-1">
+            <div className="flex items-center gap-2 text-sm text-[var(--ff-text-secondary)] mb-1">
               <User className="w-4 h-4" />
               Assigned To
             </div>
-            <p className="text-sm text-white">Assigned</p>
+            <p className="text-sm text-[var(--ff-text-primary)]">Assigned</p>
           </div>
         )}
 
         {/* DR Number */}
         {ticket.dr_number && (
           <div>
-            <div className="flex items-center gap-2 text-sm text-white/60 mb-1">
+            <div className="flex items-center gap-2 text-sm text-[var(--ff-text-secondary)] mb-1">
               <MapPin className="w-4 h-4" />
               DR Number
             </div>
-            <p className="text-sm text-white font-mono">{ticket.dr_number}</p>
+            <p className="text-sm text-[var(--ff-text-primary)] font-mono">{ticket.dr_number}</p>
           </div>
         )}
       </div>

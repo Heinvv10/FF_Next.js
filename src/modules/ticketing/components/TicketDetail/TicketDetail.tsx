@@ -89,8 +89,8 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 text-white/60 animate-spin mx-auto mb-3" />
-          <p className="text-white/60">Loading ticket...</p>
+          <Loader2 className="w-8 h-8 text-[var(--ff-text-secondary)] animate-spin mx-auto mb-3" />
+          <p className="text-[var(--ff-text-secondary)]">Loading ticket...</p>
         </div>
       </div>
     );
@@ -136,9 +136,9 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
         <div className={cn('space-y-6', compact ? 'lg:col-span-1' : 'lg:col-span-2')}>
           {/* Description */}
           {ticket.description && (
-            <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
-              <p className="text-white/80 leading-relaxed whitespace-pre-wrap">
+            <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-3">Description</h3>
+              <p className="text-[var(--ff-text-secondary)] leading-relaxed whitespace-pre-wrap">
                 {ticket.description}
               </p>
             </div>
@@ -155,69 +155,69 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
           )}
 
           {/* Additional Details */}
-          <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Additional Details</h3>
+          <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-4">Additional Details</h3>
             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <dt className="text-sm text-white/60 mb-1">Source</dt>
-                <dd className="text-sm text-white capitalize">
+                <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Source</dt>
+                <dd className="text-sm text-[var(--ff-text-primary)] capitalize">
                   {ticket.source.replace(/_/g, ' ')}
                 </dd>
               </div>
 
               {ticket.external_id && (
                 <div>
-                  <dt className="text-sm text-white/60 mb-1">External ID</dt>
-                  <dd className="text-sm text-white font-mono">{ticket.external_id}</dd>
+                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">External ID</dt>
+                  <dd className="text-sm text-[var(--ff-text-primary)] font-mono">{ticket.external_id}</dd>
                 </div>
               )}
 
               {ticket.pole_number && (
                 <div>
-                  <dt className="text-sm text-white/60 mb-1">Pole Number</dt>
-                  <dd className="text-sm text-white font-mono">{ticket.pole_number}</dd>
+                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Pole Number</dt>
+                  <dd className="text-sm text-[var(--ff-text-primary)] font-mono">{ticket.pole_number}</dd>
                 </div>
               )}
 
               {ticket.pon_number && (
                 <div>
-                  <dt className="text-sm text-white/60 mb-1">PON Number</dt>
-                  <dd className="text-sm text-white font-mono">{ticket.pon_number}</dd>
+                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">PON Number</dt>
+                  <dd className="text-sm text-[var(--ff-text-primary)] font-mono">{ticket.pon_number}</dd>
                 </div>
               )}
 
               {ticket.ont_serial && (
                 <div>
-                  <dt className="text-sm text-white/60 mb-1">ONT Serial</dt>
-                  <dd className="text-sm text-white font-mono">{ticket.ont_serial}</dd>
+                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">ONT Serial</dt>
+                  <dd className="text-sm text-[var(--ff-text-primary)] font-mono">{ticket.ont_serial}</dd>
                 </div>
               )}
 
               {ticket.ont_rx_level !== null && ticket.ont_rx_level !== undefined && (
                 <div>
-                  <dt className="text-sm text-white/60 mb-1">RX Power Level</dt>
-                  <dd className="text-sm text-white">{ticket.ont_rx_level} dBm</dd>
+                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">RX Power Level</dt>
+                  <dd className="text-sm text-[var(--ff-text-primary)]">{ticket.ont_rx_level} dBm</dd>
                 </div>
               )}
 
               {ticket.ont_model && (
                 <div>
-                  <dt className="text-sm text-white/60 mb-1">ONT Model</dt>
-                  <dd className="text-sm text-white">{ticket.ont_model}</dd>
+                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">ONT Model</dt>
+                  <dd className="text-sm text-[var(--ff-text-primary)]">{ticket.ont_model}</dd>
                 </div>
               )}
 
               {ticket.address && (
                 <div className="sm:col-span-2">
-                  <dt className="text-sm text-white/60 mb-1">Address</dt>
-                  <dd className="text-sm text-white">{ticket.address}</dd>
+                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Address</dt>
+                  <dd className="text-sm text-[var(--ff-text-primary)]">{ticket.address}</dd>
                 </div>
               )}
 
               {ticket.guarantee_status && (
                 <div>
-                  <dt className="text-sm text-white/60 mb-1">Guarantee Status</dt>
-                  <dd className="text-sm text-white capitalize">
+                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Guarantee Status</dt>
+                  <dd className="text-sm text-[var(--ff-text-primary)] capitalize">
                     {ticket.guarantee_status.replace(/_/g, ' ')}
                   </dd>
                 </div>
@@ -225,8 +225,8 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
 
               {ticket.billing_classification && (
                 <div>
-                  <dt className="text-sm text-white/60 mb-1">Billing Classification</dt>
-                  <dd className="text-sm text-white capitalize">
+                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Billing Classification</dt>
+                  <dd className="text-sm text-[var(--ff-text-primary)] capitalize">
                     {ticket.billing_classification.replace(/_/g, ' ')}
                   </dd>
                 </div>
@@ -234,8 +234,8 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
 
               {ticket.rectification_count > 0 && (
                 <div>
-                  <dt className="text-sm text-white/60 mb-1">Rectification Count</dt>
-                  <dd className="text-sm text-white">{ticket.rectification_count}</dd>
+                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Rectification Count</dt>
+                  <dd className="text-sm text-[var(--ff-text-primary)]">{ticket.rectification_count}</dd>
                 </div>
               )}
             </dl>
@@ -245,8 +245,8 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
         {/* Right Column - Sidebar */}
         <div className="space-y-6">
           {/* Actions */}
-          <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Actions</h3>
+          <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-4">Actions</h3>
             <TicketActions ticket={ticket} onActionComplete={handleActionComplete} />
           </div>
 

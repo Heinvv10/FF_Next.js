@@ -24,33 +24,33 @@ export default function CreateTicketPageClient() {
       <div className="mb-6">
         <Link
           href="/ticketing/tickets"
-          className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4"
+          className="inline-flex items-center gap-2 text-sm text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Tickets
         </Link>
 
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-            <Plus className="w-5 h-5 text-blue-600" />
+          <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+            <Plus className="w-5 h-5 text-blue-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Create New Ticket</h1>
-            <p className="text-gray-600">Create a new ticketing record for fiber network issues</p>
+            <h1 className="text-2xl font-bold text-[var(--ff-text-primary)]">Create New Ticket</h1>
+            <p className="text-[var(--ff-text-secondary)]">Create a new ticketing record for fiber network issues</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-[var(--ff-bg-secondary)] rounded-lg shadow-md p-6 border border-[var(--ff-border-light)]">
         <div className="text-center py-12">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-            <Plus className="w-8 h-8 text-gray-400" />
+          <div className="w-16 h-16 rounded-full bg-[var(--ff-bg-tertiary)] flex items-center justify-center mx-auto mb-4">
+            <Plus className="w-8 h-8 text-[var(--ff-text-tertiary)]" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Ticket Form</h2>
-          <p className="text-gray-600 mb-4">
+          <h2 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-2">Ticket Form</h2>
+          <p className="text-[var(--ff-text-secondary)] mb-4">
             Ticket creation form will be integrated here
           </p>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-[var(--ff-text-tertiary)]">
             {/* 🔵 MOCK: TicketForm component will be implemented with full form functionality */}
             <p className="mb-2">Form will include:</p>
             <ul className="text-left max-w-md mx-auto space-y-1">

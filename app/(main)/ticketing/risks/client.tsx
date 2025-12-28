@@ -23,20 +23,20 @@ export default function RiskAcceptanceReviewPageClient() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Risk Acceptance Review</h1>
-        <p className="text-gray-600">
+        <h1 className="text-2xl font-bold text-[var(--ff-text-primary)]">Risk Acceptance Review</h1>
+        <p className="text-[var(--ff-text-secondary)]">
           Track and manage conditional QA approvals and risk acceptances
         </p>
       </div>
 
       {/* Filter Tabs */}
-      <div className="mb-6 flex gap-2 border-b border-gray-200">
+      <div className="mb-6 flex gap-2 border-b border-[var(--ff-border-light)]">
         <button
           onClick={() => setFilter('active')}
           className={`px-4 py-2 font-medium transition-colors ${
             filter === 'active'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'text-blue-400 border-b-2 border-blue-400'
+              : 'text-[var(--ff-text-tertiary)] hover:text-[var(--ff-text-secondary)]'
           }`}
         >
           Active Risks
@@ -45,8 +45,8 @@ export default function RiskAcceptanceReviewPageClient() {
           onClick={() => setFilter('expiring')}
           className={`px-4 py-2 font-medium transition-colors ${
             filter === 'expiring'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'text-blue-400 border-b-2 border-blue-400'
+              : 'text-[var(--ff-text-tertiary)] hover:text-[var(--ff-text-secondary)]'
           }`}
         >
           Expiring Soon
@@ -55,8 +55,8 @@ export default function RiskAcceptanceReviewPageClient() {
           onClick={() => setFilter('resolved')}
           className={`px-4 py-2 font-medium transition-colors ${
             filter === 'resolved'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'text-blue-400 border-b-2 border-blue-400'
+              : 'text-[var(--ff-text-tertiary)] hover:text-[var(--ff-text-secondary)]'
           }`}
         >
           Resolved
@@ -64,11 +64,11 @@ export default function RiskAcceptanceReviewPageClient() {
       </div>
 
       {/* Risk Acceptance List */}
-      <div className="bg-white rounded-lg shadow-md">
+      <div className="bg-[var(--ff-bg-secondary)] rounded-lg shadow-md border border-[var(--ff-border-light)]">
         {filter === 'active' && (
           <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Active Risk Acceptances</h2>
-            <p className="text-gray-500">
+            <h2 className="text-lg font-semibold mb-4 text-[var(--ff-text-primary)]">Active Risk Acceptances</h2>
+            <p className="text-[var(--ff-text-tertiary)]">
               Displays all active conditional approvals requiring follow-up
             </p>
             {/* 🔵 MOCK: Active risk acceptances list will be implemented with API integration */}
@@ -77,7 +77,7 @@ export default function RiskAcceptanceReviewPageClient() {
 
         {filter === 'expiring' && (
           <div className="p-6">
-            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="mb-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
                   <svg
@@ -94,17 +94,17 @@ export default function RiskAcceptanceReviewPageClient() {
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">
+                  <h3 className="text-sm font-medium text-yellow-300">
                     Risks Requiring Immediate Attention
                   </h3>
-                  <p className="mt-1 text-sm text-yellow-700">
+                  <p className="mt-1 text-sm text-yellow-400/80">
                     These risk acceptances are approaching their expiry dates and require resolution
                   </p>
                 </div>
               </div>
             </div>
-            <h2 className="text-lg font-semibold mb-4">Expiring Risks</h2>
-            <p className="text-gray-500">
+            <h2 className="text-lg font-semibold mb-4 text-[var(--ff-text-primary)]">Expiring Risks</h2>
+            <p className="text-[var(--ff-text-tertiary)]">
               Risk acceptances with upcoming expiry dates (within 7 days)
             </p>
             {/* 🔵 MOCK: Expiring risk acceptances list will be implemented with API integration */}
@@ -113,8 +113,8 @@ export default function RiskAcceptanceReviewPageClient() {
 
         {filter === 'resolved' && (
           <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Resolved Risk Acceptances</h2>
-            <p className="text-gray-500">
+            <h2 className="text-lg font-semibold mb-4 text-[var(--ff-text-primary)]">Resolved Risk Acceptances</h2>
+            <p className="text-[var(--ff-text-tertiary)]">
               Historical record of resolved conditional approvals
             </p>
             {/* 🔵 MOCK: Resolved risk acceptances list will be implemented with API integration */}
