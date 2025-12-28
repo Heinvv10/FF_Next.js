@@ -363,6 +363,11 @@ export async function listEscalations(
 
     return escalations;
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('relation') && errorMessage.includes('does not exist')) {
+      logger.warn('Escalations table does not exist - returning empty list. Run migrations to create tables.');
+      return [];
+    }
     logger.error('Failed to list escalations', { error, filters });
     throw error;
   }

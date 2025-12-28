@@ -78,9 +78,9 @@ export async function query<T = any>(
   try {
     const sql = getConnection();
 
-    // Neon uses template literals, so we need to construct a parameterized query
-    // We'll use the sql function with parameters
-    const result = await sql(queryText, params);
+    // Neon serverless requires sql.query() for parameterized queries with $1, $2, etc.
+    // Always use sql.query() for conventional function calls
+    const result = await (sql as any).query(queryText, params);
 
     const duration = Date.now() - startTime;
 
@@ -169,8 +169,8 @@ export async function transaction<T>(
   const startTime = Date.now();
 
   try {
-    // Start transaction
-    await sql('BEGIN');
+    // Start transaction - use sql.query() for conventional calls
+    await (sql as any).query('BEGIN', []);
     logger.debug('Transaction started');
 
     // Create transaction context
@@ -186,17 +186,17 @@ export async function transaction<T>(
     // Execute transaction callback
     const result = await callback(txnContext);
 
-    // Commit transaction
-    await sql('COMMIT');
+    // Commit transaction - use sql.query() for conventional calls
+    await (sql as any).query('COMMIT', []);
 
     const duration = Date.now() - startTime;
     logger.debug('Transaction committed', { duration });
 
     return result;
   } catch (error) {
-    // Rollback on error
+    // Rollback on error - use sql.query() for conventional calls
     try {
-      await sql('ROLLBACK');
+      await (sql as any).query('ROLLBACK', []);
       logger.warn('Transaction rolled back', {
         error: error instanceof Error ? error.message : String(error)
       });
@@ -253,7 +253,8 @@ export async function healthCheck(): Promise<HealthCheckResult> {
 
   try {
     const sql = getConnection();
-    await sql('SELECT NOW() as now');
+    // Use sql.query() for conventional function calls
+    await (sql as any).query('SELECT NOW() as now', []);
 
     const latency = Date.now() - startTime;
 

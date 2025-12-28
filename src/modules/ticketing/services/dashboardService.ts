@@ -162,6 +162,23 @@ export async function getDashboardSummary(
       avg_resolution_hours: avgResolutionData.average_hours
     };
   } catch (error) {
+    // Check if error is due to missing table (Phase 1 - migrations not run yet)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('relation') && errorMessage.includes('does not exist')) {
+      logger.warn('Tickets table does not exist - returning empty dashboard data. Run migrations to create tables.');
+      return {
+        total_tickets: 0,
+        by_status: {},
+        sla_compliance: {
+          total: 0,
+          met: 0,
+          breached: 0,
+          compliance_rate: 0
+        },
+        overdue_tickets: 0,
+        avg_resolution_hours: null
+      };
+    }
     logger.error('Failed to fetch dashboard summary', { error });
     throw new Error('Failed to fetch dashboard summary');
   }
@@ -220,6 +237,10 @@ export async function getTicketsByStatus(
 
     return result;
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('relation') && errorMessage.includes('does not exist')) {
+      return {};
+    }
     logger.error('Failed to fetch tickets by status', { error });
     throw new Error('Failed to fetch tickets by status');
   }
@@ -289,6 +310,16 @@ export async function getSLACompliance(
       compliance_percentage: compliance.compliance_percentage
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('relation') && errorMessage.includes('does not exist')) {
+      return {
+        total_tickets: 0,
+        sla_met: 0,
+        sla_breached: 0,
+        compliance_rate: 0,
+        compliance_percentage: '0.00%'
+      };
+    }
     logger.error('Failed to fetch SLA compliance', { error });
     throw new Error('Failed to fetch SLA compliance');
   }
@@ -311,18 +342,19 @@ export async function getOverdueTickets(
 
     if (filters.include_details) {
       // Get detailed list of overdue tickets
+      // Note: Using due_at column which exists in the current schema
       const sql = `
         SELECT
           id,
           ticket_uid,
           title,
-          sla_due_at,
-          EXTRACT(EPOCH FROM (NOW() - sla_due_at)) / 3600 as hours_overdue
+          due_at as sla_due_at,
+          EXTRACT(EPOCH FROM (NOW() - due_at)) / 3600 as hours_overdue
         FROM tickets
-        WHERE sla_due_at IS NOT NULL
-          AND sla_due_at < NOW()
+        WHERE due_at IS NOT NULL
+          AND due_at < NOW()
           AND status NOT IN ($1, $2)
-        ORDER BY sla_due_at ASC
+        ORDER BY due_at ASC
       `;
 
       const tickets = await query<{
@@ -339,11 +371,12 @@ export async function getOverdueTickets(
       };
     } else {
       // Just get count
+      // Note: Using due_at column which exists in the current schema
       const sql = `
         SELECT COUNT(*) as overdue_count
         FROM tickets
-        WHERE sla_due_at IS NOT NULL
-          AND sla_due_at < NOW()
+        WHERE due_at IS NOT NULL
+          AND due_at < NOW()
           AND status NOT IN ($1, $2)
       `;
 
@@ -356,6 +389,10 @@ export async function getOverdueTickets(
       };
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('relation') && errorMessage.includes('does not exist')) {
+      return { overdue_count: 0 };
+    }
     logger.error('Failed to fetch overdue tickets', { error });
     throw new Error('Failed to fetch overdue tickets');
   }
@@ -383,20 +420,24 @@ export async function getWorkloadByAssignee(
       paramIndex += 2;
     }
 
+    // Note: Using due_at and first_name/last_name columns which exist in current schema
     const sql = `
       SELECT
         t.assigned_to,
-        COALESCE(u.name, 'Unassigned') as assignee_name,
+        CASE
+          WHEN t.assigned_to IS NULL THEN 'Unassigned'
+          ELSE COALESCE(NULLIF(TRIM(CONCAT(u.first_name, ' ', u.last_name)), ''), 'Unknown')
+        END as assignee_name,
         COUNT(*) as ticket_count,
         COUNT(*) FILTER (
-          WHERE t.sla_due_at IS NOT NULL
-            AND t.sla_due_at < NOW()
+          WHERE t.due_at IS NOT NULL
+            AND t.due_at < NOW()
             AND t.status NOT IN ('closed', 'cancelled')
         ) as overdue_count
       FROM tickets t
       LEFT JOIN users u ON t.assigned_to = u.id
       ${whereClause}
-      GROUP BY t.assigned_to, u.name
+      GROUP BY t.assigned_to, u.first_name, u.last_name
       ORDER BY ticket_count DESC
     `;
 
@@ -406,6 +447,10 @@ export async function getWorkloadByAssignee(
 
     return rows || [];
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('relation') && errorMessage.includes('does not exist')) {
+      return [];
+    }
     logger.error('Failed to fetch workload by assignee', { error });
     throw new Error('Failed to fetch workload by assignee');
   }
@@ -466,6 +511,10 @@ export async function getAverageResolutionTime(
       total_resolved: Number(result.total_resolved)
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('relation') && errorMessage.includes('does not exist')) {
+      return { average_hours: null, average_days: null, total_resolved: 0 };
+    }
     logger.error('Failed to fetch average resolution time', { error });
     throw new Error('Failed to fetch average resolution time');
   }
@@ -518,6 +567,10 @@ export async function getRecentTickets(
 
     return rows || [];
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('relation') && errorMessage.includes('does not exist')) {
+      return [];
+    }
     logger.error('Failed to fetch recent tickets', { error });
     throw new Error('Failed to fetch recent tickets');
   }

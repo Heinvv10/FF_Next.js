@@ -378,7 +378,8 @@ export async function listTickets(
     }
 
     if (filters.ticket_type) {
-      whereClauses.push(`ticket_type = $${paramCounter}`);
+      // Note: Using 'type' column which exists in the current schema
+      whereClauses.push(`type = $${paramCounter}`);
       values.push(filters.ticket_type);
       paramCounter++;
     }
@@ -390,7 +391,8 @@ export async function listTickets(
     }
 
     if (filters.assigned_contractor_id) {
-      whereClauses.push(`assigned_contractor_id = $${paramCounter}`);
+      // Note: Using 'contractor_id' column which exists in the current schema
+      whereClauses.push(`contractor_id = $${paramCounter}`);
       values.push(filters.assigned_contractor_id);
       paramCounter++;
     }
@@ -420,7 +422,8 @@ export async function listTickets(
     }
 
     if (filters.qa_ready !== undefined) {
-      whereClauses.push(`qa_ready = $${paramCounter}`);
+      // Note: Using 'qa_verified' column which exists in the current schema
+      whereClauses.push(`qa_verified = $${paramCounter}`);
       values.push(filters.qa_ready);
       paramCounter++;
     }
@@ -473,6 +476,17 @@ export async function listTickets(
       total_pages: Math.ceil(tickets.length / pageSize)
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('relation') && errorMessage.includes('does not exist')) {
+      logger.warn('Tickets table does not exist - returning empty list. Run migrations to create tables.');
+      return {
+        tickets: [],
+        total: 0,
+        page: filters.page || 1,
+        limit: filters.pageSize || 50,
+        total_pages: 0
+      };
+    }
     logger.error('Failed to list tickets', { error, filters });
     throw error;
   }
