@@ -74,10 +74,10 @@ export function SLAComplianceCard({
   const colors = colorClasses[statusColor];
 
   return (
-    <div className={cn('bg-white/5 border border-white/10 rounded-lg p-6', compact && 'p-4')}>
+    <div className={cn('bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6', compact && 'p-4')}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white">SLA Compliance</h2>
+        <h2 className="text-lg font-semibold text-[var(--ff-text-primary)]">SLA Compliance</h2>
         <div className={cn('p-2 rounded-lg', colors.iconBg)}>
           {statusColor === 'green' && <TrendingUp className={cn('w-5 h-5', colors.text)} />}
           {statusColor === 'yellow' && <AlertTriangle className={cn('w-5 h-5', colors.text)} />}
@@ -91,11 +91,11 @@ export function SLAComplianceCard({
           <span className={cn('text-4xl font-bold', colors.text)}>
             {complianceRate.toFixed(0)}%
           </span>
-          <span className="text-sm text-white/60">compliance rate</span>
+          <span className="text-sm text-[var(--ff-text-secondary)]">compliance rate</span>
         </div>
 
         {/* Progress bar */}
-        <div className="relative h-3 bg-white/10 rounded-full overflow-hidden">
+        <div className="relative h-3 bg-[var(--ff-bg-tertiary)] rounded-full overflow-hidden">
           <div
             className={cn(
               'absolute inset-y-0 left-0 rounded-full transition-all duration-300',
@@ -114,10 +114,10 @@ export function SLAComplianceCard({
         <div className={cn('p-3 rounded-lg border', 'border-green-500/20', 'bg-green-500/5')}>
           <div className="flex items-center gap-2 mb-1">
             <CheckCircle2 className="w-4 h-4 text-green-400" />
-            <p className="text-xs text-white/60">SLA Met</p>
+            <p className="text-xs text-[var(--ff-text-secondary)]">SLA Met</p>
           </div>
           <p className="text-2xl font-bold text-green-400">{met}</p>
-          <p className="text-xs text-white/50 mt-1">
+          <p className="text-xs text-[var(--ff-text-tertiary)] mt-1">
             {total > 0 ? ((met / total) * 100).toFixed(1) : 0}% of total
           </p>
         </div>
@@ -126,19 +126,19 @@ export function SLAComplianceCard({
         <div className={cn('p-3 rounded-lg border', 'border-red-500/20', 'bg-red-500/5')}>
           <div className="flex items-center gap-2 mb-1">
             <XCircle className="w-4 h-4 text-red-400" />
-            <p className="text-xs text-white/60">SLA Breached</p>
+            <p className="text-xs text-[var(--ff-text-secondary)]">SLA Breached</p>
           </div>
           <p className="text-2xl font-bold text-red-400">{breached}</p>
-          <p className="text-xs text-white/50 mt-1">
+          <p className="text-xs text-[var(--ff-text-tertiary)] mt-1">
             {total > 0 ? ((breached / total) * 100).toFixed(1) : 0}% of total
           </p>
         </div>
       </div>
 
       {/* Total Count */}
-      <div className="mt-4 pt-4 border-t border-white/10">
-        <p className="text-sm text-white/60">
-          Total tickets analyzed: <span className="font-medium text-white">{total}</span>
+      <div className="mt-4 pt-4 border-t border-[var(--ff-border-light)]">
+        <p className="text-sm text-[var(--ff-text-secondary)]">
+          Total tickets analyzed: <span className="font-medium text-[var(--ff-text-primary)]">{total}</span>
         </p>
       </div>
     </div>

@@ -128,8 +128,8 @@ export function TicketingDashboard({
     return (
       <div className="flex items-center justify-center p-12">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 text-white/60 animate-spin mx-auto mb-3" />
-          <p className="text-white/60">Loading dashboard...</p>
+          <Loader2 className="w-8 h-8 text-[var(--ff-text-secondary)] animate-spin mx-auto mb-3" />
+          <p className="text-[var(--ff-text-secondary)]">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -165,8 +165,8 @@ export function TicketingDashboard({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Ticketing Dashboard</h1>
-          <p className="text-sm text-white/60 mt-1">
+          <h1 className="text-2xl font-bold text-[var(--ff-text-primary)]">Ticketing Dashboard</h1>
+          <p className="text-sm text-[var(--ff-text-secondary)] mt-1">
             Last updated {lastRefresh.toLocaleTimeString()}
           </p>
         </div>
@@ -175,7 +175,7 @@ export function TicketingDashboard({
           type="button"
           onClick={handleRefresh}
           disabled={isLoading}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/80 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] bg-[var(--ff-bg-secondary)] hover:bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Refresh dashboard"
         >
           <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
@@ -205,41 +205,41 @@ export function TicketingDashboard({
           compact ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
         )}>
           {/* Total Tickets */}
-          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+          <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="w-4 h-4 text-blue-400" />
-              <p className="text-sm text-white/60">Total Tickets</p>
+              <p className="text-sm text-[var(--ff-text-secondary)]">Total Tickets</p>
             </div>
-            <p className="text-3xl font-bold text-white">{summaryData.total_tickets}</p>
+            <p className="text-3xl font-bold text-[var(--ff-text-primary)]">{summaryData.total_tickets}</p>
           </div>
 
           {/* Open Tickets */}
-          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+          <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Activity className="w-4 h-4 text-yellow-400" />
-              <p className="text-sm text-white/60">Open</p>
+              <p className="text-sm text-[var(--ff-text-secondary)]">Open</p>
             </div>
-            <p className="text-3xl font-bold text-white">
+            <p className="text-3xl font-bold text-[var(--ff-text-primary)]">
               {summaryData.by_status?.open || 0}
             </p>
           </div>
 
           {/* Overdue Tickets */}
-          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+          <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="w-4 h-4 text-red-400" />
-              <p className="text-sm text-white/60">Overdue</p>
+              <p className="text-sm text-[var(--ff-text-secondary)]">Overdue</p>
             </div>
-            <p className="text-3xl font-bold text-white">{summaryData.overdue_tickets}</p>
+            <p className="text-3xl font-bold text-[var(--ff-text-primary)]">{summaryData.overdue_tickets}</p>
           </div>
 
           {/* Average Resolution */}
-          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+          <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 text-green-400" />
-              <p className="text-sm text-white/60">Avg. Resolution</p>
+              <p className="text-sm text-[var(--ff-text-secondary)]">Avg. Resolution</p>
             </div>
-            <p className="text-3xl font-bold text-white">
+            <p className="text-3xl font-bold text-[var(--ff-text-primary)]">
               {summaryData.avg_resolution_hours
                 ? `${summaryData.avg_resolution_hours.toFixed(1)}h`
                 : 'N/A'}
@@ -250,13 +250,13 @@ export function TicketingDashboard({
 
       {/* Status Breakdown */}
       {summaryData && summaryData.by_status && (
-        <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Tickets by Status</h2>
+        <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-4">Tickets by Status</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {Object.entries(summaryData.by_status).map(([status, count]) => (
               <div key={status} className="text-center">
-                <p className="text-2xl font-bold text-white">{count}</p>
-                <p className="text-xs text-white/60 mt-1 capitalize">
+                <p className="text-2xl font-bold text-[var(--ff-text-primary)]">{count}</p>
+                <p className="text-xs text-[var(--ff-text-secondary)] mt-1 capitalize">
                   {status.replace(/_/g, ' ')}
                 </p>
               </div>
