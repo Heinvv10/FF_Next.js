@@ -82,6 +82,14 @@ export enum Permission {
   BOQ_UPDATE = 'boq.update',
   BOQ_DELETE = 'boq.delete',
   BOQ_APPROVE = 'boq.approve',
+
+  // Asset Management
+  ASSETS_CREATE = 'assets.create',
+  ASSETS_READ = 'assets.read',
+  ASSETS_UPDATE = 'assets.update',
+  ASSETS_DELETE = 'assets.delete',
+  ASSETS_CHECKOUT = 'assets.checkout',
+  ASSETS_MAINTENANCE = 'assets.maintenance',
   
   // Contractor Management
   CONTRACTORS_CREATE = 'contractors.create',

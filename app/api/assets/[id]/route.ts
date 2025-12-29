@@ -1,0 +1,103 @@
+/**
+ * Single Asset API Route
+ * GET    /api/assets/[id] - Get asset by ID
+ * PUT    /api/assets/[id] - Update asset
+ * DELETE /api/assets/[id] - Delete asset
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { assetService } from '@/modules/assets/services';
+import { UpdateAssetSchema } from '@/modules/assets/utils/schemas';
+
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
+// ==================== GET /api/assets/[id] ====================
+
+export async function GET(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+
+    const result = await assetService.getById(id);
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 500 });
+    }
+
+    if (!result.data) {
+      return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ data: result.data });
+  } catch (error) {
+    console.error('Error fetching asset:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch asset' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==================== PUT /api/assets/[id] ====================
+
+export async function PUT(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+    const body = await req.json();
+
+    // Validate request body
+    const validation = UpdateAssetSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.errors },
+        { status: 400 }
+      );
+    }
+
+    // TODO: Get actual user from auth
+    const updatedBy = req.headers.get('x-user-id') || 'system';
+
+    const result = await assetService.update(id, validation.data, updatedBy);
+
+    if (!result.success) {
+      if (result.error === 'Asset not found') {
+        return NextResponse.json({ error: result.error }, { status: 404 });
+      }
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json({ data: result.data });
+  } catch (error) {
+    console.error('Error updating asset:', error);
+    return NextResponse.json(
+      { error: 'Failed to update asset' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==================== DELETE /api/assets/[id] ====================
+
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+
+    const result = await assetService.delete(id);
+
+    if (!result.success) {
+      if (result.error === 'Asset not found') {
+        return NextResponse.json({ error: result.error }, { status: 404 });
+      }
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error('Error deleting asset:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete asset' },
+      { status: 500 }
+    );
+  }
+}

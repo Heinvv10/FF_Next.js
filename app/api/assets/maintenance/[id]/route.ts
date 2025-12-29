@@ -1,0 +1,111 @@
+/**
+ * Single Maintenance Record API Route
+ * GET  /api/assets/maintenance/[id] - Get maintenance by ID
+ * PUT  /api/assets/maintenance/[id] - Complete maintenance
+ * DELETE /api/assets/maintenance/[id] - Cancel maintenance
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { maintenanceService } from '@/modules/assets/services';
+import { CompleteMaintenanceSchema } from '@/modules/assets/utils/schemas';
+
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
+// ==================== GET /api/assets/maintenance/[id] ====================
+
+export async function GET(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+
+    const result = await maintenanceService.getById(id);
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 500 });
+    }
+
+    if (!result.data) {
+      return NextResponse.json({ error: 'Maintenance record not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ data: result.data });
+  } catch (error) {
+    console.error('Error fetching maintenance:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch maintenance record' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==================== PUT /api/assets/maintenance/[id] ====================
+
+export async function PUT(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+    const body = await req.json();
+
+    // Add maintenance ID from URL to body
+    const completeData = { ...body, maintenanceId: id };
+
+    // Validate request body
+    const validation = CompleteMaintenanceSchema.safeParse(completeData);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.errors },
+        { status: 400 }
+      );
+    }
+
+    // TODO: Get actual user from auth
+    const completedBy = req.headers.get('x-user-id') || 'system';
+
+    const result = await maintenanceService.complete(validation.data, completedBy);
+
+    if (!result.success) {
+      if (result.error?.includes('not found')) {
+        return NextResponse.json({ error: result.error }, { status: 404 });
+      }
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json({ data: result.data });
+  } catch (error) {
+    console.error('Error completing maintenance:', error);
+    return NextResponse.json(
+      { error: 'Failed to complete maintenance' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==================== DELETE /api/assets/maintenance/[id] ====================
+
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+    const { searchParams } = new URL(req.url);
+    const reason = searchParams.get('reason') || 'Cancelled';
+
+    // TODO: Get actual user from auth
+    const cancelledBy = req.headers.get('x-user-id') || 'system';
+
+    const result = await maintenanceService.cancel(id, reason, cancelledBy);
+
+    if (!result.success) {
+      if (result.error?.includes('not found')) {
+        return NextResponse.json({ error: result.error }, { status: 404 });
+      }
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json({ data: result.data });
+  } catch (error) {
+    console.error('Error cancelling maintenance:', error);
+    return NextResponse.json(
+      { error: 'Failed to cancel maintenance' },
+      { status: 500 }
+    );
+  }
+}
