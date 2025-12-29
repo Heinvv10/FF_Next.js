@@ -23,4 +23,7 @@ export default defineConfig({
       '@/modules': path.resolve(__dirname, './src/modules'),
     },
   },
+  esbuild: {
+    jsx: 'automatic',
+  },
 });

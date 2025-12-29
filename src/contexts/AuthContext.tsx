@@ -50,10 +50,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   // DEVELOPMENT MODE: Mock user data for easier testing
   // TODO: Remove this mock data when implementing RBAC
+  // Use Hein van Vuuren's staff ID from database to satisfy foreign key constraints
   const mockUser: User = {
-    id: 'dev-user-123',
-    email: 'dev@fibreflow.com',
-    displayName: 'Development User',
+    id: 'ac59fe41-b52b-43f6-8b8e-a8d53c8d56f2',
+    email: 'hein@velocityfibre.co.za',
+    displayName: 'Hein van Vuuren',
     photoURL: null,
     role: UserRole.SUPER_ADMIN,
     permissions: [
@@ -69,9 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const mockAuthUser: AuthUser = {
-    uid: 'dev-user-123',
-    email: 'dev@fibreflow.com',
-    displayName: 'Development User',
+    uid: 'ac59fe41-b52b-43f6-8b8e-a8d53c8d56f2',
+    email: 'hein@velocityfibre.co.za',
+    displayName: 'Hein van Vuuren',
     photoURL: null,
     emailVerified: true,
   };

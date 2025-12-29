@@ -1,0 +1,590 @@
+{
+  "feature": "FibreFlow Ticketing Module - Phase 1 Core",
+  "module": "src/modules/ticketing/",
+  "version": "1.0.0",
+  "created": "2025-12-27",
+  "source_documents": [
+    "docs/features/ticketing/PRD-v4.0-ENTERPRISE.md",
+    "Maintenance Head Feedback (Dec 2025)"
+  ],
+  "categories": [
+    {
+      "id": "core-ticketing",
+      "name": "Core Ticketing",
+      "requirements": [
+        {
+          "id": "REQ-001",
+          "title": "Multi-source ticket aggregation",
+          "description": "Support 7 ticket sources: QContact, weekly_report, construction, ad_hoc, incident, revenue, ont_swap",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Source field tracked on all tickets",
+            "External ID linked for traceability",
+            "Filter by source in ticket list"
+          ]
+        },
+        {
+          "id": "REQ-002",
+          "title": "DR number auto-lookup",
+          "description": "Lookup DR number from SOW module to auto-populate project, zone, address",
+          "priority": "must",
+          "acceptance_criteria": [
+            "API endpoint for DR lookup",
+            "Auto-populate fields on DR entry",
+            "Show SOW data preview before linking"
+          ]
+        },
+        {
+          "id": "REQ-003",
+          "title": "Ticket assignment workflow",
+          "description": "Assign tickets to technicians and contractors with notification",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Assign to user or contractor",
+            "Assignment history tracked",
+            "WhatsApp notification on assignment"
+          ]
+        },
+        {
+          "id": "REQ-004",
+          "title": "Ticket status lifecycle",
+          "description": "Track ticket through status workflow with timestamps",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Status enum enforced",
+            "Timestamps for each status change",
+            "Timeline view of status history"
+          ]
+        },
+        {
+          "id": "REQ-005",
+          "title": "Priority and SLA tracking",
+          "description": "Set priority levels and track SLA deadlines",
+          "priority": "must",
+          "acceptance_criteria": [
+            "5 priority levels",
+            "SLA due date calculated from priority",
+            "SLA warning and breach tracking"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verification-workflow",
+      "name": "Verification Workflow",
+      "requirements": [
+        {
+          "id": "REQ-010",
+          "title": "12-step verification checklist",
+          "description": "Track completion of 12 verification steps per ticket",
+          "priority": "must",
+          "acceptance_criteria": [
+            "12 steps defined per ticket type",
+            "Step completion with timestamp and user",
+            "Progress display (7/12 format)"
+          ]
+        },
+        {
+          "id": "REQ-011",
+          "title": "Photo evidence per step",
+          "description": "Upload photo evidence for verification steps that require it",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Photo upload per step",
+            "Store in Firebase Storage",
+            "Display photos in verification view"
+          ]
+        },
+        {
+          "id": "REQ-012",
+          "title": "QA approval workflow",
+          "description": "QA team reviews and approves/rejects completed verifications",
+          "priority": "must",
+          "acceptance_criteria": [
+            "QA approval action",
+            "Rejection with feedback",
+            "Rejection notification to contractor"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qa-readiness",
+      "name": "QA Readiness Check (Maintenance Critical)",
+      "requirements": [
+        {
+          "id": "REQ-020",
+          "title": "Pre-QA validation gate",
+          "description": "System must validate all prerequisites before QA can start - prevents wasted QA effort",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "QA blocked if validation fails",
+            "Clear 'Not QA Ready' status displayed",
+            "List of specific failed checks shown",
+            "Manual override only by authorized users"
+          ]
+        },
+        {
+          "id": "REQ-021",
+          "title": "Photo count validation",
+          "description": "Verify required photos exist before QA",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Check required photo count per ticket type",
+            "Validate photo types match requirements",
+            "Block if photos missing"
+          ]
+        },
+        {
+          "id": "REQ-022",
+          "title": "Field population validation",
+          "description": "Verify DR, pole, PON, zone are populated on all platforms",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Check DR number populated",
+            "Check pole number populated",
+            "Check PON number populated",
+            "Check zone populated"
+          ]
+        },
+        {
+          "id": "REQ-023",
+          "title": "ONT details validation",
+          "description": "Verify ONT serial and RX power level recorded",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "ONT serial number captured",
+            "RX power level recorded (dBm)",
+            "Block if ONT details missing"
+          ]
+        },
+        {
+          "id": "REQ-024",
+          "title": "Photo quality checks",
+          "description": "Detect photo reuse, sequence issues, and relevance",
+          "priority": "should",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Detect reused photos from previous jobs",
+            "Validate photo sequence",
+            "Flag potentially irrelevant photos"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "risk-acceptance",
+      "name": "QA Risk Acceptance (Maintenance Critical)",
+      "requirements": [
+        {
+          "id": "REQ-030",
+          "title": "Conditional approval workflow",
+          "description": "Allow QA approval with conditions and documented risk acceptance",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Approve with conditions option",
+            "Risk note required for conditional approval",
+            "Conditions displayed on ticket"
+          ]
+        },
+        {
+          "id": "REQ-031",
+          "title": "Risk expiry tracking",
+          "description": "Track expiry dates for risk acceptances",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Expiry date required for each risk",
+            "Warning before expiry",
+            "Escalation on expired risks"
+          ]
+        },
+        {
+          "id": "REQ-032",
+          "title": "Post-acceptance review flag",
+          "description": "Flag tickets for post-acceptance review",
+          "priority": "should",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Follow-up review date",
+            "Reminder notifications",
+            "Review queue for flagged items"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fault-attribution",
+      "name": "Fault Attribution (Maintenance Critical)",
+      "requirements": [
+        {
+          "id": "REQ-040",
+          "title": "Fault cause classification",
+          "description": "Require classification of fault cause into 7 categories",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "7 cause categories enforced",
+            "Cause required for maintenance tickets",
+            "Cause details field for notes"
+          ]
+        },
+        {
+          "id": "REQ-041",
+          "title": "Fault trend analysis",
+          "description": "Analyze fault causes by location and equipment",
+          "priority": "should",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Report by fault cause",
+            "Filter by project/zone/pole/PON",
+            "Trend visualization"
+          ]
+        },
+        {
+          "id": "REQ-042",
+          "title": "Contractor protection",
+          "description": "Prevent blanket blame on contractors with proper attribution",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Material failure tracked separately",
+            "Third-party damage documented",
+            "Environmental causes recorded"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "maintenance-handover",
+      "name": "Maintenance Handover Gate (Maintenance Critical)",
+      "requirements": [
+        {
+          "id": "REQ-050",
+          "title": "Handover validation gate",
+          "description": "Validate all requirements before ticket can close into maintenance",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "As-built confirmed in system",
+            "Photos archived correctly",
+            "ONT + PON details verified",
+            "Contractor assigned correctly"
+          ]
+        },
+        {
+          "id": "REQ-051",
+          "title": "Immutable handover snapshot",
+          "description": "Generate locked snapshot at handover for audit trail",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "All evidence links captured",
+            "All decisions recorded",
+            "Snapshot locked after creation",
+            "Cannot be modified after handover"
+          ]
+        },
+        {
+          "id": "REQ-052",
+          "title": "Ownership change tracking",
+          "description": "Track explicit ownership transfer between teams",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "QA to Maintenance transfer logged",
+            "Timestamped ownership change",
+            "Full audit trail"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "repeat-fault-escalation",
+      "name": "Repeat Fault Escalation (Maintenance Critical)",
+      "requirements": [
+        {
+          "id": "REQ-060",
+          "title": "Repeat fault detection",
+          "description": "Detect when faults exceed threshold on same infrastructure",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Track faults by pole",
+            "Track faults by PON",
+            "Track faults by zone",
+            "Configurable threshold"
+          ]
+        },
+        {
+          "id": "REQ-061",
+          "title": "Infrastructure escalation tickets",
+          "description": "Auto-create infrastructure-level tickets for repeat faults",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Auto-create escalation ticket",
+            "Link contributing tickets",
+            "Trigger inspection workflow"
+          ]
+        },
+        {
+          "id": "REQ-062",
+          "title": "Root cause focus",
+          "description": "Shift focus from symptoms to root cause resolution",
+          "priority": "should",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Escalation resolution tracking",
+            "Root cause documentation",
+            "Prevent endless patch repairs"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guarantee-management",
+      "name": "Guarantee Period Management",
+      "requirements": [
+        {
+          "id": "REQ-070",
+          "title": "Guarantee period configuration",
+          "description": "Configure guarantee periods per project",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Installation guarantee days configurable",
+            "Material guarantee days configurable",
+            "Project-level settings"
+          ]
+        },
+        {
+          "id": "REQ-071",
+          "title": "Automatic guarantee classification",
+          "description": "Auto-classify tickets as under/out of guarantee",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Calculate from installation date",
+            "Over 95% accuracy",
+            "Manual override available"
+          ]
+        },
+        {
+          "id": "REQ-072",
+          "title": "Billing classification",
+          "description": "Determine billable status based on guarantee",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Contractor liable during guarantee",
+            "Clear billing indicator",
+            "Billing report generation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "weekly-import",
+      "name": "Weekly Report Import",
+      "requirements": [
+        {
+          "id": "REQ-080",
+          "title": "Excel file upload",
+          "description": "Upload weekly non-invoiceable reports from Excel",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Accept .xlsx format",
+            "Parse standard column layout",
+            "Handle 93+ items per week"
+          ]
+        },
+        {
+          "id": "REQ-081",
+          "title": "Import preview and validation",
+          "description": "Preview data before import with validation errors",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Show preview of rows",
+            "Highlight validation errors",
+            "Allow skip of invalid rows"
+          ]
+        },
+        {
+          "id": "REQ-082",
+          "title": "Import performance",
+          "description": "Complete import in under 15 minutes",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Sub-15 minute total time",
+            "Progress indicator",
+            "Import results summary"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qcontact-integration",
+      "name": "QContact Integration",
+      "requirements": [
+        {
+          "id": "REQ-090",
+          "title": "Bidirectional sync",
+          "description": "Sync tickets and status with QContact in both directions",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Import tickets from QContact",
+            "Update status back to QContact",
+            "Sync on create, update, close"
+          ]
+        },
+        {
+          "id": "REQ-091",
+          "title": "Sync monitoring",
+          "description": "Monitor sync success rate and failures",
+          "priority": "must",
+          "acceptance_criteria": [
+            "100% sync success rate target",
+            "Failure alerting",
+            "Sync audit log"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "whatsapp-notifications",
+      "name": "WhatsApp Notifications",
+      "requirements": [
+        {
+          "id": "REQ-100",
+          "title": "Auto-notification on assignment",
+          "description": "Send WhatsApp notification when ticket assigned",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Notification on new assignment",
+            "Include ticket details",
+            "Track delivery status"
+          ]
+        },
+        {
+          "id": "REQ-101",
+          "title": "QA rejection notification",
+          "description": "Send WhatsApp notification when QA rejects work",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Notification on rejection",
+            "Include rejection reason",
+            "100% compliance target"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dashboard",
+      "name": "Dashboard",
+      "requirements": [
+        {
+          "id": "REQ-110",
+          "title": "Unified dashboard view",
+          "description": "Single dashboard showing all work items and metrics",
+          "priority": "must",
+          "acceptance_criteria": [
+            "Summary statistics",
+            "SLA compliance gauges",
+            "Workload distribution chart",
+            "Recent tickets list"
+          ]
+        },
+        {
+          "id": "REQ-111",
+          "title": "Escalation alerts",
+          "description": "Show active escalations and repeat fault alerts",
+          "priority": "must",
+          "source": "Maintenance Head Feedback",
+          "acceptance_criteria": [
+            "Active escalation count",
+            "Escalation list with severity",
+            "Quick navigation to escalation"
+          ]
+        }
+      ]
+    }
+  ],
+  "database_tables": [
+    "tickets",
+    "verification_steps",
+    "weekly_reports",
+    "qcontact_sync_log",
+    "guarantee_periods",
+    "whatsapp_notifications",
+    "ticket_attachments",
+    "ticket_notes",
+    "qa_readiness_checks",
+    "qa_risk_acceptances",
+    "handover_snapshots",
+    "repeat_fault_escalations"
+  ],
+  "api_endpoints_count": 35,
+  "components_count": 40,
+  "pages": [
+    "/ticketing",
+    "/ticketing/tickets",
+    "/ticketing/tickets/[id]",
+    "/ticketing/import",
+    "/ticketing/sync",
+    "/ticketing/handover",
+    "/ticketing/escalations",
+    "/ticketing/risks"
+  ],
+  "integrations": [
+    {
+      "name": "SOW Module",
+      "type": "internal",
+      "purpose": "DR number lookup"
+    },
+    {
+      "name": "QContact",
+      "type": "external",
+      "purpose": "Ticket sync"
+    },
+    {
+      "name": "WhatsApp (WAHA)",
+      "type": "external",
+      "purpose": "Notifications"
+    },
+    {
+      "name": "Firebase Storage",
+      "type": "external",
+      "purpose": "File attachments"
+    }
+  ],
+  "success_metrics": [
+    {
+      "metric": "Weekly import time",
+      "baseline": "4-6 hours",
+      "target": "<15 minutes"
+    },
+    {
+      "metric": "QContact sync rate",
+      "baseline": "95%",
+      "target": "100%"
+    },
+    {
+      "metric": "WhatsApp compliance",
+      "baseline": "44%",
+      "target": "100%"
+    },
+    {
+      "metric": "Guarantee auto-classification",
+      "baseline": "0%",
+      "target": ">95%"
+    },
+    {
+      "metric": "Verification completion",
+      "baseline": "Unknown",
+      "target": ">95%"
+    }
+  ]
+}
