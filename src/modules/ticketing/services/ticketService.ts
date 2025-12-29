@@ -48,12 +48,12 @@ function isValidUUID(id: string): boolean {
 }
 
 /**
- * Generate unique ticket UID (FT + 6 random digits)
- * Format: FT406824
+ * Generate unique ticket UID (FF + 6 random digits)
+ * Format: FF406824 (FF = FibreFlow)
  */
 function generateTicketUID(): string {
   const randomDigits = Math.floor(100000 + Math.random() * 900000);
-  return `FT${randomDigits}`;
+  return `FF${randomDigits}`;
 }
 
 /**

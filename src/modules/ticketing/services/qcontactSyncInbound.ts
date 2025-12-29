@@ -330,7 +330,7 @@ export async function syncSingleInboundTicket(
         address,
         created_by
       ) VALUES (
-        'FT' || LPAD(FLOOR(RANDOM() * 1000000)::TEXT, 6, '0'),
+        'FF' || LPAD(FLOOR(RANDOM() * 1000000)::TEXT, 6, '0'),
         $1, $2, $3, $4, $5, $6, 'new', $7, $8, $9, $10, $11, $12
       )
       RETURNING *
