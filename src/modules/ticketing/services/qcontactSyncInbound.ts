@@ -16,6 +16,12 @@
 
 import { queryOne } from '../utils/db';
 import { getDefaultQContactClient } from './qcontactClient';
+import {
+  getDefaultFiberTimeQContactClient,
+  FiberTimeQContactClient,
+  type FiberTimeCase,
+  MAINTENANCE_VELOCITY_ID,
+} from './fibertimeQContactClient';
 import type { QContactTicket } from '../types/qcontact';
 import type { CreateTicketPayload } from '../types/ticket';
 import {
@@ -35,6 +41,9 @@ import { createLogger } from '@/lib/logger';
 
 // 🟢 WORKING: Logger instance for sync operations
 const logger = createLogger('qcontactSyncInbound');
+
+// System user ID for automated QContact imports
+const QCONTACT_SYSTEM_USER_ID = 'decb8382-94ed-4e07-94f7-74ad269a5985'; // Admin User
 
 // ============================================================================
 // Types
@@ -72,57 +81,62 @@ export interface SyncInboundResult {
 
 /**
  * Map QContact priority to FibreFlow priority
- * 🟢 WORKING: Priority conversion with fallback to NORMAL
+ * 🟢 WORKING: Priority conversion with fallback to medium
+ * Note: Database constraint allows: low, medium, high, critical
  */
-function mapPriority(qcontactPriority: string | null): TicketPriority {
+function mapPriority(qcontactPriority: string | null): string {
   if (!qcontactPriority) {
-    return TicketPriority.NORMAL;
+    return 'medium';
   }
 
   const priorityLower = qcontactPriority.toLowerCase();
 
   switch (priorityLower) {
     case 'low':
-      return TicketPriority.LOW;
+      return 'low';
     case 'normal':
-      return TicketPriority.NORMAL;
+    case 'medium':
+      return 'medium';
     case 'high':
-      return TicketPriority.HIGH;
+      return 'high';
     case 'urgent':
-      return TicketPriority.URGENT;
     case 'critical':
-      return TicketPriority.CRITICAL;
+      return 'critical';
     default:
-      return TicketPriority.NORMAL;
+      return 'medium';
   }
 }
 
 /**
  * Map QContact category to FibreFlow ticket type
  * 🟢 WORKING: Category to ticket_type conversion
+ * Note: Database constraint allows: fault, maintenance, installation, query, complaint, other
  */
-function mapTicketType(category: string | null): TicketType {
+function mapTicketType(category: string | null): string {
   if (!category) {
-    return TicketType.MAINTENANCE;
+    return 'maintenance';
   }
 
   const categoryLower = category.toLowerCase();
 
-  switch (categoryLower) {
-    case 'maintenance':
-      return TicketType.MAINTENANCE;
-    case 'installation':
-    case 'new_installation':
-      return TicketType.NEW_INSTALLATION;
-    case 'modification':
-      return TicketType.MODIFICATION;
-    case 'ont_swap':
-      return TicketType.ONT_SWAP;
-    case 'incident':
-      return TicketType.INCIDENT;
-    default:
-      return TicketType.MAINTENANCE;
+  // Map FiberTime categories to valid database types
+  if (categoryLower.includes('connectivity') || categoryLower.includes('fault') || categoryLower.includes('ont')) {
+    return 'fault';
   }
+  if (categoryLower.includes('maintenance') || categoryLower.includes('follow-up') || categoryLower.includes('move')) {
+    return 'maintenance';
+  }
+  if (categoryLower.includes('installation') || categoryLower.includes('new')) {
+    return 'installation';
+  }
+  if (categoryLower.includes('query') || categoryLower.includes('question')) {
+    return 'query';
+  }
+  if (categoryLower.includes('complaint')) {
+    return 'complaint';
+  }
+
+  return 'other';
 }
 
 /**
@@ -298,6 +312,7 @@ export async function syncSingleInboundTicket(
     const ticketPayload = mapQContactTicketToFibreFlow(qcontactTicket);
 
     // Create ticket in FibreFlow
+    // Note: Database uses 'type' not 'ticket_type', 'zone' not 'zone_id', 'pon' not 'pon_number'
     const sql = `
       INSERT INTO tickets (
         ticket_uid,
@@ -305,18 +320,18 @@ export async function syncSingleInboundTicket(
         external_id,
         title,
         description,
-        ticket_type,
+        type,
         priority,
         status,
         dr_number,
         project_id,
-        zone_id,
-        pole_number,
-        pon_number,
-        address
+        zone,
+        pon,
+        address,
+        created_by
       ) VALUES (
         'FT' || LPAD(FLOOR(RANDOM() * 1000000)::TEXT, 6, '0'),
-        $1, $2, $3, $4, $5, $6, 'open', $7, $8, $9, $10, $11, $12
+        $1, $2, $3, $4, $5, $6, 'new', $7, $8, $9, $10, $11, $12
       )
       RETURNING *
     `;
@@ -331,9 +346,9 @@ export async function syncSingleInboundTicket(
       ticketPayload.dr_number || null,
       ticketPayload.project_id || null,
       ticketPayload.zone_id || null,
-      ticketPayload.pole_number || null,
       ticketPayload.pon_number || null,
       ticketPayload.address || null,
+      QCONTACT_SYSTEM_USER_ID,
     ];
 
     const createdTicket = await queryOne<{ id: string; ticket_uid: string }>(sql, values);
@@ -532,6 +547,178 @@ export async function syncInboundTickets(
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     logger.error('Inbound sync failed', {
+      error: errorMessage,
+      duration_seconds,
+      stats,
+    });
+
+    return {
+      started_at,
+      completed_at: new Date(),
+      duration_seconds,
+      total_processed: stats.total_processed,
+      successful: stats.successful,
+      failed: stats.failed,
+      skipped: stats.skipped,
+      created: stats.created,
+      updated: stats.updated,
+      errors: [
+        ...errors,
+        {
+          ticket_id: null,
+          qcontact_ticket_id: null,
+          sync_type: SyncType.FULL_SYNC,
+          error_message: errorMessage,
+          error_code: null,
+          timestamp: new Date(),
+          recoverable: false,
+        },
+      ],
+    };
+  }
+}
+
+// ============================================================================
+// FiberTime QContact Sync (Maintenance - Velocity)
+// ============================================================================
+
+/**
+ * Map FiberTime Case to QContactTicket format for compatibility
+ * 🟢 WORKING: Converts FiberTime API response to our QContactTicket interface
+ */
+function mapFiberTimeCaseToQContactTicket(ftCase: FiberTimeCase): QContactTicket {
+  const mapped = FiberTimeQContactClient.mapCaseToTicket(ftCase);
+
+  return {
+    id: mapped.id,
+    title: mapped.title,
+    description: mapped.description,
+    status: mapped.status,
+    priority: mapped.priority,
+    created_at: mapped.created_at,
+    updated_at: mapped.updated_at,
+    customer_name: mapped.customer_name,
+    customer_phone: mapped.customer_phone,
+    customer_email: mapped.customer_email,
+    address: mapped.address,
+    assigned_to: mapped.assigned_to,
+    category: mapped.category,
+    subcategory: mapped.subcategory,
+    custom_fields: mapped.custom_fields,
+  };
+}
+
+/**
+ * Options for FiberTime inbound sync
+ */
+export interface FiberTimeSyncOptions {
+  assignedTo?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * Sync tickets from FiberTime QContact to FibreFlow
+ * 🟢 WORKING: Fetches Maintenance - Velocity cases from FiberTime QContact API
+ *
+ * @param options - Sync options (defaults to Maintenance - Velocity)
+ * @returns Sync result with statistics
+ */
+export async function syncFiberTimeInboundTickets(
+  options: FiberTimeSyncOptions = {}
+): Promise<SyncInboundResult> {
+  const startTime = Date.now();
+  const started_at = new Date();
+
+  logger.info('Starting FiberTime inbound sync', {
+    assignedTo: options.assignedTo || MAINTENANCE_VELOCITY_ID,
+  });
+
+  const stats: SyncStats = {
+    total_processed: 0,
+    successful: 0,
+    failed: 0,
+    partial: 0,
+    skipped: 0,
+    created: 0,
+    updated: 0,
+  };
+
+  const errors: SyncError[] = [];
+
+  try {
+    const client = getDefaultFiberTimeQContactClient();
+
+    // Fetch cases from FiberTime QContact
+    const response = await client.listCases({
+      assignedTo: options.assignedTo || MAINTENANCE_VELOCITY_ID,
+      page: options.page || 1,
+      pageSize: options.pageSize || 50,
+    });
+
+    logger.info('Fetched cases from FiberTime QContact', {
+      count: response.results.length,
+      total: response.total,
+    });
+
+    // Process each case
+    for (const ftCase of response.results) {
+      stats.total_processed++;
+
+      // Convert FiberTime case to QContactTicket format
+      const qcontactTicket = mapFiberTimeCaseToQContactTicket(ftCase);
+
+      const result = await syncSingleInboundTicket(qcontactTicket);
+
+      if (result.success) {
+        stats.successful++;
+
+        if (result.sync_log_id && result.sync_log_id !== '') {
+          stats.created++;
+        } else {
+          stats.skipped++;
+        }
+      } else {
+        stats.failed++;
+
+        errors.push({
+          ticket_id: null,
+          qcontact_ticket_id: qcontactTicket.id,
+          sync_type: SyncType.CREATE,
+          error_message: result.error_message || 'Unknown error',
+          error_code: null,
+          timestamp: new Date(),
+          recoverable: true,
+        });
+      }
+    }
+
+    const duration_seconds = (Date.now() - startTime) / 1000;
+    const completed_at = new Date();
+
+    logger.info('FiberTime inbound sync completed', {
+      duration_seconds,
+      stats,
+      errorCount: errors.length,
+    });
+
+    return {
+      started_at,
+      completed_at,
+      duration_seconds,
+      total_processed: stats.total_processed,
+      successful: stats.successful,
+      failed: stats.failed,
+      skipped: stats.skipped,
+      created: stats.created,
+      updated: stats.updated,
+      errors,
+    };
+  } catch (error) {
+    const duration_seconds = (Date.now() - startTime) / 1000;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    logger.error('FiberTime inbound sync failed', {
       error: errorMessage,
       duration_seconds,
       stats,
