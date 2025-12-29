@@ -23,7 +23,7 @@ import {
   ArrowRight,
   Loader2,
 } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { useUpdateTicket, useDeleteTicket } from '../../hooks/useTicket';
 import type { Ticket, TicketStatus } from '../../types/ticket';
@@ -41,7 +41,7 @@ interface TicketActionsProps {
  * 🟢 WORKING: Ticket actions component
  */
 export function TicketActions({ ticket, compact = false, onActionComplete }: TicketActionsProps) {
-  const { user } = useUser();
+  const { user } = useAuth();
   const updateTicket = useUpdateTicket();
   const deleteTicket = useDeleteTicket();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -65,13 +65,13 @@ export function TicketActions({ ticket, compact = false, onActionComplete }: Tic
 
   // 🟢 WORKING: Handle assign to self
   const handleAssignToSelf = () => {
-    if (!user?.id) return;
+    if (!user?.uid) return;
 
     updateTicket.mutate(
       {
         id: ticket.id,
         payload: {
-          assigned_to: user.id,
+          assigned_to: user?.uid,
           status: 'assigned',
         },
       },
@@ -102,7 +102,7 @@ export function TicketActions({ ticket, compact = false, onActionComplete }: Tic
     const actions = [];
 
     // Assign to self (if not assigned or assigned to someone else)
-    if (!ticket.assigned_to || ticket.assigned_to !== user?.id) {
+    if (!ticket.assigned_to || ticket.assigned_to !== user?.uid) {
       actions.push({
         label: 'Assign to Me',
         icon: UserPlus,

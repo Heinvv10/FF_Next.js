@@ -16,7 +16,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   CheckCircle2,
   XCircle,
@@ -71,7 +71,7 @@ export function HandoverWizard({
   onCancel,
   showOwnershipFields = true,
 }: HandoverWizardProps) {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
   // 🟢 WORKING: Use handover wizard hook
@@ -91,7 +91,7 @@ export function HandoverWizard({
 
   // 🟢 WORKING: Handle handover submission
   const handleSubmit = useCallback(async () => {
-    if (!user?.id) {
+    if (!user?.uid) {
       setError('User not authenticated');
       return;
     }
@@ -112,7 +112,7 @@ export function HandoverWizard({
           from_owner_id: fromOwnerId,
           to_owner_type: toOwnerType,
           to_owner_id: toOwnerId,
-          handover_by: user.id,
+          handover_by: user?.uid,
         },
         {
           onSuccess: (snapshot) => {

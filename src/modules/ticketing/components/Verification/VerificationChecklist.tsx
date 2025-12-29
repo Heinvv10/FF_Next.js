@@ -18,7 +18,7 @@
 
 import React, { useCallback } from 'react';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/contexts/AuthContext';
 import { VerificationStep } from './VerificationStep';
 import { useVerification, useUpdateVerificationStep } from '../../hooks/useVerification';
 import { cn } from '@/lib/utils';
@@ -48,14 +48,14 @@ export function VerificationChecklist({
   compact = false,
   onAllComplete,
 }: VerificationChecklistProps) {
-  const { user } = useUser();
+  const { user } = useAuth();
   const { steps, progress, isLoading, isError, error } = useVerification(ticketId);
   const updateStep = useUpdateVerificationStep();
 
   // 🟢 WORKING: Handle step toggle
   const handleStepToggle = useCallback(
     (stepNumber: VerificationStepNumber, isComplete: boolean) => {
-      if (!user?.id) {
+      if (!user?.uid) {
         return;
       }
 
@@ -64,7 +64,7 @@ export function VerificationChecklist({
         stepNumber,
         payload: {
           is_complete: isComplete,
-          completed_by: isComplete ? user.id : undefined,
+          completed_by: isComplete ? user?.uid : undefined,
         },
       });
 
@@ -76,7 +76,7 @@ export function VerificationChecklist({
         }
       }
     },
-    [ticketId, user?.id, updateStep, progress, onAllComplete]
+    [ticketId, user?.uid, updateStep, progress, onAllComplete]
   );
 
   // 🟢 WORKING: Handle photo upload

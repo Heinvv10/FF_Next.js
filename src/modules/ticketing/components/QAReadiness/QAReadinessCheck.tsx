@@ -16,7 +16,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Loader2, PlayCircle, RefreshCw } from 'lucide-react';
-import { useUser } from '@clerk/nextjs';
+import { useAuth } from '@/contexts/AuthContext';
 import { ReadinessResults } from './ReadinessResults';
 import { cn } from '@/lib/utils';
 import type { QAReadinessStatus } from '../../types/verification';
@@ -72,7 +72,7 @@ export function QAReadinessCheck({
   autoRefreshInterval = 0,
   onCheckComplete,
 }: QAReadinessCheckProps) {
-  const { user } = useUser();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [lastRunAt, setLastRunAt] = useState<Date | null>(null);
 
@@ -91,7 +91,7 @@ export function QAReadinessCheck({
 
   // 🟢 WORKING: Mutation to run readiness check
   const runCheckMutation = useMutation({
-    mutationFn: () => runReadinessCheckAPI(ticketId, user?.id || null),
+    mutationFn: () => runReadinessCheckAPI(ticketId, user?.uid || null),
     onSuccess: () => {
       // Invalidate and refetch status
       queryClient.invalidateQueries({ queryKey: ['qaReadiness', ticketId] });
