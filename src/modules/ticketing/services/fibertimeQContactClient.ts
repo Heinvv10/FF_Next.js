@@ -91,64 +91,103 @@ export interface FiberTimeCase {
 }
 
 /**
+ * QContact Relationship Reference
+ * Represents a linked entity in QContact
+ */
+export interface QContactRelationship {
+  id: number;
+  type: string;
+  label: string;
+  icon: string;
+  entity_type: string;
+  deleted: boolean;
+  source?: string;
+  status?: string;
+}
+
+/**
+ * QContact Fields Structure
+ * Contains all custom and standard fields from QContact API
+ */
+export interface QContactFields {
+  status?: string;
+  category?: string;
+  reference?: string;
+  description?: string;
+  assigned_to?: number;
+  contact?: number;
+  telephone?: string;
+  email?: string;
+  address?: string;
+  c__dr_number?: number; // Reference ID to DR entity
+  c__dr_location?: string;
+  c__field_agent?: string;
+  c__availability?: string;
+  c__location_pin?: string;
+  c__c_tv_connector?: string;
+  c__serial_number?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * QContact Relationships Structure
+ * Contains linked entities with their labels
+ */
+export interface QContactRelationships {
+  contact?: QContactRelationship;
+  assigned_to?: QContactRelationship;
+  c__dr_number?: QContactRelationship; // Contains DR number label
+  c__location_pin?: QContactRelationship;
+  [key: string]: QContactRelationship | null | undefined;
+}
+
+/**
  * Case detail with all QContact fields
- * Maps to QContact case detail API response
+ * Maps to QContact case detail API response (actual structure)
  */
 export interface FiberTimeCaseDetail {
   id: number;
   entity_type: string;
   label: string;
   icon: string;
+  created_at: string;
+  updated_at?: string;
 
-  // Status & Assignment
-  status: string;
-  __status: string;
-  __status__color: string;
-  assigned_to: string;
-  __assigned_to: number;
+  // Nested structures from QContact API
+  fields?: QContactFields;
+  relationships?: QContactRelationships;
 
-  // Category
-  category: string | null;
-  __category: string | null;
-  __category__color: string | null;
-
-  // Contact Info
-  contact: string;
-  __contact: number;
+  // Legacy flat fields (for backwards compatibility)
+  status?: string;
+  __status?: string;
+  __status__color?: string;
+  assigned_to?: string;
+  __assigned_to?: number;
+  category?: string | null;
+  __category?: string | null;
+  __category__color?: string | null;
+  contact?: string;
+  __contact?: number;
   telephone?: string;
   email?: string;
-
-  // Address & Location
   address?: string;
   c__dr_location?: string;
   __c__dr_location?: string;
   location_pin?: string;
   gps_coordinates?: string;
-
-  // Drop & Installation Info
   c__drop_number?: string;
   drop_number?: string;
   dr_number?: string;
-
-  // Equipment
   c__serial_number?: string;
   serial_number?: string;
   ont_serial?: string;
   gizzu_serial?: string;
-
-  // Additional Fields
   c__availability?: string;
   availability?: string;
   c__field_agent?: string;
   field_agent?: string;
   c__tv_connector?: string;
   tv_connector?: string;
-
-  // Timestamps
-  created_at: string;
-  updated_at?: string;
-
-  // Description & Notes
   description?: string;
   notes?: string;
 
@@ -684,10 +723,20 @@ export class FiberTimeQContactClient {
 
   /**
    * Extract DR number from various fields
-   * Checks multiple possible field names
+   * Checks multiple possible field names including relationships
+   *
+   * QContact stores DR numbers as relationships - the label contains the actual DR number
+   * e.g., relationships.c__dr_number.label = "DR1748392"
    */
   static extractDRNumber(caseDetail: FiberTimeCaseDetail): string | null {
-    // Check various field names for DR number
+    // Priority 1: Check relationships (QContact stores DR as linked entity)
+    const relationshipDR = caseDetail.relationships?.c__dr_number?.label;
+    if (relationshipDR) {
+      const match = relationshipDR.match(/DR\d+/i);
+      return match ? match[0].toUpperCase() : relationshipDR;
+    }
+
+    // Priority 2: Check flat fields (legacy or alternate formats)
     const drNumber =
       caseDetail.dr_number ||
       caseDetail.c__drop_number ||
@@ -697,7 +746,7 @@ export class FiberTimeQContactClient {
       null;
 
     // Extract DR pattern if embedded in string (e.g., "DR1853428")
-    if (drNumber) {
+    if (drNumber && typeof drNumber === 'string') {
       const match = drNumber.match(/DR\d+/i);
       return match ? match[0].toUpperCase() : drNumber;
     }
@@ -743,18 +792,45 @@ export class FiberTimeQContactClient {
     const reference = this.extractCaseReference(caseDetail.label);
     const drNumber = this.extractDRNumber(caseDetail);
 
-    // Extract category and subcategory
+    // Get fields from nested structure or flat (for backwards compat)
+    const fields = caseDetail.fields || {};
+    const relationships = caseDetail.relationships || {};
+
+    // Extract category and subcategory from fields or flat
     let category: string | null = null;
     let subcategory: string | null = null;
+    const categoryStr = (fields.category as string) || caseDetail.category;
 
-    if (caseDetail.category) {
-      const parts = caseDetail.category.split('::');
+    if (categoryStr) {
+      const parts = categoryStr.split('::');
       category = parts[0] || null;
       subcategory = parts[1] || null;
     }
 
-    // Collect all custom fields (c__ prefix)
+    // Get contact name from relationship or flat
+    const customerName =
+      relationships.contact?.label ||
+      caseDetail.contact ||
+      null;
+
+    // Get assigned to from relationship or flat
+    const assignedTo =
+      relationships.assigned_to?.label ||
+      caseDetail.assigned_to ||
+      null;
+
+    // Get status from fields or flat
+    const status = (fields.status as string) || caseDetail.status || 'unknown';
+
+    // Collect all custom fields (c__ prefix) from fields and flat
     const customFields: Record<string, unknown> = {};
+    // From fields object
+    for (const [key, value] of Object.entries(fields)) {
+      if (key.startsWith('c__')) {
+        customFields[key] = value;
+      }
+    }
+    // From flat structure
     for (const [key, value] of Object.entries(caseDetail)) {
       if (key.startsWith('c__') || key.startsWith('__c__')) {
         customFields[key] = value;
@@ -764,31 +840,52 @@ export class FiberTimeQContactClient {
     return {
       id: String(caseDetail.id),
       title: reference,
-      description: caseDetail.description || caseDetail.label,
-      status: caseDetail.status,
+      description: (fields.description as string) || caseDetail.description || caseDetail.label,
+      status,
       priority: 'medium',
       created_at: caseDetail.created_at,
       updated_at: caseDetail.updated_at || caseDetail.created_at,
       // Contact Info
-      customer_name: caseDetail.contact || null,
-      customer_phone: caseDetail.telephone || null,
-      customer_email: caseDetail.email || null,
-      address: caseDetail.address || null,
+      customer_name: customerName,
+      customer_phone: (fields.telephone as string) || caseDetail.telephone || null,
+      customer_email: (fields.email as string) || caseDetail.email || null,
+      address: (fields.address as string) || caseDetail.address || null,
       // Assignment
-      assigned_to: caseDetail.assigned_to || null,
+      assigned_to: assignedTo,
       // Category
       category,
       subcategory,
       // Drop & Location
       dr_number: drNumber,
-      gps_coordinates: caseDetail.gps_coordinates || caseDetail.location_pin || null,
+      gps_coordinates:
+        (fields.c__location_pin as string) ||
+        caseDetail.gps_coordinates ||
+        caseDetail.location_pin ||
+        null,
       // Equipment
-      ont_serial: caseDetail.ont_serial || caseDetail.c__serial_number || caseDetail.serial_number || null,
+      ont_serial:
+        (fields.c__serial_number as string) ||
+        caseDetail.ont_serial ||
+        caseDetail.c__serial_number ||
+        caseDetail.serial_number ||
+        null,
       gizzu_serial: caseDetail.gizzu_serial || null,
       // Additional
-      availability: caseDetail.availability || caseDetail.c__availability || null,
-      field_agent: caseDetail.field_agent || caseDetail.c__field_agent || null,
-      tv_connector: caseDetail.tv_connector || caseDetail.c__tv_connector || null,
+      availability:
+        (fields.c__availability as string) ||
+        caseDetail.availability ||
+        caseDetail.c__availability ||
+        null,
+      field_agent:
+        (fields.c__field_agent as string) ||
+        caseDetail.field_agent ||
+        caseDetail.c__field_agent ||
+        null,
+      tv_connector:
+        (fields.c__c_tv_connector as string) ||
+        caseDetail.tv_connector ||
+        caseDetail.c__tv_connector ||
+        null,
       // Custom fields
       custom_fields: {
         ...customFields,
