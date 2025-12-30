@@ -410,10 +410,10 @@ export class FiberTimeQContactClient {
     try {
       logger.debug('Fetching case activities', { caseId });
 
-      // QContact API endpoint for case activities/timeline
+      // QContact API endpoint for case events/timeline
       const response = await this.request<any>(
         'GET',
-        `/api/v2/entities/Case/${caseId}/activities`
+        `/api/v2/entities/Case/${caseId}/events?expand_conversations=false&page=1&sort=id%20DESC`
       );
 
       // Parse and normalize the response
@@ -452,55 +452,64 @@ export class FiberTimeQContactClient {
   }
 
   /**
-   * Parse a raw activity item from QContact API
+   * Parse a raw event item from QContact API /events endpoint
    */
   private parseActivity(item: any): QContactActivity {
-    // Determine activity type
+    // Determine activity type from event_type field
     let type: QContactActivity['type'] = 'note';
-    if (item.type === 'update' || item.field_changes || item.changes) {
+    const eventType = item.event_type || item.type;
+
+    if (eventType === 'update') {
       type = 'update';
-    } else if (item.type === 'status_change' || item.status) {
+    } else if (eventType === 'status_change') {
       type = 'status_change';
-    } else if (item.type === 'assignment') {
+    } else if (eventType === 'assignment' ||
+               (item.formatted_changes && item.formatted_changes['$t.fields.assigned_to'])) {
       type = 'assignment';
-    } else if (item.type === 'message' || item.channel === 'whatsapp') {
+    } else if (eventType === 'message' || eventType === 'conversation') {
       type = 'message';
-    } else if (item.type === 'system' || item.automated) {
+    } else if (eventType === 'system' || eventType === 'automation') {
       type = 'system';
+    } else if (eventType === 'note') {
+      type = 'note';
     }
 
-    // Parse field changes
+    // Parse field changes from formatted_changes (QContact format)
     let fieldChanges: QContactActivity['field_changes'] = null;
-    if (item.changes || item.field_changes) {
-      const changes = item.changes || item.field_changes;
-      if (Array.isArray(changes)) {
-        fieldChanges = changes.map((c: any) => ({
-          field: c.field || c.name || 'Unknown',
-          old_value: c.old_value || c.from,
-          new_value: c.new_value || c.to || c.value,
-        }));
-      } else if (typeof changes === 'object') {
-        fieldChanges = Object.entries(changes).map(([field, value]: [string, any]) => ({
-          field,
-          new_value: typeof value === 'object' ? value.to || value.new : String(value),
-          old_value: typeof value === 'object' ? value.from || value.old : undefined,
-        }));
-      }
+    if (item.formatted_changes && Object.keys(item.formatted_changes).length > 0) {
+      fieldChanges = Object.values(item.formatted_changes).map((change: any) => ({
+        field: change.field || 'Unknown',
+        old_value: change.old_value,
+        new_value: change.new_value,
+      }));
+    } else if (item.changes && Object.keys(item.changes).length > 0) {
+      // Fallback to raw changes
+      fieldChanges = Object.entries(item.changes).map(([field, value]: [string, any]) => ({
+        field,
+        old_value: typeof value === 'object' ? value.old_value : undefined,
+        new_value: typeof value === 'object' ? value.new_value : String(value),
+      }));
     }
+
+    // Get description from subtitle or html
+    const description = item.subtitle || item.html || item.content || item.description || null;
+
+    // Get user info
+    const user = item.user;
 
     return {
-      id: String(item.id || item._id || Date.now()),
+      id: String(item.id || Date.now()),
       type,
-      description: item.content || item.description || item.message || item.note || null,
+      description,
       field_changes: fieldChanges,
-      created_by: item.user || item.created_by || item.author
+      created_by: user
         ? {
-            name: item.user?.name || item.created_by?.name || item.author || 'Unknown',
-            email: item.user?.email || item.created_by?.email,
+            name: user.label || user.name || 'Unknown',
+            email: user.email,
           }
         : null,
-      created_at: item.created_at || item.timestamp || item.date || new Date().toISOString(),
-      is_private: item.private || item.is_private || false,
+      created_at: item.raised_at || item.created_at || new Date().toISOString(),
+      is_private: item.public_note === false || item.public === false,
       is_pinned: item.pinned || item.is_pinned || false,
     };
   }

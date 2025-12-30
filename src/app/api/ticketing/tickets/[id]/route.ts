@@ -22,6 +22,7 @@ import {
   updateTicket,
   deleteTicket
 } from '@/modules/ticketing/services/ticketService';
+import { enrichTicketData } from '@/modules/ticketing/services/ticketEnrichmentService';
 import type { UpdateTicketPayload } from '@/modules/ticketing/types/ticket';
 
 const logger = createLogger('ticketing:api:tickets:id');
@@ -99,7 +100,10 @@ function databaseError(message: string) {
 // ==================== GET /api/ticketing/tickets/[id] ====================
 
 /**
- * 🟢 WORKING: Get ticket by ID
+ * 🟢 WORKING: Get ticket by ID with enrichment
+ *
+ * Query params:
+ * - enrich=true: Include FibreFlow cross-reference data (GPS, 1Map info)
  */
 export async function GET(
   req: NextRequest,
@@ -107,13 +111,15 @@ export async function GET(
 ) {
   try {
     const ticketId = params.id;
+    const { searchParams } = new URL(req.url);
+    const shouldEnrich = searchParams.get('enrich') === 'true';
 
     // Validate UUID format
     if (!isValidUUID(ticketId)) {
       return validationError('Invalid ticket ID format. Must be a valid UUID');
     }
 
-    logger.debug('Fetching ticket by ID', { ticketId });
+    logger.debug('Fetching ticket by ID', { ticketId, enrich: shouldEnrich });
 
     const ticket = await getTicketById(ticketId);
 
@@ -121,11 +127,21 @@ export async function GET(
       return notFoundError('Ticket', ticketId);
     }
 
+    // Enrich with FibreFlow cross-reference data if requested
+    let enrichment = null;
+    if (shouldEnrich && ticket.dr_number) {
+      enrichment = await enrichTicketData(ticket.dr_number);
+    }
+
     return NextResponse.json({
       success: true,
-      data: ticket,
+      data: {
+        ...ticket,
+        ...(enrichment && { fibreflow_enrichment: enrichment }),
+      },
       meta: {
         timestamp: new Date().toISOString(),
+        enriched: shouldEnrich && !!enrichment,
       },
     });
   } catch (error) {

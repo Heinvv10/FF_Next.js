@@ -10,12 +10,12 @@ const logger = createLogger('ticket-activities-api');
 
 const sql = neon(process.env.DATABASE_URL!);
 
-// QContact client configuration from environment
+// QContact client configuration from environment (uses FIBERTIME_QCONTACT_* prefix)
 const qcontactConfig = {
-  baseUrl: process.env.QCONTACT_BASE_URL || 'https://fibertime.qcontact.com',
-  uid: process.env.QCONTACT_UID || '',
-  accessToken: process.env.QCONTACT_ACCESS_TOKEN || '',
-  client: process.env.QCONTACT_CLIENT || '',
+  baseUrl: process.env.FIBERTIME_QCONTACT_BASE_URL || 'https://fibertime.qcontact.com',
+  uid: process.env.FIBERTIME_QCONTACT_UID || '',
+  accessToken: process.env.FIBERTIME_QCONTACT_ACCESS_TOKEN || '',
+  client: process.env.FIBERTIME_QCONTACT_CLIENT || '',
 };
 
 interface TicketActivity {
