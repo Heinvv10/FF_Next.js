@@ -16,6 +16,7 @@ const qcontactConfig = {
   uid: process.env.FIBERTIME_QCONTACT_UID || '',
   accessToken: process.env.FIBERTIME_QCONTACT_ACCESS_TOKEN || '',
   client: process.env.FIBERTIME_QCONTACT_CLIENT || '',
+  password: process.env.FIBERTIME_QCONTACT_PASSWORD || '', // For auto-refresh on 401
 };
 
 interface TicketActivity {
