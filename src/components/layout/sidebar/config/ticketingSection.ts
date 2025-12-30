@@ -9,7 +9,8 @@ import {
   RefreshCw,
   AlertTriangle,
   ArrowRightLeft,
-  ShieldAlert
+  ShieldAlert,
+  Users
 } from 'lucide-react';
 import type { NavSection } from './types';
 
@@ -28,6 +29,13 @@ export const ticketingSection: NavSection = {
       icon: Ticket,
       label: 'Tickets',
       shortLabel: 'Tickets',
+      permissions: [],
+    },
+    {
+      to: '/ticketing/teams',
+      icon: Users,
+      label: 'Teams',
+      shortLabel: 'Teams',
       permissions: [],
     },
     {

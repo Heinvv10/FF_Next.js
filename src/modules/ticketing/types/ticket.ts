@@ -160,7 +160,8 @@ export interface Ticket {
   // Assignment
   assigned_to: string | null; // UUID reference to users
   assigned_contractor_id: string | null; // UUID reference to contractors
-  assigned_team: string | null;
+  assigned_team: string | null; // Legacy text field
+  assigned_team_id: string | null; // UUID reference to teams table
 
   // Guarantee
   guarantee_status: GuaranteeStatus | null;
@@ -223,9 +224,10 @@ export interface UpdateTicketPayload {
   description?: string;
   status?: TicketStatus;
   priority?: TicketPriority;
-  assigned_to?: string;
-  assigned_contractor_id?: string;
-  assigned_team?: string;
+  assigned_to?: string | null;
+  assigned_contractor_id?: string | null;
+  assigned_team?: string | null;
+  assigned_team_id?: string | null;
   dr_number?: string;
   project_id?: string;
   zone_id?: string;
@@ -307,6 +309,11 @@ export interface TicketWithRelations extends Ticket {
   assigned_contractor?: {
     id: string;
     name: string;
+  };
+  assigned_team_info?: {
+    id: string;
+    name: string;
+    team_type: string;
   };
   project?: {
     id: string;

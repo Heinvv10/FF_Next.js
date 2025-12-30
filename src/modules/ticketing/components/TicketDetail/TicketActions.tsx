@@ -17,13 +17,11 @@
 import React, { useState } from 'react';
 import {
   Trash2,
-  UserPlus,
   CheckCircle2,
   Clock,
   ArrowRight,
   Loader2,
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { useUpdateTicket, useDeleteTicket } from '../../hooks/useTicket';
 import type { EnrichedTicket, TicketStatus } from '../../types/ticket';
@@ -39,9 +37,9 @@ interface TicketActionsProps {
 
 /**
  * 🟢 WORKING: Ticket actions component
+ * Note: Assignment is now handled by the separate AssignmentPanel component
  */
 export function TicketActions({ ticket, compact = false, onActionComplete }: TicketActionsProps) {
-  const { user } = useAuth();
   const updateTicket = useUpdateTicket();
   const deleteTicket = useDeleteTicket();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -52,28 +50,6 @@ export function TicketActions({ ticket, compact = false, onActionComplete }: Tic
       {
         id: ticket.id,
         payload: { status: newStatus },
-      },
-      {
-        onSuccess: () => {
-          if (onActionComplete) {
-            onActionComplete();
-          }
-        },
-      }
-    );
-  };
-
-  // 🟢 WORKING: Handle assign to self
-  const handleAssignToSelf = () => {
-    if (!user?.uid) return;
-
-    updateTicket.mutate(
-      {
-        id: ticket.id,
-        payload: {
-          assigned_to: user?.uid,
-          status: 'assigned',
-        },
       },
       {
         onSuccess: () => {
@@ -98,18 +74,9 @@ export function TicketActions({ ticket, compact = false, onActionComplete }: Tic
   };
 
   // 🟢 WORKING: Get available actions based on status
+  // Note: Assignment actions are now in AssignmentPanel
   const getAvailableActions = () => {
     const actions = [];
-
-    // Assign to self (if not assigned or assigned to someone else)
-    if (!ticket.assigned_to || ticket.assigned_to !== user?.uid) {
-      actions.push({
-        label: 'Assign to Me',
-        icon: UserPlus,
-        onClick: handleAssignToSelf,
-        variant: 'secondary' as const,
-      });
-    }
 
     // Status-specific actions
     if (ticket.status === 'open') {

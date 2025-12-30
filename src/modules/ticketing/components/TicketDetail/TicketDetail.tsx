@@ -32,6 +32,7 @@ import { TicketTimeline } from './TicketTimeline';
 import { ActivityTab } from './ActivityTab';
 import { VerificationChecklist } from '../Verification/VerificationChecklist';
 import { QAReadinessCheck } from '../QAReadiness/QAReadinessCheck';
+import { AssignmentPanel } from '../Assignment/AssignmentPanel';
 
 interface TicketDetailProps {
   /** Ticket ID to display */
@@ -372,6 +373,16 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
 
         {/* Right Column - Sidebar (always visible) */}
         <div className="space-y-6">
+          {/* Assignment Panel */}
+          <AssignmentPanel
+            ticketId={ticketId}
+            currentUserId={ticket.assigned_to}
+            currentUserName={ticket.assigned_user?.name}
+            currentTeamId={ticket.assigned_team_id}
+            currentTeamName={ticket.assigned_team_info?.name || ticket.assigned_team}
+            onAssignmentSaved={handleActionComplete}
+          />
+
           {/* Actions */}
           <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
             <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-4">Actions</h3>

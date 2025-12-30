@@ -259,6 +259,7 @@ export async function updateTicket(
       assigned_to: 'assigned_to',
       assigned_contractor_id: 'assigned_contractor_id',
       assigned_team: 'assigned_team',
+      assigned_team_id: 'assigned_team_id',
       dr_number: 'dr_number',
       project_id: 'project_id',
       zone_id: 'zone_id',

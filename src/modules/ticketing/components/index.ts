@@ -46,3 +46,9 @@ export { TicketActions } from './TicketDetail/TicketActions';
 export { DRLookup } from './common/DRLookup';
 export { GuaranteeIndicator } from './common/GuaranteeIndicator';
 export { SLACountdown } from './common/SLACountdown';
+
+// Assignment Components (✅ Completed)
+export { UserSelector, TeamSelector, AssignmentPanel } from './Assignment';
+
+// KanbanBoard Components (✅ Completed)
+export { KanbanBoard } from './KanbanBoard/KanbanBoard';
