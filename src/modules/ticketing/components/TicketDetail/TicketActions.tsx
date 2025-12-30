@@ -26,11 +26,11 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { useUpdateTicket, useDeleteTicket } from '../../hooks/useTicket';
-import type { Ticket, TicketStatus } from '../../types/ticket';
+import type { EnrichedTicket, TicketStatus } from '../../types/ticket';
 
 interface TicketActionsProps {
   /** Ticket data */
-  ticket: Ticket;
+  ticket: EnrichedTicket;
   /** Compact mode */
   compact?: boolean;
   /** Callback when action completes */

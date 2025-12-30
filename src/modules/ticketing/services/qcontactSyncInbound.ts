@@ -20,6 +20,7 @@ import {
   getDefaultFiberTimeQContactClient,
   FiberTimeQContactClient,
   type FiberTimeCase,
+  type FiberTimeCaseDetail,
   MAINTENANCE_VELOCITY_ID,
 } from './fibertimeQContactClient';
 import type { QContactTicket } from '../types/qcontact';
@@ -140,6 +141,21 @@ function mapTicketType(category: string | null): string {
 }
 
 /**
+ * Extended ticket payload with all QContact fields
+ */
+export interface ExtendedTicketPayload extends CreateTicketPayload {
+  client_name?: string;
+  client_contact?: string;
+  client_email?: string;
+  gps_coordinates?: string;
+  ont_serial?: string;
+  category?: string;
+  subcategory?: string;
+  // Additional QContact fields stored in metadata
+  qcontact_metadata?: Record<string, unknown>;
+}
+
+/**
  * Map QContact ticket to FibreFlow CreateTicketPayload
  * 🟢 WORKING: Complete field mapping with custom fields extraction
  *
@@ -148,28 +164,44 @@ function mapTicketType(category: string | null): string {
  */
 export function mapQContactTicketToFibreFlow(
   qcontactTicket: QContactTicket
-): CreateTicketPayload {
+): ExtendedTicketPayload {
   // Extract custom fields
   const customFields = qcontactTicket.custom_fields || {};
-  const drNumber = customFields.dr_number as string | undefined;
+  const drNumber = (customFields.dr_number as string) || null;
   const poleNumber = customFields.pole_number as string | undefined;
   const ponNumber = customFields.pon_number as string | undefined;
   const projectId = customFields.project_id as string | undefined;
   const zoneId = customFields.zone_id as string | undefined;
+  const gpsCoordinates = customFields.gps_coordinates as string | undefined;
+  const ontSerial = customFields.ont_serial as string | undefined;
 
-  const payload: CreateTicketPayload = {
+  const payload: ExtendedTicketPayload = {
     source: TicketSource.QCONTACT,
     external_id: qcontactTicket.id,
     title: qcontactTicket.title,
     description: qcontactTicket.description || undefined,
     ticket_type: mapTicketType(qcontactTicket.category),
     priority: mapPriority(qcontactTicket.priority),
+    // Contact Info
+    client_name: qcontactTicket.customer_name || undefined,
+    client_contact: qcontactTicket.customer_phone || undefined,
+    client_email: qcontactTicket.customer_email || undefined,
+    // Location
     address: qcontactTicket.address || undefined,
-    dr_number: drNumber,
+    gps_coordinates: gpsCoordinates,
+    dr_number: drNumber || undefined,
+    // Equipment
+    ont_serial: ontSerial,
+    // Category
+    category: qcontactTicket.category || undefined,
+    subcategory: qcontactTicket.subcategory || undefined,
+    // Other fields
     pole_number: poleNumber,
     pon_number: ponNumber,
     project_id: projectId,
     zone_id: zoneId,
+    // Store all custom fields as metadata
+    qcontact_metadata: customFields,
   };
 
   return payload;
@@ -311,7 +343,7 @@ export async function syncSingleInboundTicket(
     // Map QContact ticket to FibreFlow format
     const ticketPayload = mapQContactTicketToFibreFlow(qcontactTicket);
 
-    // Create ticket in FibreFlow
+    // Create ticket in FibreFlow with all available fields
     // Note: Database uses 'type' not 'ticket_type', 'zone' not 'zone_id', 'pon' not 'pon_number'
     const sql = `
       INSERT INTO tickets (
@@ -328,10 +360,15 @@ export async function syncSingleInboundTicket(
         zone,
         pon,
         address,
+        client_name,
+        client_contact,
+        client_email,
+        gps_coordinates,
+        ont_serial,
         created_by
       ) VALUES (
         'FF' || LPAD(FLOOR(RANDOM() * 1000000)::TEXT, 6, '0'),
-        $1, $2, $3, $4, $5, $6, 'new', $7, $8, $9, $10, $11, $12
+        $1, $2, $3, $4, $5, $6, 'new', $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
       )
       RETURNING *
     `;
@@ -348,6 +385,11 @@ export async function syncSingleInboundTicket(
       ticketPayload.zone_id || null,
       ticketPayload.pon_number || null,
       ticketPayload.address || null,
+      ticketPayload.client_name || null,
+      ticketPayload.client_contact || null,
+      ticketPayload.client_email || null,
+      ticketPayload.gps_coordinates || null,
+      ticketPayload.ont_serial || null,
       QCONTACT_SYSTEM_USER_ID,
     ];
 
@@ -609,17 +651,60 @@ function mapFiberTimeCaseToQContactTicket(ftCase: FiberTimeCase): QContactTicket
 }
 
 /**
+ * Map FiberTime Case Detail to QContactTicket format with all fields
+ * 🟢 WORKING: Full mapping including contact info, equipment, and location
+ */
+function mapFiberTimeCaseDetailToQContactTicket(caseDetail: FiberTimeCaseDetail): QContactTicket {
+  const mapped = FiberTimeQContactClient.mapCaseDetailToTicket(caseDetail);
+
+  return {
+    id: mapped.id,
+    title: mapped.title,
+    description: mapped.description,
+    status: mapped.status,
+    priority: mapped.priority,
+    created_at: mapped.created_at,
+    updated_at: mapped.updated_at,
+    customer_name: mapped.customer_name,
+    customer_phone: mapped.customer_phone,
+    customer_email: mapped.customer_email,
+    address: mapped.address,
+    assigned_to: mapped.assigned_to,
+    category: mapped.category,
+    subcategory: mapped.subcategory,
+    custom_fields: {
+      ...mapped.custom_fields,
+      dr_number: mapped.dr_number,
+      gps_coordinates: mapped.gps_coordinates,
+      ont_serial: mapped.ont_serial,
+      gizzu_serial: mapped.gizzu_serial,
+      availability: mapped.availability,
+      field_agent: mapped.field_agent,
+      tv_connector: mapped.tv_connector,
+    },
+  };
+}
+
+/**
  * Options for FiberTime inbound sync
  */
 export interface FiberTimeSyncOptions {
   assignedTo?: string;
   page?: number;
   pageSize?: number;
+  /** Fetch full case details for each case (default: true) */
+  fetchDetails?: boolean;
 }
 
 /**
  * Sync tickets from FiberTime QContact to FibreFlow
  * 🟢 WORKING: Fetches Maintenance - Velocity cases from FiberTime QContact API
+ *
+ * Enhanced to fetch full case details including:
+ * - Contact info (name, phone, email)
+ * - Address and location
+ * - DR number
+ * - Equipment serial numbers
  *
  * @param options - Sync options (defaults to Maintenance - Velocity)
  * @returns Sync result with statistics
@@ -632,6 +717,7 @@ export async function syncFiberTimeInboundTickets(
 
   logger.info('Starting FiberTime inbound sync', {
     assignedTo: options.assignedTo || MAINTENANCE_VELOCITY_ID,
+    fetchDetails: options.fetchDetails !== false,
   });
 
   const stats: SyncStats = {
@@ -665,8 +751,36 @@ export async function syncFiberTimeInboundTickets(
     for (const ftCase of response.results) {
       stats.total_processed++;
 
-      // Convert FiberTime case to QContactTicket format
-      const qcontactTicket = mapFiberTimeCaseToQContactTicket(ftCase);
+      let qcontactTicket: QContactTicket;
+
+      // Fetch full case details if enabled (default: true)
+      if (options.fetchDetails !== false) {
+        try {
+          const caseDetail = await client.getCase(ftCase.id);
+          if (caseDetail) {
+            // Use detailed mapping with all fields
+            qcontactTicket = mapFiberTimeCaseDetailToQContactTicket(caseDetail);
+            logger.debug('Fetched case details', {
+              caseId: ftCase.id,
+              hasPhone: !!caseDetail.telephone,
+              hasAddress: !!caseDetail.address,
+              hasDRNumber: !!caseDetail.c__drop_number || !!caseDetail.dr_number,
+            });
+          } else {
+            // Fall back to list view data
+            qcontactTicket = mapFiberTimeCaseToQContactTicket(ftCase);
+          }
+        } catch (detailError) {
+          logger.warn('Failed to fetch case details, using list data', {
+            caseId: ftCase.id,
+            error: detailError instanceof Error ? detailError.message : String(detailError),
+          });
+          qcontactTicket = mapFiberTimeCaseToQContactTicket(ftCase);
+        }
+      } else {
+        // Use list view data only
+        qcontactTicket = mapFiberTimeCaseToQContactTicket(ftCase);
+      }
 
       const result = await syncSingleInboundTicket(qcontactTicket);
 

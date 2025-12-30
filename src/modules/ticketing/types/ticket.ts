@@ -138,6 +138,11 @@ export interface Ticket {
   priority: TicketPriority;
   status: TicketStatus;
 
+  // Contact Information (from QContact)
+  client_name: string | null;
+  client_contact: string | null; // Phone number
+  client_email: string | null;
+
   // Location
   dr_number: string | null;
   project_id: string | null; // UUID reference to projects
@@ -320,4 +325,43 @@ export interface TicketStats {
   sla_breached: number;
   qa_ready: number;
   avg_resolution_time_hours: number;
+}
+
+/**
+ * GPS coordinates from FibreFlow data sources
+ */
+export interface GPSEnrichmentData {
+  latitude: number;
+  longitude: number;
+  address: string | null;
+}
+
+/**
+ * FibreFlow enrichment data - cross-referenced from DR number
+ */
+export interface FibreFlowEnrichment {
+  // From FibreFlow SOW drops
+  fibreflow_gps: GPSEnrichmentData | null;
+  fibreflow_pole_number: string | null;
+  fibreflow_pon: number | null;
+  fibreflow_zone: number | null;
+  fibreflow_contractor: string | null;
+  fibreflow_municipality: string | null;
+
+  // From 1Map data
+  onemap_customer_name: string | null;
+  onemap_contact_number: string | null;
+  onemap_address: string | null;
+  onemap_gps: GPSEnrichmentData | null;
+
+  // Cross-reference success flags
+  sow_match_found: boolean;
+  onemap_match_found: boolean;
+}
+
+/**
+ * Enriched Ticket - Ticket with FibreFlow cross-references
+ */
+export interface EnrichedTicket extends Ticket {
+  fibreflow_enrichment?: FibreFlowEnrichment;
 }

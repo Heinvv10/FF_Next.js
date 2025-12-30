@@ -1,28 +1,35 @@
 /**
- * TicketDetail Component - Main ticket detail view
- *
- * 🟢 WORKING: Production-ready ticket detail component
+ * TicketDetail Component - Main ticket detail view with tabs
  *
  * Features:
  * - Complete ticket information display
  * - Ticket header with all key details
- * - Verification checklist integration
+ * - Tabbed interface: Overview, Activity, Verification
  * - QA readiness panel
  * - Ticket actions
- * - Activity timeline
  * - Loading and error states
  * - Responsive layout
  */
 
 'use client';
 
-import React from 'react';
-import { Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  Loader2,
+  AlertTriangle,
+  RefreshCw,
+  FileText,
+  Activity,
+  CheckSquare,
+  History,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTicket } from '../../hooks/useTicket';
+import { useTicketActivities } from '../../hooks/useTicketActivities';
 import { TicketHeader } from './TicketHeader';
 import { TicketActions } from './TicketActions';
 import { TicketTimeline } from './TicketTimeline';
+import { ActivityTab } from './ActivityTab';
 import { VerificationChecklist } from '../Verification/VerificationChecklist';
 import { QAReadinessCheck } from '../QAReadiness/QAReadinessCheck';
 
@@ -35,18 +42,29 @@ interface TicketDetailProps {
   backLink?: string;
 }
 
+type TabKey = 'overview' | 'activity' | 'verification';
+
+interface Tab {
+  key: TabKey;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+}
+
 /**
- * 🟢 WORKING: Main ticket detail component
+ * Main ticket detail component with tabs
  */
 export function TicketDetail({ ticketId, compact = false, backLink }: TicketDetailProps) {
   const { ticket, isLoading, isError, error, refetch } = useTicket(ticketId);
+  const { summary: activitySummary } = useTicketActivities(ticketId);
+  const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
-  // 🟢 WORKING: Handle action complete (refetch ticket data)
+  // Handle action complete (refetch ticket data)
   const handleActionComplete = () => {
     refetch();
   };
 
-  // 🟢 WORKING: Mock timeline events (in real app, fetch from API)
+  // Mock timeline events (for overview tab)
   const timelineEvents = React.useMemo(() => {
     if (!ticket) return [];
 
@@ -84,7 +102,14 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
     return events;
   }, [ticket]);
 
-  // 🟢 WORKING: Loading state
+  // Define tabs
+  const tabs: Tab[] = [
+    { key: 'overview', label: 'Overview', icon: FileText },
+    { key: 'activity', label: 'Activity', icon: Activity, badge: activitySummary.total },
+    { key: 'verification', label: 'Verification', icon: CheckSquare },
+  ];
+
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
@@ -96,7 +121,7 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
     );
   }
 
-  // 🟢 WORKING: Error state
+  // Error state
   if (isError || !ticket) {
     return (
       <div className="p-8">
@@ -130,119 +155,202 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
       {/* Header */}
       <TicketHeader ticket={ticket} backLink={backLink} />
 
-      {/* Main Content Grid */}
+      {/* Tab Navigation */}
+      <div className="border-b border-[var(--ff-border-light)]">
+        <nav className="flex gap-1" aria-label="Tabs">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.key;
+
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
+                  isActive
+                    ? 'border-blue-500 text-blue-400'
+                    : 'border-transparent text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] hover:border-[var(--ff-border-light)]'
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+                {tab.badge !== undefined && tab.badge > 0 && (
+                  <span
+                    className={cn(
+                      'px-1.5 py-0.5 rounded-full text-xs',
+                      isActive
+                        ? 'bg-blue-500/20 text-blue-400'
+                        : 'bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-secondary)]'
+                    )}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
       <div className={cn('grid gap-6', compact ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3')}>
-        {/* Left Column - Main Content */}
+        {/* Main Content Area */}
         <div className={cn('space-y-6', compact ? 'lg:col-span-1' : 'lg:col-span-2')}>
-          {/* Description */}
-          {ticket.description && (
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <>
+              {/* Description */}
+              {ticket.description && (
+                <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-3">
+                    Description
+                  </h3>
+                  <p className="text-[var(--ff-text-secondary)] leading-relaxed whitespace-pre-wrap">
+                    {ticket.description}
+                  </p>
+                </div>
+              )}
+
+              {/* QA Readiness Check (on overview) */}
+              {(ticket.status === 'in_progress' ||
+                ticket.status === 'pending_qa' ||
+                ticket.status === 'qa_in_progress') && (
+                <QAReadinessCheck ticketId={ticketId} />
+              )}
+
+              {/* Additional Details */}
+              <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-4">
+                  Additional Details
+                </h3>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Source</dt>
+                    <dd className="text-sm text-[var(--ff-text-primary)] capitalize">
+                      {ticket.source.replace(/_/g, ' ')}
+                    </dd>
+                  </div>
+
+                  {ticket.external_id && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">External ID</dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)] font-mono">
+                        {ticket.external_id}
+                      </dd>
+                    </div>
+                  )}
+
+                  {ticket.pole_number && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Pole Number</dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)] font-mono">
+                        {ticket.pole_number}
+                      </dd>
+                    </div>
+                  )}
+
+                  {ticket.pon_number && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">PON Number</dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)] font-mono">
+                        {ticket.pon_number}
+                      </dd>
+                    </div>
+                  )}
+
+                  {ticket.ont_serial && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">ONT Serial</dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)] font-mono">
+                        {ticket.ont_serial}
+                      </dd>
+                    </div>
+                  )}
+
+                  {ticket.ont_rx_level !== null && ticket.ont_rx_level !== undefined && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">
+                        RX Power Level
+                      </dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)]">
+                        {ticket.ont_rx_level} dBm
+                      </dd>
+                    </div>
+                  )}
+
+                  {ticket.ont_model && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">ONT Model</dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)]">{ticket.ont_model}</dd>
+                    </div>
+                  )}
+
+                  {ticket.address && (
+                    <div className="sm:col-span-2">
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Address</dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)]">{ticket.address}</dd>
+                    </div>
+                  )}
+
+                  {ticket.guarantee_status && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">
+                        Guarantee Status
+                      </dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)] capitalize">
+                        {ticket.guarantee_status.replace(/_/g, ' ')}
+                      </dd>
+                    </div>
+                  )}
+
+                  {ticket.billing_classification && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">
+                        Billing Classification
+                      </dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)] capitalize">
+                        {ticket.billing_classification.replace(/_/g, ' ')}
+                      </dd>
+                    </div>
+                  )}
+
+                  {ticket.rectification_count > 0 && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">
+                        Rectification Count
+                      </dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)]">
+                        {ticket.rectification_count}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            </>
+          )}
+
+          {/* Activity Tab */}
+          {activeTab === 'activity' && (
             <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-3">Description</h3>
-              <p className="text-[var(--ff-text-secondary)] leading-relaxed whitespace-pre-wrap">
-                {ticket.description}
-              </p>
+              <div className="flex items-center gap-2 mb-4">
+                <History className="w-5 h-5 text-[var(--ff-text-secondary)]" />
+                <h3 className="text-lg font-semibold text-[var(--ff-text-primary)]">
+                  Activity Timeline
+                </h3>
+              </div>
+              <ActivityTab ticketId={ticketId} />
             </div>
           )}
 
-          {/* Verification Checklist */}
-          <VerificationChecklist ticketId={ticketId} editable groupByCategory />
-
-          {/* QA Readiness Check */}
-          {(ticket.status === 'in_progress' ||
-            ticket.status === 'pending_qa' ||
-            ticket.status === 'qa_in_progress') && (
-            <QAReadinessCheck ticketId={ticketId} />
+          {/* Verification Tab */}
+          {activeTab === 'verification' && (
+            <VerificationChecklist ticketId={ticketId} editable groupByCategory />
           )}
-
-          {/* Additional Details */}
-          <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-4">Additional Details</h3>
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Source</dt>
-                <dd className="text-sm text-[var(--ff-text-primary)] capitalize">
-                  {ticket.source.replace(/_/g, ' ')}
-                </dd>
-              </div>
-
-              {ticket.external_id && (
-                <div>
-                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">External ID</dt>
-                  <dd className="text-sm text-[var(--ff-text-primary)] font-mono">{ticket.external_id}</dd>
-                </div>
-              )}
-
-              {ticket.pole_number && (
-                <div>
-                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Pole Number</dt>
-                  <dd className="text-sm text-[var(--ff-text-primary)] font-mono">{ticket.pole_number}</dd>
-                </div>
-              )}
-
-              {ticket.pon_number && (
-                <div>
-                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">PON Number</dt>
-                  <dd className="text-sm text-[var(--ff-text-primary)] font-mono">{ticket.pon_number}</dd>
-                </div>
-              )}
-
-              {ticket.ont_serial && (
-                <div>
-                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">ONT Serial</dt>
-                  <dd className="text-sm text-[var(--ff-text-primary)] font-mono">{ticket.ont_serial}</dd>
-                </div>
-              )}
-
-              {ticket.ont_rx_level !== null && ticket.ont_rx_level !== undefined && (
-                <div>
-                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">RX Power Level</dt>
-                  <dd className="text-sm text-[var(--ff-text-primary)]">{ticket.ont_rx_level} dBm</dd>
-                </div>
-              )}
-
-              {ticket.ont_model && (
-                <div>
-                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">ONT Model</dt>
-                  <dd className="text-sm text-[var(--ff-text-primary)]">{ticket.ont_model}</dd>
-                </div>
-              )}
-
-              {ticket.address && (
-                <div className="sm:col-span-2">
-                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Address</dt>
-                  <dd className="text-sm text-[var(--ff-text-primary)]">{ticket.address}</dd>
-                </div>
-              )}
-
-              {ticket.guarantee_status && (
-                <div>
-                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Guarantee Status</dt>
-                  <dd className="text-sm text-[var(--ff-text-primary)] capitalize">
-                    {ticket.guarantee_status.replace(/_/g, ' ')}
-                  </dd>
-                </div>
-              )}
-
-              {ticket.billing_classification && (
-                <div>
-                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Billing Classification</dt>
-                  <dd className="text-sm text-[var(--ff-text-primary)] capitalize">
-                    {ticket.billing_classification.replace(/_/g, ' ')}
-                  </dd>
-                </div>
-              )}
-
-              {ticket.rectification_count > 0 && (
-                <div>
-                  <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Rectification Count</dt>
-                  <dd className="text-sm text-[var(--ff-text-primary)]">{ticket.rectification_count}</dd>
-                </div>
-              )}
-            </dl>
-          </div>
         </div>
 
-        {/* Right Column - Sidebar */}
+        {/* Right Column - Sidebar (always visible) */}
         <div className="space-y-6">
           {/* Actions */}
           <div className="bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg p-6">
@@ -250,7 +358,7 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
             <TicketActions ticket={ticket} onActionComplete={handleActionComplete} />
           </div>
 
-          {/* Timeline */}
+          {/* Quick Timeline (always show on sidebar) */}
           <TicketTimeline events={timelineEvents} />
         </div>
       </div>

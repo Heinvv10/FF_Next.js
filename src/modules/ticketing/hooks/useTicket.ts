@@ -14,16 +14,19 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Ticket, UpdateTicketPayload } from '../types/ticket';
+import type { Ticket, EnrichedTicket, UpdateTicketPayload } from '../types/ticket';
 import { ticketsKeys } from './useTickets';
 
 // ==================== API Functions ====================
 
 /**
- * 🟢 WORKING: Fetch single ticket by ID
+ * 🟢 WORKING: Fetch single ticket by ID with optional enrichment
  */
-async function fetchTicketById(id: string): Promise<Ticket> {
-  const response = await fetch(`/api/ticketing/tickets/${id}`);
+async function fetchTicketById(id: string, enrich = true): Promise<EnrichedTicket> {
+  const url = enrich
+    ? `/api/ticketing/tickets/${id}?enrich=true`
+    : `/api/ticketing/tickets/${id}`;
+  const response = await fetch(url);
 
   if (!response.ok) {
     const error = await response.json();

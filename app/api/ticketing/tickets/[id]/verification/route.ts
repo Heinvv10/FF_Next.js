@@ -14,7 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createLogger } from '@/lib/logger';
-import { getVerificationSteps } from '@/modules/ticketing/services/verificationService';
+import { getVerificationSteps, initializeVerificationSteps } from '@/modules/ticketing/services/verificationService';
 
 const logger = createLogger('ticketing:api:verification');
 
@@ -146,5 +146,75 @@ export async function GET(
     }
 
     return databaseError('Failed to fetch verification steps');
+  }
+}
+
+// ==================== POST /api/ticketing/tickets/[id]/verification ====================
+
+/**
+ * 🟢 WORKING: Initialize verification steps for a ticket
+ *
+ * Creates all 12 verification steps for a ticket.
+ * Returns error if steps already exist.
+ *
+ * Response (201):
+ * {
+ *   success: true,
+ *   data: VerificationStep[],
+ *   message: string
+ * }
+ */
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const ticketId = params.id;
+
+    // Validate UUID format
+    if (!isValidUUID(ticketId)) {
+      return validationError('Invalid ticket ID format. Must be a valid UUID');
+    }
+
+    logger.info('Initializing verification steps', { ticketId });
+
+    // Initialize all 12 verification steps
+    const steps = await initializeVerificationSteps(ticketId);
+
+    return NextResponse.json({
+      success: true,
+      data: steps,
+      message: `Initialized ${steps.length} verification steps`,
+      meta: {
+        timestamp: new Date().toISOString(),
+        count: steps.length,
+      },
+    }, { status: 201 });
+  } catch (error) {
+    logger.error('Error initializing verification steps', {
+      error,
+      ticketId: params.id,
+    });
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage.includes('not found')) {
+      return notFoundError('Ticket', params.id);
+    }
+
+    if (errorMessage.includes('already initialized')) {
+      return NextResponse.json({
+        success: false,
+        error: {
+          code: 'ALREADY_EXISTS',
+          message: 'Verification steps already initialized for this ticket',
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+        },
+      }, { status: 409 });
+    }
+
+    return databaseError('Failed to initialize verification steps');
   }
 }

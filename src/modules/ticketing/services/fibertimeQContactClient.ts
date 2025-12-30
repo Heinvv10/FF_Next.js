@@ -80,16 +80,69 @@ export interface FiberTimeCase {
 }
 
 /**
- * Case detail with additional fields
+ * Case detail with all QContact fields
+ * Maps to QContact case detail API response
  */
-export interface FiberTimeCaseDetail extends FiberTimeCase {
-  description?: string;
+export interface FiberTimeCaseDetail {
+  id: number;
+  entity_type: string;
+  label: string;
+  icon: string;
+
+  // Status & Assignment
+  status: string;
+  __status: string;
+  __status__color: string;
+  assigned_to: string;
+  __assigned_to: number;
+
+  // Category
+  category: string | null;
+  __category: string | null;
+  __category__color: string | null;
+
+  // Contact Info
+  contact: string;
+  __contact: number;
   telephone?: string;
   email?: string;
+
+  // Address & Location
   address?: string;
+  c__dr_location?: string;
+  __c__dr_location?: string;
+  location_pin?: string;
+  gps_coordinates?: string;
+
+  // Drop & Installation Info
+  c__drop_number?: string;
   drop_number?: string;
   dr_number?: string;
+
+  // Equipment
+  c__serial_number?: string;
   serial_number?: string;
+  ont_serial?: string;
+  gizzu_serial?: string;
+
+  // Additional Fields
+  c__availability?: string;
+  availability?: string;
+  c__field_agent?: string;
+  field_agent?: string;
+  c__tv_connector?: string;
+  tv_connector?: string;
+
+  // Timestamps
+  created_at: string;
+  updated_at?: string;
+
+  // Description & Notes
+  description?: string;
+  notes?: string;
+
+  // Raw custom fields (c__ prefix fields)
+  [key: string]: unknown;
 }
 
 /**
@@ -100,6 +153,72 @@ export interface ListCasesOptions {
   status?: string;
   page?: number;
   pageSize?: number;
+}
+
+/**
+ * QContact Activity Entry
+ * Represents a single activity (note, update, status change) on a case
+ */
+export interface QContactActivity {
+  id: string;
+  type: 'note' | 'update' | 'status_change' | 'assignment' | 'message' | 'system';
+  description: string | null;
+  field_changes: {
+    field: string;
+    old_value?: string;
+    new_value: string;
+  }[] | null;
+  created_by: {
+    name: string;
+    email?: string;
+  } | null;
+  created_at: string;
+  is_private: boolean;
+  is_pinned: boolean;
+}
+
+/**
+ * QContact Activities Response
+ */
+export interface QContactActivitiesResponse {
+  activities: QContactActivity[];
+  total: number;
+}
+
+/**
+ * QContact Note/Comment Entry
+ */
+export interface QContactNote {
+  id: string;
+  content: string;
+  created_by: {
+    name: string;
+    email?: string;
+  };
+  created_at: string;
+  is_private: boolean;
+  is_pinned: boolean;
+  attachments?: {
+    name: string;
+    url: string;
+    type: string;
+  }[];
+}
+
+/**
+ * WhatsApp Message from QContact conversation
+ */
+export interface QContactMessage {
+  id: string;
+  content: string;
+  sender: string;
+  sender_type: 'customer' | 'agent' | 'bot';
+  timestamp: string;
+  attachments?: {
+    name: string;
+    url: string;
+    type: string;
+  }[];
 }
 
 // ============================================================================
@@ -284,6 +403,109 @@ export class FiberTimeQContactClient {
   }
 
   /**
+   * Get activities/timeline for a case
+   * 🟢 WORKING: Fetches activity history, notes, and updates
+   */
+  async getCaseActivities(caseId: number): Promise<QContactActivitiesResponse> {
+    try {
+      logger.debug('Fetching case activities', { caseId });
+
+      // QContact API endpoint for case activities/timeline
+      const response = await this.request<any>(
+        'GET',
+        `/api/v2/entities/Case/${caseId}/activities`
+      );
+
+      // Parse and normalize the response
+      const activities: QContactActivity[] = [];
+
+      if (Array.isArray(response)) {
+        for (const item of response) {
+          activities.push(this.parseActivity(item));
+        }
+      } else if (response.results) {
+        for (const item of response.results) {
+          activities.push(this.parseActivity(item));
+        }
+      }
+
+      logger.debug('Fetched case activities', {
+        caseId,
+        count: activities.length,
+      });
+
+      return {
+        activities,
+        total: activities.length,
+      };
+    } catch (error) {
+      // If activities endpoint doesn't exist, return empty
+      if (
+        error instanceof FiberTimeQContactError &&
+        (error.statusCode === 404 || error.statusCode === 400)
+      ) {
+        logger.debug('Activities endpoint not available', { caseId });
+        return { activities: [], total: 0 };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Parse a raw activity item from QContact API
+   */
+  private parseActivity(item: any): QContactActivity {
+    // Determine activity type
+    let type: QContactActivity['type'] = 'note';
+    if (item.type === 'update' || item.field_changes || item.changes) {
+      type = 'update';
+    } else if (item.type === 'status_change' || item.status) {
+      type = 'status_change';
+    } else if (item.type === 'assignment') {
+      type = 'assignment';
+    } else if (item.type === 'message' || item.channel === 'whatsapp') {
+      type = 'message';
+    } else if (item.type === 'system' || item.automated) {
+      type = 'system';
+    }
+
+    // Parse field changes
+    let fieldChanges: QContactActivity['field_changes'] = null;
+    if (item.changes || item.field_changes) {
+      const changes = item.changes || item.field_changes;
+      if (Array.isArray(changes)) {
+        fieldChanges = changes.map((c: any) => ({
+          field: c.field || c.name || 'Unknown',
+          old_value: c.old_value || c.from,
+          new_value: c.new_value || c.to || c.value,
+        }));
+      } else if (typeof changes === 'object') {
+        fieldChanges = Object.entries(changes).map(([field, value]: [string, any]) => ({
+          field,
+          new_value: typeof value === 'object' ? value.to || value.new : String(value),
+          old_value: typeof value === 'object' ? value.from || value.old : undefined,
+        }));
+      }
+    }
+
+    return {
+      id: String(item.id || item._id || Date.now()),
+      type,
+      description: item.content || item.description || item.message || item.note || null,
+      field_changes: fieldChanges,
+      created_by: item.user || item.created_by || item.author
+        ? {
+            name: item.user?.name || item.created_by?.name || item.author || 'Unknown',
+            email: item.user?.email || item.created_by?.email,
+          }
+        : null,
+      created_at: item.created_at || item.timestamp || item.date || new Date().toISOString(),
+      is_private: item.private || item.is_private || false,
+      is_pinned: item.pinned || item.is_pinned || false,
+    };
+  }
+
+  /**
    * Health check - verify API is accessible
    */
   async healthCheck(): Promise<boolean> {
@@ -304,6 +526,122 @@ export class FiberTimeQContactClient {
   static extractCaseReference(label: string): string {
     const match = label.match(/FT\d+/);
     return match ? match[0] : label.trim();
+  }
+
+  /**
+   * Extract DR number from various fields
+   * Checks multiple possible field names
+   */
+  static extractDRNumber(caseDetail: FiberTimeCaseDetail): string | null {
+    // Check various field names for DR number
+    const drNumber =
+      caseDetail.dr_number ||
+      caseDetail.c__drop_number ||
+      caseDetail.drop_number ||
+      caseDetail.c__dr_location ||
+      (caseDetail['c__dr_number'] as string) ||
+      null;
+
+    // Extract DR pattern if embedded in string (e.g., "DR1853428")
+    if (drNumber) {
+      const match = drNumber.match(/DR\d+/i);
+      return match ? match[0].toUpperCase() : drNumber;
+    }
+
+    return null;
+  }
+
+  /**
+   * Map FiberTime case detail to enriched ticket data
+   * Includes all contact, location, and equipment info
+   */
+  static mapCaseDetailToTicket(caseDetail: FiberTimeCaseDetail): {
+    id: string;
+    title: string;
+    description: string | null;
+    status: string;
+    priority: string;
+    created_at: string;
+    updated_at: string;
+    // Contact Info
+    customer_name: string | null;
+    customer_phone: string | null;
+    customer_email: string | null;
+    address: string | null;
+    // Assignment
+    assigned_to: string | null;
+    // Category
+    category: string | null;
+    subcategory: string | null;
+    // Drop & Location
+    dr_number: string | null;
+    gps_coordinates: string | null;
+    // Equipment
+    ont_serial: string | null;
+    gizzu_serial: string | null;
+    // Additional
+    availability: string | null;
+    field_agent: string | null;
+    tv_connector: string | null;
+    // Custom fields
+    custom_fields: Record<string, unknown> | null;
+  } {
+    const reference = this.extractCaseReference(caseDetail.label);
+    const drNumber = this.extractDRNumber(caseDetail);
+
+    // Extract category and subcategory
+    let category: string | null = null;
+    let subcategory: string | null = null;
+
+    if (caseDetail.category) {
+      const parts = caseDetail.category.split('::');
+      category = parts[0] || null;
+      subcategory = parts[1] || null;
+    }
+
+    // Collect all custom fields (c__ prefix)
+    const customFields: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(caseDetail)) {
+      if (key.startsWith('c__') || key.startsWith('__c__')) {
+        customFields[key] = value;
+      }
+    }
+
+    return {
+      id: String(caseDetail.id),
+      title: reference,
+      description: caseDetail.description || caseDetail.label,
+      status: caseDetail.status,
+      priority: 'medium',
+      created_at: caseDetail.created_at,
+      updated_at: caseDetail.updated_at || caseDetail.created_at,
+      // Contact Info
+      customer_name: caseDetail.contact || null,
+      customer_phone: caseDetail.telephone || null,
+      customer_email: caseDetail.email || null,
+      address: caseDetail.address || null,
+      // Assignment
+      assigned_to: caseDetail.assigned_to || null,
+      // Category
+      category,
+      subcategory,
+      // Drop & Location
+      dr_number: drNumber,
+      gps_coordinates: caseDetail.gps_coordinates || caseDetail.location_pin || null,
+      // Equipment
+      ont_serial: caseDetail.ont_serial || caseDetail.c__serial_number || caseDetail.serial_number || null,
+      gizzu_serial: caseDetail.gizzu_serial || null,
+      // Additional
+      availability: caseDetail.availability || caseDetail.c__availability || null,
+      field_agent: caseDetail.field_agent || caseDetail.c__field_agent || null,
+      tv_connector: caseDetail.tv_connector || caseDetail.c__tv_connector || null,
+      // Custom fields
+      custom_fields: {
+        ...customFields,
+        qcontact_internal_id: caseDetail.id,
+        entity_type: caseDetail.entity_type,
+      },
+    };
   }
 
   /**
