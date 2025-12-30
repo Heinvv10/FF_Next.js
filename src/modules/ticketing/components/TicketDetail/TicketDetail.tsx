@@ -226,6 +226,26 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
                   Additional Details
                 </h3>
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Project - from enrichment or DR pattern */}
+                  {ticket.fibreflow_enrichment?.project && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Project</dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)] font-medium">
+                        {ticket.fibreflow_enrichment.project.project_name}
+                      </dd>
+                    </div>
+                  )}
+
+                  {/* DR Number */}
+                  {ticket.dr_number && (
+                    <div>
+                      <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">DR Number</dt>
+                      <dd className="text-sm text-[var(--ff-text-primary)] font-mono">
+                        {ticket.dr_number}
+                      </dd>
+                    </div>
+                  )}
+
                   <div>
                     <dt className="text-sm text-[var(--ff-text-secondary)] mb-1">Source</dt>
                     <dd className="text-sm text-[var(--ff-text-primary)] capitalize">

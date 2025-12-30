@@ -337,6 +337,15 @@ export interface GPSEnrichmentData {
 }
 
 /**
+ * Project info from enrichment lookup
+ */
+export interface ProjectEnrichmentInfo {
+  project_id: string;
+  project_name: string;
+  project_code: string | null;
+}
+
+/**
  * FibreFlow enrichment data - cross-referenced from DR number
  */
 export interface FibreFlowEnrichment {
@@ -354,9 +363,13 @@ export interface FibreFlowEnrichment {
   onemap_address: string | null;
   onemap_gps: GPSEnrichmentData | null;
 
+  // Project info (from DR number lookup or pattern matching)
+  project: ProjectEnrichmentInfo | null;
+
   // Cross-reference success flags
   sow_match_found: boolean;
   onemap_match_found: boolean;
+  project_match_found: boolean;
 }
 
 /**
