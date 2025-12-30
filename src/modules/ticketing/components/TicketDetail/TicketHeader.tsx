@@ -213,7 +213,16 @@ export function TicketHeader({ ticket, backLink = '/ticketing/tickets' }: Ticket
               <User className="w-4 h-4" />
               Assigned To
             </div>
-            <p className="text-sm text-[var(--ff-text-primary)]">Assigned</p>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                <span className="text-xs text-white font-medium">
+                  {(ticket as any).assigned_user?.name?.charAt(0) || 'U'}
+                </span>
+              </div>
+              <p className="text-sm text-[var(--ff-text-primary)]">
+                {(ticket as any).assigned_user?.name || 'Assigned'}
+              </p>
+            </div>
           </div>
         )}
 

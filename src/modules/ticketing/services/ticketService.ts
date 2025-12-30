@@ -194,8 +194,23 @@ export async function getTicketById(id: string): Promise<Ticket> {
   logger.debug('Fetching ticket by ID', { id });
 
   try {
-    const sql = 'SELECT * FROM tickets WHERE id = $1';
-    const ticket = await queryOne<Ticket>(sql, [id]);
+    // Include assigned user info via LEFT JOIN
+    const sql = `
+      SELECT
+        t.*,
+        CASE
+          WHEN u.id IS NOT NULL THEN jsonb_build_object(
+            'id', u.id,
+            'name', COALESCE(u.first_name || ' ' || u.last_name, u.email),
+            'email', u.email
+          )
+          ELSE NULL
+        END as assigned_user
+      FROM tickets t
+      LEFT JOIN users u ON t.assigned_to = u.id
+      WHERE t.id = $1
+    `;
+    const ticket = await queryOne<Ticket & { assigned_user?: { id: string; name: string; email: string } }>(sql, [id]);
 
     if (!ticket) {
       throw new Error(`Ticket with ID ${id} not found`);
@@ -452,15 +467,26 @@ export async function listTickets(
     values.push(offset);
     const offsetParam = paramCounter;
 
-    // 🟢 WORKING: Query with pagination and ordering
+    // 🟢 WORKING: Query with pagination, ordering, and assigned user info
     const sql = `
-      SELECT * FROM tickets
-      ${whereClause}
-      ORDER BY created_at DESC
+      SELECT
+        t.*,
+        CASE
+          WHEN u.id IS NOT NULL THEN jsonb_build_object(
+            'id', u.id,
+            'name', COALESCE(u.first_name || ' ' || u.last_name, u.email),
+            'email', u.email
+          )
+          ELSE NULL
+        END as assigned_user
+      FROM tickets t
+      LEFT JOIN users u ON t.assigned_to = u.id
+      ${whereClause ? whereClause.replace(/\b(status|type|priority|source|assigned_to|contractor_id|project_id|dr_number|qa_verified|sla_breached)\b/g, 't.$1') : ''}
+      ORDER BY t.created_at DESC
       LIMIT $${limitParam} OFFSET $${offsetParam}
     `;
 
-    const tickets = await query<Ticket>(sql, values);
+    const tickets = await query<Ticket & { assigned_user?: { id: string; name: string; email: string } }>(sql, values);
 
     logger.debug('Tickets fetched successfully', {
       count: tickets.length,
