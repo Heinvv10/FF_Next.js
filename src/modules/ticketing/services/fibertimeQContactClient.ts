@@ -29,8 +29,19 @@ export interface FiberTimeQContactConfig {
   uid: string;
   accessToken: string;
   client: string;
+  password?: string; // For auto-refresh on 401
   timeoutMs?: number;
   retryAttempts?: number;
+}
+
+/**
+ * Authentication response from QContact login
+ */
+interface QContactAuthResponse {
+  'access-token': string;
+  client: string;
+  uid: string;
+  expiry?: string;
 }
 
 /**
@@ -249,20 +260,28 @@ export class FiberTimeQContactError extends Error {
 
 /**
  * FiberTime QContact API Client
+ *
+ * Features auto-refresh: If a 401 is received and password is configured,
+ * the client will automatically re-authenticate and retry the request.
  */
 export class FiberTimeQContactClient {
   private readonly baseUrl: string;
   private readonly uid: string;
-  private readonly accessToken: string;
-  private readonly client: string;
+  private accessToken: string; // Mutable for auto-refresh
+  private clientToken: string; // Mutable for auto-refresh
+  private readonly password: string | null;
   private readonly timeoutMs: number;
   private readonly retryAttempts: number;
+  private isRefreshing: boolean = false;
+  private lastAuthAttempt: number = 0;
+  private readonly AUTH_COOLDOWN_MS = 30000; // 30 seconds between auth attempts
 
   constructor(config: FiberTimeQContactConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
     this.uid = config.uid;
     this.accessToken = config.accessToken;
-    this.client = config.client;
+    this.clientToken = config.client;
+    this.password = config.password || null;
     this.timeoutMs = config.timeoutMs || 30000;
     this.retryAttempts = config.retryAttempts || 3;
   }
@@ -276,17 +295,123 @@ export class FiberTimeQContactClient {
       Accept: 'application/json',
       uid: this.uid,
       'access-token': this.accessToken,
-      client: this.client,
+      client: this.clientToken,
+    };
+  }
+
+  /**
+   * Authenticate with QContact using email/password
+   * Updates internal tokens on success
+   * @returns true if authentication succeeded
+   */
+  async authenticate(): Promise<boolean> {
+    if (!this.password) {
+      logger.warn('Cannot authenticate: password not configured');
+      return false;
+    }
+
+    // Prevent rapid re-auth attempts
+    const now = Date.now();
+    if (now - this.lastAuthAttempt < this.AUTH_COOLDOWN_MS) {
+      logger.warn('Authentication cooldown active, skipping re-auth');
+      return false;
+    }
+    this.lastAuthAttempt = now;
+
+    if (this.isRefreshing) {
+      logger.debug('Authentication already in progress');
+      return false;
+    }
+
+    this.isRefreshing = true;
+
+    try {
+      logger.info('Authenticating with QContact', { uid: this.uid });
+
+      const response = await fetch(`${this.baseUrl}/api/v2/auth/sign_in`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          email: this.uid,
+          password: this.password,
+        }),
+      });
+
+      if (!response.ok) {
+        logger.error('QContact authentication failed', {
+          status: response.status,
+          statusText: response.statusText,
+        });
+        return false;
+      }
+
+      // Extract tokens from response headers (QContact uses headers for auth tokens)
+      const accessToken = response.headers.get('access-token');
+      const clientToken = response.headers.get('client');
+      const uid = response.headers.get('uid');
+
+      if (accessToken && clientToken) {
+        this.accessToken = accessToken;
+        this.clientToken = clientToken;
+        logger.info('QContact authentication successful, tokens refreshed');
+        return true;
+      }
+
+      // Fallback: try to get tokens from response body
+      try {
+        const data = await response.json() as QContactAuthResponse;
+        if (data['access-token'] && data.client) {
+          this.accessToken = data['access-token'];
+          this.clientToken = data.client;
+          logger.info('QContact authentication successful (from body), tokens refreshed');
+          return true;
+        }
+      } catch {
+        // Body parsing failed, that's ok if headers had tokens
+      }
+
+      logger.error('QContact authentication succeeded but no tokens in response');
+      return false;
+    } catch (error) {
+      logger.error('QContact authentication error', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      return false;
+    } finally {
+      this.isRefreshing = false;
+    }
+  }
+
+  /**
+   * Check if auto-refresh is available (password configured)
+   */
+  canAutoRefresh(): boolean {
+    return !!this.password;
+  }
+
+  /**
+   * Get current tokens (for debugging/logging)
+   */
+  getCurrentTokens(): { accessToken: string; client: string; uid: string } {
+    return {
+      accessToken: this.accessToken.substring(0, 8) + '...', // Partial for security
+      client: this.clientToken.substring(0, 8) + '...',
+      uid: this.uid,
     };
   }
 
   /**
    * Make authenticated request to QContact API
+   * Automatically retries with fresh tokens on 401 if password is configured
    */
   private async request<T>(
     method: string,
     path: string,
-    params?: Record<string, string>
+    params?: Record<string, string>,
+    isRetry: boolean = false
   ): Promise<T> {
     let url = `${this.baseUrl}${path}`;
 
@@ -295,7 +420,7 @@ export class FiberTimeQContactClient {
       url += `?${searchParams.toString()}`;
     }
 
-    logger.debug('FiberTime QContact request', { method, path });
+    logger.debug('FiberTime QContact request', { method, path, isRetry });
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -308,6 +433,26 @@ export class FiberTimeQContactClient {
       });
 
       clearTimeout(timeoutId);
+
+      // Handle 401 Unauthorized - attempt auto-refresh
+      if (response.status === 401 && !isRetry && this.password) {
+        logger.warn('QContact API returned 401, attempting auto-refresh', { path });
+
+        const authSuccess = await this.authenticate();
+        if (authSuccess) {
+          logger.info('Auto-refresh successful, retrying request', { path });
+          return this.request<T>(method, path, params, true);
+        } else {
+          logger.error('Auto-refresh failed, cannot retry request', { path });
+          throw new FiberTimeQContactError(
+            'Authentication failed - credentials may be invalid',
+            {
+              statusCode: 401,
+              isRecoverable: false,
+            }
+          );
+        }
+      }
 
       if (!response.ok) {
         throw new FiberTimeQContactError(
@@ -716,6 +861,14 @@ export class FiberTimeQContactClient {
 
 /**
  * Create FiberTime QContact client from environment variables
+ *
+ * Required env vars:
+ * - FIBERTIME_QCONTACT_UID: Email/username
+ * - FIBERTIME_QCONTACT_ACCESS_TOKEN: API access token
+ * - FIBERTIME_QCONTACT_CLIENT: API client token
+ *
+ * Optional (for auto-refresh on 401):
+ * - FIBERTIME_QCONTACT_PASSWORD: Password for automatic re-authentication
  */
 export function createFiberTimeQContactClient(): FiberTimeQContactClient {
   const config: FiberTimeQContactConfig = {
@@ -725,6 +878,7 @@ export function createFiberTimeQContactClient(): FiberTimeQContactClient {
     uid: process.env.FIBERTIME_QCONTACT_UID || '',
     accessToken: process.env.FIBERTIME_QCONTACT_ACCESS_TOKEN || '',
     client: process.env.FIBERTIME_QCONTACT_CLIENT || '',
+    password: process.env.FIBERTIME_QCONTACT_PASSWORD || undefined, // For auto-refresh
     timeoutMs: parseInt(process.env.FIBERTIME_QCONTACT_TIMEOUT_MS || '30000', 10),
     retryAttempts: parseInt(
       process.env.FIBERTIME_QCONTACT_RETRY_ATTEMPTS || '3',
@@ -736,6 +890,12 @@ export function createFiberTimeQContactClient(): FiberTimeQContactClient {
     logger.warn(
       'FiberTime QContact credentials not fully configured. Set FIBERTIME_QCONTACT_UID, FIBERTIME_QCONTACT_ACCESS_TOKEN, and FIBERTIME_QCONTACT_CLIENT environment variables.'
     );
+  }
+
+  if (config.password) {
+    logger.info('QContact auto-refresh enabled (password configured)');
+  } else {
+    logger.debug('QContact auto-refresh disabled (no password configured)');
   }
 
   return new FiberTimeQContactClient(config);
