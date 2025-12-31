@@ -41,6 +41,7 @@ export { TicketDetail } from './TicketDetail/TicketDetail';
 export { TicketHeader } from './TicketDetail/TicketHeader';
 export { TicketTimeline } from './TicketDetail/TicketTimeline';
 export { TicketActions } from './TicketDetail/TicketActions';
+export { RelatedTickets } from './TicketDetail/RelatedTickets';
 
 // Common Components (✅ Completed - subtask 5.12)
 export { DRLookup } from './common/DRLookup';

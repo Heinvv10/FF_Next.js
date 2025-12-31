@@ -106,6 +106,8 @@ export {
   useDeleteTicket,
 } from './useTicket';
 
+export { useRelatedTickets } from './useRelatedTickets';
+
 // Hooks to be added in future subtasks:
 // - useRiskAcceptance (phase 2)
 // - useEscalation (phase 3)

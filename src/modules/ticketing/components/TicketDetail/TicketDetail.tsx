@@ -33,6 +33,7 @@ import { ActivityTab } from './ActivityTab';
 import { VerificationChecklist } from '../Verification/VerificationChecklist';
 import { QAReadinessCheck } from '../QAReadiness/QAReadinessCheck';
 import { AssignmentPanel } from '../Assignment/AssignmentPanel';
+import { RelatedTickets } from './RelatedTickets';
 
 interface TicketDetailProps {
   /** Ticket ID to display */
@@ -381,6 +382,12 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
             currentTeamId={ticket.assigned_team_id}
             currentTeamName={ticket.assigned_team_info?.name || ticket.assigned_team}
             onAssignmentSaved={handleActionComplete}
+          />
+
+          {/* Related Tickets - Show other tickets for same DR */}
+          <RelatedTickets
+            ticketId={ticketId}
+            drNumber={ticket.dr_number}
           />
 
           {/* Actions */}
