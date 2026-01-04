@@ -15,7 +15,7 @@
  */
 
 import { query, queryOne } from '../utils/db';
-import { syncInboundTickets } from './qcontactSyncInbound';
+import { syncFiberTimeInboundTickets } from './qcontactSyncInbound';
 import type {
   FullSyncRequest,
   FullSyncResult,
@@ -208,11 +208,11 @@ export async function runFullSync(
   logger.info('Starting full bidirectional sync', request);
 
   try {
-    // Phase 1: Inbound sync (QContact -> FibreFlow)
-    logger.info('Phase 1: Running inbound sync');
-    const inboundResult = await syncInboundTickets({
-      created_after: request.start_date,
-      created_before: request.end_date,
+    // Phase 1: Inbound sync (FiberTime QContact -> FibreFlow)
+    logger.info('Phase 1: Running inbound sync from FiberTime QContact');
+    const inboundResult = await syncFiberTimeInboundTickets({
+      // FiberTime sync uses different options format
+      fetchDetails: true,
     });
 
     logger.info('Inbound sync completed', {
@@ -303,10 +303,9 @@ export async function runInboundOnlySync(
   logger.info('Starting inbound-only sync', request);
 
   try {
-    // Run inbound sync
-    const inboundResult = await syncInboundTickets({
-      created_after: request.start_date,
-      created_before: request.end_date,
+    // Run inbound sync from FiberTime QContact
+    const inboundResult = await syncFiberTimeInboundTickets({
+      fetchDetails: true,
     });
 
     const completed_at = new Date();
