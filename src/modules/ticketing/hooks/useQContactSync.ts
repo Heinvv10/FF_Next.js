@@ -130,7 +130,8 @@ async function triggerManualSync(request?: FullSyncRequest): Promise<FullSyncRes
   }
 
   const data = await response.json();
-  return data.data;
+  // API returns { data: { sync_result: FullSyncResult, summary: {...} } }
+  return data.data.sync_result;
 }
 
 // ==================== React Query Hooks ====================
