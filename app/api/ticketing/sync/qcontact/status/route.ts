@@ -83,6 +83,21 @@ export async function GET(req: NextRequest) {
       {} as Record<string, { total: number; successful: number; failed: number }>
     );
 
+    // Get pending outbound count: local tickets not yet synced to QContact
+    // (tickets with source='internal' that have no external_id or haven't been synced recently)
+    const pendingOutboundSql = `
+      SELECT COUNT(*) as count
+      FROM tickets
+      WHERE source = 'internal'
+        AND (external_id IS NULL OR external_id = '')
+        AND status NOT IN ('closed', 'resolved')
+    `;
+    const pendingOutbound = await queryOne<{ count: string }>(pendingOutboundSql, []);
+
+    // Pending inbound requires querying QContact API - not available without network call
+    // For now, we'll return 0 as this would require async external API call
+    const pendingInbound = 0;
+
     // Calculate if sync is healthy (success rate > 80% in last 24 hours)
     const is_healthy = progress.success_rate >= 0.8;
     const health_issues: string[] = [];
@@ -105,31 +120,19 @@ export async function GET(req: NextRequest) {
       is_healthy,
     });
 
+    // Return data in format expected by SyncStatusOverview type
     return NextResponse.json({
       success: true,
       data: {
-        last_sync: lastSync
-          ? {
-              synced_at: lastSync.synced_at,
-              status: lastSync.status,
-              sync_type: lastSync.sync_type,
-              sync_direction: lastSync.sync_direction,
-            }
-          : null,
-        last_24h: {
-          total: progress.total,
-          successful: progress.successful,
-          failed: progress.failed,
-          partial: progress.partial,
-          success_rate: progress.success_rate,
-        },
-        last_7d: {
-          by_direction,
-        },
-        health: {
-          is_healthy,
-          health_issues,
-        },
+        last_sync_at: lastSync?.synced_at || null,
+        last_sync_status: lastSync?.status || null,
+        last_sync_duration_seconds: null, // Not tracked in current schema
+        pending_outbound: parseInt(pendingOutbound?.count || '0', 10),
+        pending_inbound: pendingInbound,
+        failed_last_24h: progress.failed,
+        success_rate_last_7d: progress.success_rate * 100, // Convert to percentage
+        is_healthy,
+        health_issues,
       },
       meta: {
         timestamp: new Date().toISOString(),

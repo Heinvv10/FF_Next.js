@@ -16,10 +16,12 @@
 import { SyncDashboard } from '@/modules/ticketing/components/QContact/SyncDashboard';
 import { SyncTrigger } from '@/modules/ticketing/components/QContact/SyncTrigger';
 import { SyncAuditLog } from '@/modules/ticketing/components/QContact/SyncAuditLog';
+import { useTriggerManualSync } from '@/modules/ticketing/hooks/useQContactSync';
 import { useState } from 'react';
 
 export default function QContactSyncPageClient() {
   const [showAuditLog, setShowAuditLog] = useState(false);
+  const triggerSync = useTriggerManualSync();
 
   return (
     <div className="p-6">
@@ -35,7 +37,7 @@ export default function QContactSyncPageClient() {
 
       {/* Manual Sync Trigger */}
       <div className="mb-6">
-        <SyncTrigger />
+        <SyncTrigger onTriggerSync={triggerSync.mutateAsync} disabled={triggerSync.isPending} />
       </div>
 
       {/* Toggle for Audit Log */}

@@ -143,7 +143,7 @@ async function fetchTicketsForOutboundSync(
 
   try {
     const result = await query<OutboundTicket>(sql, values);
-    return result.rows;
+    return result; // query returns T[] directly
   } catch (error) {
     logger.error('Failed to fetch tickets for outbound sync', {
       error: error instanceof Error ? error.message : String(error),
