@@ -57,26 +57,26 @@ export function CheckInButton({ assetId }: CheckInButtonProps) {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl dark:shadow-gray-900/50 p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Check In Asset
             </h3>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-300 text-sm">
                 {error}
               </div>
             )}
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Condition at Return *
                 </label>
                 <select
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
                 >
                   <option value="new">New</option>
                   <option value="good">Good</option>
@@ -88,7 +88,7 @@ export function CheckInButton({ assetId }: CheckInButtonProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Notes (optional)
                 </label>
                 <textarea
@@ -96,7 +96,7 @@ export function CheckInButton({ assetId }: CheckInButtonProps) {
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Any notes about the return..."
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-green-500"
                 />
               </div>
             </div>
@@ -105,7 +105,7 @@ export function CheckInButton({ assetId }: CheckInButtonProps) {
               <button
                 onClick={() => setShowModal(false)}
                 disabled={loading}
-                className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>

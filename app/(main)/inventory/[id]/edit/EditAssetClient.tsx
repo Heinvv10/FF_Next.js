@@ -94,9 +94,9 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-6 space-y-6">
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-300">
           {error}
         </div>
       )}
@@ -104,7 +104,7 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
       {/* Category & Name */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Category *
           </label>
           <select
@@ -112,7 +112,7 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
             value={formData.categoryId}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select category...</option>
             {categories.map((cat) => (
@@ -124,7 +124,7 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Asset Name *
           </label>
           <input
@@ -133,14 +133,14 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Description
         </label>
         <textarea
@@ -148,16 +148,16 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       {/* Identification */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Identification</h3>
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Identification</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Serial Number
             </label>
             <input
@@ -165,11 +165,11 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
               name="serialNumber"
               value={formData.serialNumber}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Barcode
             </label>
             <input
@@ -177,11 +177,11 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
               name="barcode"
               value={formData.barcode}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Model Number
             </label>
             <input
@@ -189,7 +189,7 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
               name="modelNumber"
               value={formData.modelNumber}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -198,7 +198,7 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
       {/* Manufacturer & Model */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Manufacturer
           </label>
           <input
@@ -206,11 +206,11 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
             name="manufacturer"
             value={formData.manufacturer}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Model
           </label>
           <input
@@ -218,21 +218,21 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
             name="model"
             value={formData.model}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       {/* Condition */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Condition
         </label>
         <select
           name="condition"
           value={formData.condition}
           onChange={handleChange}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
           <option value="new">New</option>
           <option value="excellent">Excellent</option>
@@ -244,11 +244,11 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
       </div>
 
       {/* Purchase Information */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Purchase Information</h3>
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Purchase Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Purchase Date
             </label>
             <input
@@ -256,11 +256,11 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
               name="purchaseDate"
               value={formData.purchaseDate}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Purchase Price (ZAR)
             </label>
             <input
@@ -270,11 +270,11 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
               onChange={handleChange}
               step="0.01"
               min="0"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Warranty End Date
             </label>
             <input
@@ -282,18 +282,18 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
               name="warrantyEndDate"
               value={formData.warrantyEndDate}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
       </div>
 
       {/* Location */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Location</h3>
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Location</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Current Location
             </label>
             <input
@@ -301,11 +301,11 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
               name="currentLocation"
               value={formData.currentLocation}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Warehouse
             </label>
             <input
@@ -313,11 +313,11 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
               name="warehouseLocation"
               value={formData.warehouseLocation}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Bin Location
             </label>
             <input
@@ -325,15 +325,15 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
               name="binLocation"
               value={formData.binLocation}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
       </div>
 
       {/* Notes */}
-      <div className="border-t pt-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Notes
         </label>
         <textarea
@@ -341,16 +341,16 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
           value={formData.notes}
           onChange={handleChange}
           rows={3}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       {/* Submit */}
-      <div className="border-t pt-6 flex justify-end space-x-4">
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6 flex justify-end space-x-4">
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+          className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Cancel
         </button>

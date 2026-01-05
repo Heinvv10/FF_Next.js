@@ -136,16 +136,16 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-6 space-y-6">
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-300">
           {error}
         </div>
       )}
 
       {/* Asset Selection */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Select Asset *
         </label>
         <select
@@ -153,7 +153,7 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
           value={formData.assetId}
           onChange={handleChange}
           required
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Choose an asset...</option>
           {assets.map((asset) => (
@@ -166,16 +166,16 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
 
       {/* Selected Asset Info */}
       {selectedAsset && (
-        <div className="p-4 bg-gray-50 rounded-lg flex items-start space-x-4">
-          <div className="h-12 w-12 bg-white rounded-lg flex items-center justify-center">
-            <Package className="h-6 w-6 text-gray-400" />
+        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg flex items-start space-x-4">
+          <div className="h-12 w-12 bg-white dark:bg-gray-600 rounded-lg flex items-center justify-center">
+            <Package className="h-6 w-6 text-gray-400 dark:text-gray-500" />
           </div>
           <div>
-            <p className="font-medium text-gray-900">{selectedAsset.name}</p>
-            <p className="text-sm text-gray-500">
+            <p className="font-medium text-gray-900 dark:text-white">{selectedAsset.name}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {selectedAsset.manufacturer} {selectedAsset.model}
             </p>
-            <p className="text-xs text-gray-400 font-mono mt-1">
+            <p className="text-xs text-gray-400 dark:text-gray-500 font-mono mt-1">
               {selectedAsset.assetNumber}
               {selectedAsset.serialNumber && ` | S/N: ${selectedAsset.serialNumber}`}
             </p>
@@ -185,7 +185,7 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
 
       {/* Assignee Type */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Assign To *
         </label>
         <div className="grid grid-cols-3 gap-4">
@@ -198,8 +198,8 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
                 onClick={() => setFormData((prev) => ({ ...prev, assigneeType: type }))}
                 className={`p-4 border rounded-lg flex flex-col items-center space-y-2 transition-colors ${
                   formData.assigneeType === type
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'hover:bg-gray-50'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                    : 'border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 <Icon className="h-6 w-6" />
@@ -213,11 +213,11 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
       {/* Staff Selection */}
       {formData.assigneeType === 'staff' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Staff Member *
           </label>
           {staffMembers.length === 0 ? (
-            <p className="text-sm text-amber-600 p-3 bg-amber-50 rounded-lg">
+            <p className="text-sm text-amber-600 dark:text-amber-400 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
               No active staff members found. Please add staff members first.
             </p>
           ) : (
@@ -227,7 +227,7 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
                 value={formData.assigneeId}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select staff member...</option>
                 {staffMembers.map((staff) => (
@@ -237,7 +237,7 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
                 ))}
               </select>
               {selectedStaff && (
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {selectedStaff.position} • {selectedStaff.email}
                 </p>
               )}
@@ -249,11 +249,11 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
       {/* Project Selection - for staff assignments or direct project assignment */}
       {(formData.assigneeType === 'staff' || formData.assigneeType === 'project') && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             {formData.assigneeType === 'project' ? 'Project *' : 'Link to Project (optional)'}
           </label>
           {formData.assigneeType === 'project' && projects.length === 0 ? (
-            <p className="text-sm text-amber-600 p-3 bg-amber-50 rounded-lg">
+            <p className="text-sm text-amber-600 dark:text-amber-400 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
               No active projects found. Please create a project first.
             </p>
           ) : (
@@ -263,7 +263,7 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
                 value={formData.projectId}
                 onChange={handleChange}
                 required={formData.assigneeType === 'project'}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">
                   {formData.assigneeType === 'project' ? 'Select project...' : 'No project link'}
@@ -276,7 +276,7 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
                 ))}
               </select>
               {selectedProject && (
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   Status: {selectedProject.status}
                   {selectedProject.client_name && ` • Client: ${selectedProject.client_name}`}
                 </p>
@@ -289,7 +289,7 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
       {/* Vehicle Registration */}
       {formData.assigneeType === 'vehicle' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Vehicle Registration *
           </label>
           <input
@@ -299,14 +299,14 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
             onChange={handleChange}
             required
             placeholder="e.g., CA 123-456"
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
           />
         </div>
       )}
 
       {/* Expected Return Date */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Expected Return Date
         </label>
         <input
@@ -315,13 +315,13 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
           value={formData.expectedReturnDate}
           onChange={handleChange}
           min={new Date().toISOString().split('T')[0]}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       {/* Notes */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Checkout Notes
         </label>
         <textarea
@@ -330,16 +330,16 @@ export function CheckoutClient({ assets, preselectedAssetId, staffMembers, proje
           onChange={handleChange}
           rows={3}
           placeholder="Any relevant notes for this checkout..."
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       {/* Submit */}
-      <div className="border-t pt-6 flex justify-end space-x-4">
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6 flex justify-end space-x-4">
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+          className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Cancel
         </button>

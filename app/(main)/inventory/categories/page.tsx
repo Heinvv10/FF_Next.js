@@ -30,8 +30,8 @@ export default async function CategoriesPage() {
     <div className="p-6">
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Asset Categories</h1>
-          <p className="text-gray-600">Manage asset types and categories</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Asset Categories</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage asset types and categories</p>
         </div>
         <Link
           href="/inventory/categories/new"

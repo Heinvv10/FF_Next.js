@@ -79,18 +79,18 @@ function getDaysUntil(dateStr: string): number {
 
 function getCalibrationStatus(asset: Asset): { status: string; color: string; label: string } {
   if (!asset.nextCalibrationDate) {
-    return { status: 'never', color: 'bg-gray-100 text-gray-800', label: 'Never Calibrated' };
+    return { status: 'never', color: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300', label: 'Never Calibrated' };
   }
 
   const daysUntil = getDaysUntil(asset.nextCalibrationDate);
 
   if (daysUntil < 0) {
-    return { status: 'overdue', color: 'bg-red-100 text-red-800', label: 'Overdue' };
+    return { status: 'overdue', color: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300', label: 'Overdue' };
   }
   if (daysUntil <= 30) {
-    return { status: 'due_soon', color: 'bg-yellow-100 text-yellow-800', label: 'Due Soon' };
+    return { status: 'due_soon', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300', label: 'Due Soon' };
   }
-  return { status: 'current', color: 'bg-green-100 text-green-800', label: 'Current' };
+  return { status: 'current', color: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300', label: 'Current' };
 }
 
 export default async function CalibrationPage() {
@@ -106,8 +106,8 @@ export default async function CalibrationPage() {
     <div className="p-6">
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Calibration Tracking</h1>
-          <p className="text-gray-600">Monitor and schedule equipment calibrations</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calibration Tracking</h1>
+          <p className="text-gray-600 dark:text-gray-400">Monitor and schedule equipment calibrations</p>
         </div>
         <Link
           href="/inventory/maintenance/new?type=calibration"
@@ -120,10 +120,10 @@ export default async function CalibrationPage() {
 
       {/* Alert Banner */}
       {overdue.length > 0 && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <div className="flex items-center">
             <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
-            <span className="font-medium text-red-800">
+            <span className="font-medium text-red-800 dark:text-red-300">
               {overdue.length} {overdue.length === 1 ? 'asset requires' : 'assets require'} immediate calibration
             </span>
           </div>
@@ -132,47 +132,47 @@ export default async function CalibrationPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-4">
           <div className="flex items-center">
-            <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center">
+            <div className="h-10 w-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
               <AlertTriangle className="h-5 w-5 text-red-500" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-gray-900">{overdue.length}</p>
-              <p className="text-sm text-gray-500">Overdue</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{overdue.length}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Overdue</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-4">
           <div className="flex items-center">
-            <div className="h-10 w-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+            <div className="h-10 w-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
               <Clock className="h-5 w-5 text-yellow-500" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-gray-900">{dueSoon.length}</p>
-              <p className="text-sm text-gray-500">Due in 30 days</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{dueSoon.length}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Due in 30 days</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-4">
           <div className="flex items-center">
-            <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <div className="h-10 w-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
               <CheckCircle className="h-5 w-5 text-green-500" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-gray-900">{current.length}</p>
-              <p className="text-sm text-gray-500">Current</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{current.length}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Current</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-4">
           <div className="flex items-center">
-            <div className="h-10 w-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Gauge className="h-5 w-5 text-gray-500" />
+            <div className="h-10 w-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+              <Gauge className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </div>
             <div className="ml-4">
-              <p className="text-2xl font-bold text-gray-900">{assets.length}</p>
-              <p className="text-sm text-gray-500">Total Tracked</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{assets.length}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Tracked</p>
             </div>
           </div>
         </div>
@@ -182,49 +182,49 @@ export default async function CalibrationPage() {
       <div className="space-y-6">
         {/* Overdue */}
         {overdue.length > 0 && (
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b bg-red-50 rounded-t-lg">
-              <h2 className="text-lg font-semibold text-red-800 flex items-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50">
+            <div className="px-6 py-4 border-b border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 rounded-t-lg">
+              <h2 className="text-lg font-semibold text-red-800 dark:text-red-300 flex items-center">
                 <AlertTriangle className="h-5 w-5 mr-2" />
                 Overdue Calibrations
               </h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Asset</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Manufacturer</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Calibrated</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Days Overdue</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Asset</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Manufacturer</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Last Calibrated</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Due Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Days Overdue</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {overdue.map((asset) => (
-                    <tr key={asset.id} className="hover:bg-gray-50">
+                    <tr key={asset.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-6 py-4">
-                        <Link href={`/inventory/${asset.id}`} className="hover:text-blue-600">
-                          <p className="font-medium text-gray-900">{asset.name}</p>
-                          <p className="text-sm text-gray-500 font-mono">{asset.assetNumber}</p>
+                        <Link href={`/inventory/${asset.id}`} className="hover:text-blue-600 dark:hover:text-blue-400">
+                          <p className="font-medium text-gray-900 dark:text-white">{asset.name}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">{asset.assetNumber}</p>
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                         {asset.manufacturer} {asset.model}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                         {asset.lastCalibrationDate
                           ? new Date(asset.lastCalibrationDate).toLocaleDateString()
                           : 'Never'}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                         {asset.nextCalibrationDate
                           ? new Date(asset.nextCalibrationDate).toLocaleDateString()
                           : '-'}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-red-600 font-medium">
+                        <span className="text-red-600 dark:text-red-400 font-medium">
                           {asset.nextCalibrationDate
                             ? Math.abs(getDaysUntil(asset.nextCalibrationDate))
                             : '-'} days
@@ -233,7 +233,7 @@ export default async function CalibrationPage() {
                       <td className="px-6 py-4 text-right">
                         <Link
                           href={`/inventory/maintenance/new?assetId=${asset.id}&type=calibration`}
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
                         >
                           Schedule
                         </Link>
@@ -248,47 +248,47 @@ export default async function CalibrationPage() {
 
         {/* Due Soon */}
         {dueSoon.length > 0 && (
-          <div className="bg-white rounded-lg shadow">
-            <div className="px-6 py-4 border-b bg-yellow-50 rounded-t-lg">
-              <h2 className="text-lg font-semibold text-yellow-800 flex items-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50">
+            <div className="px-6 py-4 border-b border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 rounded-t-lg">
+              <h2 className="text-lg font-semibold text-yellow-800 dark:text-yellow-300 flex items-center">
                 <Clock className="h-5 w-5 mr-2" />
                 Due Within 30 Days
               </h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Asset</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Manufacturer</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Provider</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Days Left</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Asset</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Manufacturer</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Provider</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Due Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Days Left</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {dueSoon.map((asset) => (
-                    <tr key={asset.id} className="hover:bg-gray-50">
+                    <tr key={asset.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-6 py-4">
-                        <Link href={`/inventory/${asset.id}`} className="hover:text-blue-600">
-                          <p className="font-medium text-gray-900">{asset.name}</p>
-                          <p className="text-sm text-gray-500 font-mono">{asset.assetNumber}</p>
+                        <Link href={`/inventory/${asset.id}`} className="hover:text-blue-600 dark:hover:text-blue-400">
+                          <p className="font-medium text-gray-900 dark:text-white">{asset.name}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">{asset.assetNumber}</p>
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                         {asset.manufacturer} {asset.model}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                         {asset.calibrationProvider || '-'}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                         {asset.nextCalibrationDate
                           ? new Date(asset.nextCalibrationDate).toLocaleDateString()
                           : '-'}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-yellow-600 font-medium">
+                        <span className="text-yellow-600 dark:text-yellow-400 font-medium">
                           {asset.nextCalibrationDate
                             ? getDaysUntil(asset.nextCalibrationDate)
                             : '-'} days
@@ -297,7 +297,7 @@ export default async function CalibrationPage() {
                       <td className="px-6 py-4 text-right">
                         <Link
                           href={`/inventory/maintenance/new?assetId=${asset.id}&type=calibration`}
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
                         >
                           Schedule
                         </Link>
@@ -311,39 +311,39 @@ export default async function CalibrationPage() {
         )}
 
         {/* All Calibration-Required Assets */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
               <Gauge className="h-5 w-5 mr-2 text-blue-500" />
               All Calibration-Required Assets
             </h2>
           </div>
           <div className="overflow-x-auto">
             {assets.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <Gauge className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                <Gauge className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
                 <p>No assets require calibration tracking</p>
               </div>
             ) : (
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Asset</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Calibrated</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Next Due</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Provider</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Asset</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Last Calibrated</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Next Due</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Provider</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {assets.map((asset) => {
                     const status = getCalibrationStatus(asset);
                     return (
-                      <tr key={asset.id} className="hover:bg-gray-50">
+                      <tr key={asset.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-6 py-4">
-                          <Link href={`/inventory/${asset.id}`} className="hover:text-blue-600">
-                            <p className="font-medium text-gray-900">{asset.name}</p>
-                            <p className="text-sm text-gray-500">
+                          <Link href={`/inventory/${asset.id}`} className="hover:text-blue-600 dark:hover:text-blue-400">
+                            <p className="font-medium text-gray-900 dark:text-white">{asset.name}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                               {asset.manufacturer} {asset.model}
                             </p>
                           </Link>
@@ -353,17 +353,17 @@ export default async function CalibrationPage() {
                             {status.label}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                           {asset.lastCalibrationDate
                             ? new Date(asset.lastCalibrationDate).toLocaleDateString()
                             : 'Never'}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                           {asset.nextCalibrationDate
                             ? new Date(asset.nextCalibrationDate).toLocaleDateString()
                             : '-'}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                           {asset.calibrationProvider || '-'}
                         </td>
                       </tr>

@@ -92,9 +92,9 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-6 space-y-6">
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-300">
           {error}
         </div>
       )}
@@ -102,7 +102,7 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
       {/* Category & Name */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Category *
           </label>
           <select
@@ -110,7 +110,7 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
             value={formData.categoryId}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select category...</option>
             {categories.map((cat) => (
@@ -122,7 +122,7 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Asset Name *
           </label>
           <input
@@ -132,14 +132,14 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
             onChange={handleChange}
             required
             placeholder="e.g., EXFO MaxTester 730C"
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Description
         </label>
         <textarea
@@ -147,16 +147,16 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       {/* Identification */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Identification</h3>
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Identification</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Serial Number
             </label>
             <input
@@ -164,11 +164,11 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
               name="serialNumber"
               value={formData.serialNumber}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Barcode
             </label>
             <input
@@ -176,11 +176,11 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
               name="barcode"
               value={formData.barcode}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Model Number
             </label>
             <input
@@ -188,7 +188,7 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
               name="modelNumber"
               value={formData.modelNumber}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -197,7 +197,7 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
       {/* Manufacturer & Model */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Manufacturer
           </label>
           <input
@@ -206,11 +206,11 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
             value={formData.manufacturer}
             onChange={handleChange}
             placeholder="e.g., EXFO, Fujikura"
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Model
           </label>
           <input
@@ -218,17 +218,17 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
             name="model"
             value={formData.model}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       {/* Purchase Information */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Purchase Information</h3>
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Purchase Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Purchase Date
             </label>
             <input
@@ -236,11 +236,11 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
               name="purchaseDate"
               value={formData.purchaseDate}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Purchase Price (ZAR)
             </label>
             <input
@@ -250,11 +250,11 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
               onChange={handleChange}
               step="0.01"
               min="0"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Warranty End Date
             </label>
             <input
@@ -262,18 +262,18 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
               name="warrantyEndDate"
               value={formData.warrantyEndDate}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
       </div>
 
       {/* Location */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Location</h3>
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Location</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Current Location
             </label>
             <input
@@ -281,11 +281,11 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
               name="currentLocation"
               value={formData.currentLocation}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Warehouse
             </label>
             <input
@@ -293,11 +293,11 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
               name="warehouseLocation"
               value={formData.warehouseLocation}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Bin Location
             </label>
             <input
@@ -305,15 +305,15 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
               name="binLocation"
               value={formData.binLocation}
               onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
       </div>
 
       {/* Notes */}
-      <div className="border-t pt-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Notes
         </label>
         <textarea
@@ -321,16 +321,16 @@ export function AssetFormClient({ categories }: AssetFormClientProps) {
           value={formData.notes}
           onChange={handleChange}
           rows={3}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       {/* Submit */}
-      <div className="border-t pt-6 flex justify-end space-x-4">
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6 flex justify-end space-x-4">
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+          className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Cancel
         </button>

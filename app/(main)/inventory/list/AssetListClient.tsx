@@ -108,34 +108,34 @@ export function AssetListClient() {
     if (!config) return null;
 
     const colorClasses: Record<string, string> = {
-      green: 'bg-green-100 text-green-800',
-      blue: 'bg-blue-100 text-blue-800',
-      yellow: 'bg-yellow-100 text-yellow-800',
-      orange: 'bg-orange-100 text-orange-800',
-      red: 'bg-red-100 text-red-800',
-      gray: 'bg-gray-100 text-gray-800',
+      green: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
+      blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
+      yellow: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300',
+      orange: 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300',
+      red: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300',
+      gray: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300',
     };
 
     return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${colorClasses[config.color] || 'bg-gray-100 text-gray-800'}`}>
+      <span className={`px-2 py-1 text-xs font-medium rounded-full ${colorClasses[config.color] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'}`}>
         {config.label}
       </span>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50">
       {/* Filters */}
-      <div className="p-4 border-b flex flex-wrap gap-4">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-4">
         <form onSubmit={handleSearch} className="flex-1 min-w-[200px]">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search assets..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </form>
@@ -143,7 +143,7 @@ export function AssetListClient() {
         <select
           value={statusFilter}
           onChange={(e) => handleStatusChange(e.target.value)}
-          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Statuses</option>
           <option value="available">Available</option>
@@ -162,63 +162,63 @@ export function AssetListClient() {
           </div>
         ) : assets.length === 0 ? (
           <div className="text-center py-12">
-            <Package className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500">No assets found</p>
+            <Package className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <p className="text-gray-500 dark:text-gray-400">No assets found</p>
             <Link
               href="/inventory/new"
-              className="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800"
+              className="mt-4 inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
             >
               Add your first asset
             </Link>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Asset
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Asset Number
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Location
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Assigned To
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {assets.map((asset) => (
-                <tr key={asset.id} className="hover:bg-gray-50">
+                <tr key={asset.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="h-10 w-10 flex-shrink-0 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Package className="h-5 w-5 text-gray-400" />
+                      <div className="h-10 w-10 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                        <Package className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {asset.name}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                           {asset.manufacturer} {asset.model}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 font-mono">
+                    <div className="text-sm text-gray-900 dark:text-white font-mono">
                       {asset.assetNumber}
                     </div>
                     {asset.serialNumber && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
                         S/N: {asset.serialNumber}
                       </div>
                     )}
@@ -226,22 +226,22 @@ export function AssetListClient() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(asset.status)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {asset.currentLocation || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {asset.currentAssigneeName || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Link
                       href={`/inventory/${asset.id}`}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-4"
                     >
                       <Eye className="h-4 w-4 inline" />
                     </Link>
                     <Link
                       href={`/inventory/${asset.id}/edit`}
-                      className="text-gray-600 hover:text-gray-900"
+                      className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                     >
                       <Edit className="h-4 w-4 inline" />
                     </Link>
@@ -255,8 +255,8 @@ export function AssetListClient() {
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="px-6 py-4 border-t flex items-center justify-between">
-          <div className="text-sm text-gray-500">
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
             {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
             {pagination.total} assets
@@ -265,17 +265,17 @@ export function AssetListClient() {
             <button
               onClick={() => handlePageChange(pagination.page - 1)}
               disabled={pagination.page === 1}
-              className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
               Page {pagination.page} of {pagination.totalPages}
             </span>
             <button
               onClick={() => handlePageChange(pagination.page + 1)}
               disabled={pagination.page === pagination.totalPages}
-              className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
