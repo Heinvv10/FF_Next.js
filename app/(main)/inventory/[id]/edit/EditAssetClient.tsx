@@ -37,6 +37,8 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
     binLocation: asset.binLocation || '',
     condition: asset.condition || 'good',
     notes: asset.notes || '',
+    nextCalibrationDate: asset.nextCalibrationDate ? String(asset.nextCalibrationDate).split('T')[0] : '',
+    calibrationProvider: asset.calibrationProvider || '',
   });
 
   function handleChange(
@@ -72,6 +74,8 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
       if (formData.binLocation) payload.binLocation = formData.binLocation;
       if (formData.condition) payload.condition = formData.condition;
       if (formData.notes) payload.notes = formData.notes;
+      if (formData.nextCalibrationDate) payload.nextCalibrationDate = formData.nextCalibrationDate;
+      if (formData.calibrationProvider) payload.calibrationProvider = formData.calibrationProvider;
 
       const response = await fetch(`/api/assets/${asset.id}`, {
         method: 'PUT',
@@ -283,6 +287,38 @@ export function EditAssetClient({ asset, categories }: EditAssetClientProps) {
               value={formData.warrantyEndDate}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Calibration */}
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Calibration</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Next Calibration Date
+            </label>
+            <input
+              type="date"
+              name="nextCalibrationDate"
+              value={formData.nextCalibrationDate}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Calibration Provider
+            </label>
+            <input
+              type="text"
+              name="calibrationProvider"
+              value={formData.calibrationProvider}
+              onChange={handleChange}
+              placeholder="e.g., EXFO Service Center"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
