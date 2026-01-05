@@ -116,10 +116,18 @@ const nextConfig = {
 
   // Fix file watching issues
   webpack: (config, { dev, isServer }) => {
-    // Try to fix Watchpack issues with minimal configuration
-    if (dev && !isServer) {
+    // Fix Watchpack issues by ignoring problematic directories
+    if (dev) {
       config.watchOptions = {
-        ignored: ['**/node_modules/**'],
+        ignored: [
+          '**/node_modules/**',
+          '**/.next/**',
+          '**/neon/**',
+          '**/docs/**',
+          '**/scripts/**',
+          '**/.git/**',
+          '**/SOW/**',
+        ],
         aggregateTimeout: 300,
         poll: 1000,
       };
