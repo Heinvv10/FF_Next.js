@@ -5,18 +5,22 @@ import {
   peopleSection,
   procurementSection,
   contractorsSection,
+  assetsSection,
   analyticsSection,
   communicationsSection,
   fieldOperationsSection,
-  systemSection
+  systemSection,
+  ticketingSection
 } from './config';
 
 export const navItems: NavSection[] = [
   mainSection,
   projectSection,
+  ticketingSection,
   peopleSection,
   procurementSection,
   contractorsSection,
+  assetsSection,
   analyticsSection,
   communicationsSection,
   fieldOperationsSection,

@@ -1,0 +1,87 @@
+/**
+ * Asset Maintenance API Route
+ * GET  /api/assets/[id]/maintenance - Get maintenance records for an asset
+ * POST /api/assets/[id]/maintenance - Schedule maintenance for an asset
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { maintenanceService } from '@/modules/assets/services';
+import { ScheduleMaintenanceSchema, MaintenanceFilterSchema } from '@/modules/assets/utils/schemas';
+
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
+// ==================== GET /api/assets/[id]/maintenance ====================
+
+export async function GET(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+    const { searchParams } = new URL(req.url);
+
+    // Parse filters
+    const rawFilters = {
+      maintenanceType: searchParams.getAll('maintenanceType').filter(Boolean) || undefined,
+      status: searchParams.getAll('status').filter(Boolean) || undefined,
+    };
+
+    const filters = Object.fromEntries(
+      Object.entries(rawFilters).filter(([_, v]) => v !== undefined && (Array.isArray(v) ? v.length > 0 : true))
+    );
+
+    const result = await maintenanceService.getByAsset(id, filters);
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 500 });
+    }
+
+    return NextResponse.json({ data: result.data });
+  } catch (error) {
+    console.error('Error fetching maintenance records:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch maintenance records' },
+      { status: 500 }
+    );
+  }
+}
+
+// ==================== POST /api/assets/[id]/maintenance ====================
+
+export async function POST(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+    const body = await req.json();
+
+    // Add asset ID from URL to body
+    const maintenanceData = { ...body, assetId: id };
+
+    // Validate request body
+    const validation = ScheduleMaintenanceSchema.safeParse(maintenanceData);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.errors },
+        { status: 400 }
+      );
+    }
+
+    // TODO: Get actual user from auth
+    const createdBy = req.headers.get('x-user-id') || 'system';
+
+    const result = await maintenanceService.schedule(validation.data, createdBy);
+
+    if (!result.success) {
+      if (result.error?.includes('not found')) {
+        return NextResponse.json({ error: result.error }, { status: 404 });
+      }
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json({ data: result.data }, { status: 201 });
+  } catch (error) {
+    console.error('Error scheduling maintenance:', error);
+    return NextResponse.json(
+      { error: 'Failed to schedule maintenance' },
+      { status: 500 }
+    );
+  }
+}

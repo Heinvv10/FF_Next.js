@@ -212,3 +212,17 @@ export { Logger };
 
 // Default export for convenience
 export default log;
+
+/**
+ * Create a logger instance with a component name
+ * @param component - Component name for logging context
+ * @returns Logger instance with component context
+ */
+export function createLogger(component: string) {
+  return {
+    debug: (message: string, data?: LogData) => log.debug(message, data, component),
+    info: (message: string, data?: LogData) => log.info(message, data, component),
+    warn: (message: string, data?: LogData) => log.warn(message, data, component),
+    error: (message: string, data?: LogData) => log.error(message, data, component),
+  };
+}

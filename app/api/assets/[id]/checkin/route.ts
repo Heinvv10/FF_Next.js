@@ -1,0 +1,61 @@
+/**
+ * Asset Check-in API Route
+ * POST /api/assets/[id]/checkin - Check in an asset
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { assignmentService } from '@/modules/assets/services';
+
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
+// ==================== POST /api/assets/[id]/checkin ====================
+
+export async function POST(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id: assetId } = await params;
+    const body = await req.json();
+
+    // Get the active assignment for this asset
+    const activeResult = await assignmentService.getActiveAssignment(assetId);
+
+    if (!activeResult.success || !activeResult.data) {
+      return NextResponse.json(
+        { error: 'No active assignment found for this asset' },
+        { status: 404 }
+      );
+    }
+
+    const assignmentId = activeResult.data.id;
+
+    // Prepare checkin data
+    const checkinData = {
+      assignmentId,
+      conditionAtCheckin: body.conditionAtCheckin || 'good',
+      checkinNotes: body.checkinNotes,
+      newLocation: body.newLocation,
+      maintenanceRequired: body.maintenanceRequired || false,
+    };
+
+    // TODO: Get actual user from auth
+    const checkedInBy = req.headers.get('x-user-id') || 'system';
+
+    const result = await assignmentService.checkin(checkinData, checkedInBy);
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      data: result.data,
+      message: 'Asset checked in successfully'
+    }, { status: 200 });
+  } catch (error) {
+    console.error('Error checking in asset:', error);
+    return NextResponse.json(
+      { error: 'Failed to check in asset' },
+      { status: 500 }
+    );
+  }
+}

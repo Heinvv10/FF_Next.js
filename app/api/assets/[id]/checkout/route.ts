@@ -1,0 +1,53 @@
+/**
+ * Asset Checkout API Route
+ * POST /api/assets/[id]/checkout - Checkout an asset
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { assignmentService } from '@/modules/assets/services';
+import { CheckoutAssetSchema } from '@/modules/assets/utils/schemas';
+
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
+// ==================== POST /api/assets/[id]/checkout ====================
+
+export async function POST(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+    const body = await req.json();
+
+    // Add asset ID from URL to body
+    const checkoutData = { ...body, assetId: id };
+
+    // Validate request body
+    const validation = CheckoutAssetSchema.safeParse(checkoutData);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: validation.error.errors },
+        { status: 400 }
+      );
+    }
+
+    // TODO: Get actual user from auth
+    const createdBy = req.headers.get('x-user-id') || 'system';
+
+    const result = await assignmentService.checkout(validation.data, createdBy);
+
+    if (!result.success) {
+      if (result.error?.includes('not found')) {
+        return NextResponse.json({ error: result.error }, { status: 404 });
+      }
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json({ data: result.data }, { status: 201 });
+  } catch (error) {
+    console.error('Error checking out asset:', error);
+    return NextResponse.json(
+      { error: 'Failed to checkout asset' },
+      { status: 500 }
+    );
+  }
+}
