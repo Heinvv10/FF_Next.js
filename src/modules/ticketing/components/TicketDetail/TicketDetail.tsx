@@ -22,6 +22,7 @@ import {
   Activity,
   CheckSquare,
   History,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTicket } from '../../hooks/useTicket';
@@ -34,6 +35,8 @@ import { VerificationChecklist } from '../Verification/VerificationChecklist';
 import { QAReadinessCheck } from '../QAReadiness/QAReadinessCheck';
 import { AssignmentPanel } from '../Assignment/AssignmentPanel';
 import { RelatedTickets } from './RelatedTickets';
+import { NotesTab } from './NotesTab';
+import { useTicketNotes } from '../../hooks/useTicketNotesWithMutations';
 
 interface TicketDetailProps {
   /** Ticket ID to display */
@@ -44,7 +47,7 @@ interface TicketDetailProps {
   backLink?: string;
 }
 
-type TabKey = 'overview' | 'activity' | 'verification';
+type TabKey = 'overview' | 'activity' | 'notes' | 'verification';
 
 interface Tab {
   key: TabKey;
@@ -59,6 +62,7 @@ interface Tab {
 export function TicketDetail({ ticketId, compact = false, backLink }: TicketDetailProps) {
   const { ticket, isLoading, isError, error, refetch } = useTicket(ticketId);
   const { summary: activitySummary } = useTicketActivities(ticketId);
+  const { summary: notesSummary } = useTicketNotes(ticketId);
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
   // Handle action complete (refetch ticket data)
@@ -108,6 +112,7 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
   const tabs: Tab[] = [
     { key: 'overview', label: 'Overview', icon: FileText },
     { key: 'activity', label: 'Activity', icon: Activity, badge: activitySummary.total },
+    { key: 'notes', label: 'Notes', icon: MessageSquare, badge: notesSummary.total },
     { key: 'verification', label: 'Verification', icon: CheckSquare },
   ];
 
@@ -365,6 +370,9 @@ export function TicketDetail({ ticketId, compact = false, backLink }: TicketDeta
               <ActivityTab ticketId={ticketId} />
             </div>
           )}
+
+          {/* Notes Tab */}
+          {activeTab === 'notes' && <NotesTab ticketId={ticketId} />}
 
           {/* Verification Tab */}
           {activeTab === 'verification' && (

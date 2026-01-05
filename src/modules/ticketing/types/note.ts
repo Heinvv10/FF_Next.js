@@ -4,6 +4,10 @@
  *
  * Defines TypeScript types for ticket notes - internal comments,
  * client communications, and system-generated activity log.
+ *
+ * Notes have visibility control:
+ * - PRIVATE: Internal Velocity Fibre use only, never synced externally
+ * - PUBLIC: May be synced to QContact or other external systems
  */
 
 /**
@@ -13,6 +17,15 @@ export enum NoteType {
   INTERNAL = 'internal', // Internal team notes
   CLIENT = 'client', // Client-visible notes
   SYSTEM = 'system', // System-generated notes
+}
+
+/**
+ * Note Visibility
+ * Controls whether notes can be synced to external systems
+ */
+export enum NoteVisibility {
+  PRIVATE = 'private', // Internal use only - never synced to external systems
+  PUBLIC = 'public', // May be synced to QContact or other apps
 }
 
 /**
@@ -45,15 +58,23 @@ export interface TicketNote {
 
   // Note content
   note_type: NoteType;
+  visibility: NoteVisibility; // Private (internal only) or Public (can be synced)
   content: string;
 
   // Author (NULL for system notes)
   created_by: string | null; // UUID reference to users
   created_at: Date;
+  updated_at: Date;
 
   // For system-generated notes
   system_event: SystemEvent | null;
   event_data: SystemEventData | null; // JSONB
+
+  // Resolution flag
+  is_resolution: boolean;
+
+  // Attachments
+  attachments: string[] | null;
 }
 
 /**
@@ -126,8 +147,11 @@ export interface HandoverEventData extends SystemEventData {
 export interface CreateNotePayload {
   ticket_id: string;
   note_type: NoteType;
+  visibility: NoteVisibility;
   content: string;
   created_by?: string; // Required for internal/client notes, NULL for system
+  is_resolution?: boolean;
+  attachments?: string[];
   system_event?: SystemEvent;
   event_data?: SystemEventData;
 }
@@ -147,6 +171,7 @@ export interface NoteWithAuthor extends TicketNote {
   author_email?: string;
   is_system_note: boolean;
   is_editable: boolean;
+  visibility_label: string; // "Private" or "Public"
 }
 
 /**
@@ -155,6 +180,7 @@ export interface NoteWithAuthor extends TicketNote {
 export interface NoteFilters {
   ticket_id?: string;
   note_type?: NoteType | NoteType[];
+  visibility?: NoteVisibility | NoteVisibility[];
   system_event?: SystemEvent | SystemEvent[];
   created_by?: string;
   created_after?: Date;
@@ -169,6 +195,7 @@ export interface NoteListResponse {
   notes: TicketNote[];
   total: number;
   by_type: Record<NoteType, number>;
+  by_visibility: Record<NoteVisibility, number>;
   by_system_event: Record<SystemEvent, number>;
 }
 
