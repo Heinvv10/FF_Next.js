@@ -64,7 +64,7 @@ PORT=3005 npm start
 # Access at http://localhost:3005
 ```
 
-**DO NOT use dev mode** - Has Watchpack bug from nested package.json in neon/
+Dev mode now works after removing duplicate routes in src/app/ and src/pages/
 
 ## Key Commands
 ```bash
