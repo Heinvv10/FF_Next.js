@@ -330,7 +330,11 @@ export default function StaffPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredStaff.map((member) => (
-                    <tr key={member.id} className="hover:bg-gray-50">
+                    <tr
+                      key={member.id}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => handleView(member)}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
@@ -359,12 +363,12 @@ export default function StaffPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
                           {member.email && (
-                            <a href={`mailto:${member.email}`} className="text-blue-600 hover:text-blue-800">
+                            <a href={`mailto:${member.email}`} onClick={(e) => e.stopPropagation()} className="text-blue-600 hover:text-blue-800">
                               <Mail className="h-4 w-4" />
                             </a>
                           )}
                           {member.phone && (
-                            <a href={`tel:${member.phone}`} className="text-blue-600 hover:text-blue-800">
+                            <a href={`tel:${member.phone}`} onClick={(e) => e.stopPropagation()} className="text-blue-600 hover:text-blue-800">
                               <Phone className="h-4 w-4" />
                             </a>
                           )}
@@ -381,19 +385,19 @@ export default function StaffPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
                           <button
-                            onClick={() => handleView(member)}
+                            onClick={(e) => { e.stopPropagation(); handleView(member); }}
                             className="text-blue-600 hover:text-blue-900"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleEdit(member)}
+                            onClick={(e) => { e.stopPropagation(); handleEdit(member); }}
                             className="text-yellow-600 hover:text-yellow-900"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(member.id)}
+                            onClick={(e) => { e.stopPropagation(); handleDelete(member.id); }}
                             className="text-red-600 hover:text-red-900"
                           >
                             <Trash2 className="h-4 w-4" />

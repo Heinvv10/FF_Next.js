@@ -29,13 +29,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         projects = await sql`
           SELECT
             sp.*,
-            p.name as project_name,
+            p.project_name as project_name,
             p.status as project_status,
-            p.client as project_client,
-            s.name as staff_name,
-            a.name as assigned_by_name
+            c.company_name as project_client,
+            CONCAT(s.first_name, ' ', s.last_name) as staff_name,
+            CONCAT(a.first_name, ' ', a.last_name) as assigned_by_name
           FROM staff_projects sp
           LEFT JOIN projects p ON p.id = sp.project_id
+          LEFT JOIN clients c ON c.id = p.client_id
           LEFT JOIN staff s ON s.id = sp.staff_id
           LEFT JOIN staff a ON a.id = sp.assigned_by
           WHERE sp.staff_id = ${staffId}
@@ -46,13 +47,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         projects = await sql`
           SELECT
             sp.*,
-            p.name as project_name,
+            p.project_name as project_name,
             p.status as project_status,
-            p.client as project_client,
-            s.name as staff_name,
-            a.name as assigned_by_name
+            c.company_name as project_client,
+            CONCAT(s.first_name, ' ', s.last_name) as staff_name,
+            CONCAT(a.first_name, ' ', a.last_name) as assigned_by_name
           FROM staff_projects sp
           LEFT JOIN projects p ON p.id = sp.project_id
+          LEFT JOIN clients c ON c.id = p.client_id
           LEFT JOIN staff s ON s.id = sp.staff_id
           LEFT JOIN staff a ON a.id = sp.assigned_by
           WHERE sp.staff_id = ${staffId}
@@ -120,13 +122,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const [assignment] = await sql`
           SELECT
             sp.*,
-            p.name as project_name,
+            p.project_name as project_name,
             p.status as project_status,
-            p.client as project_client,
-            s.name as staff_name,
-            a.name as assigned_by_name
+            c.company_name as project_client,
+            CONCAT(s.first_name, ' ', s.last_name) as staff_name,
+            CONCAT(a.first_name, ' ', a.last_name) as assigned_by_name
           FROM staff_projects sp
           LEFT JOIN projects p ON p.id = sp.project_id
+          LEFT JOIN clients c ON c.id = p.client_id
           LEFT JOIN staff s ON s.id = sp.staff_id
           LEFT JOIN staff a ON a.id = sp.assigned_by
           WHERE sp.id = ${updated.id}
@@ -166,13 +169,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const [assignment] = await sql`
         SELECT
           sp.*,
-          p.name as project_name,
+          p.project_name as project_name,
           p.status as project_status,
-          p.client as project_client,
-          s.name as staff_name,
-          a.name as assigned_by_name
+          c.company_name as project_client,
+          CONCAT(s.first_name, ' ', s.last_name) as staff_name,
+          CONCAT(a.first_name, ' ', a.last_name) as assigned_by_name
         FROM staff_projects sp
         LEFT JOIN projects p ON p.id = sp.project_id
+        LEFT JOIN clients c ON c.id = p.client_id
         LEFT JOIN staff s ON s.id = sp.staff_id
         LEFT JOIN staff a ON a.id = sp.assigned_by
         WHERE sp.id = ${created.id}

@@ -81,8 +81,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const documents = await sql`
         SELECT
           sd.*,
-          s.name as staff_name,
-          v.name as verifier_name
+          CONCAT(s.first_name, ' ', s.last_name) as staff_name,
+          CONCAT(v.first_name, ' ', v.last_name) as verifier_name
         FROM staff_documents sd
         LEFT JOIN staff s ON s.id = sd.staff_id
         LEFT JOIN staff v ON v.id = sd.verified_by
