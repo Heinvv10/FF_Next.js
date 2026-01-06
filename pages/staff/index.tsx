@@ -129,13 +129,13 @@ export default function StaffPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-500/20 text-green-400';
       case 'inactive':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-500/20 text-gray-400';
       case 'on_leave':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-500/20 text-yellow-400';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-500/20 text-gray-400';
     }
   };
 
@@ -171,7 +171,7 @@ export default function StaffPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading staff...</p>
+            <p className="mt-4 text-[var(--ff-text-secondary)]">Loading staff...</p>
           </div>
         </div>
       </AppLayout>
@@ -184,8 +184,8 @@ export default function StaffPage() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">Staff Management</h1>
-            <p className="text-gray-600">Manage your team members and their assignments</p>
+            <h1 className="text-2xl font-bold text-[var(--ff-text-primary)]">Staff Management</h1>
+            <p className="text-[var(--ff-text-secondary)]">Manage your team members and their assignments</p>
           </div>
           <div className="flex gap-3">
             <Button
@@ -208,54 +208,54 @@ export default function StaffPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
+          <Card className="bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Staff</p>
-                  <p className="text-2xl font-bold">{staff.length}</p>
+                  <p className="text-sm text-[var(--ff-text-secondary)]">Total Staff</p>
+                  <p className="text-2xl font-bold text-[var(--ff-text-primary)]">{staff.length}</p>
                 </div>
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <UserPlus className="h-6 w-6 text-blue-600" />
+                <div className="bg-blue-500/20 p-3 rounded-full">
+                  <UserPlus className="h-6 w-6 text-blue-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Active</p>
-                  <p className="text-2xl font-bold">{staff.filter(s => s.status === 'active').length}</p>
+                  <p className="text-sm text-[var(--ff-text-secondary)]">Active</p>
+                  <p className="text-2xl font-bold text-[var(--ff-text-primary)]">{staff.filter(s => s.status === 'active').length}</p>
                 </div>
-                <div className="bg-green-100 p-3 rounded-full">
-                  <Eye className="h-6 w-6 text-green-600" />
+                <div className="bg-green-500/20 p-3 rounded-full">
+                  <Eye className="h-6 w-6 text-green-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">On Leave</p>
-                  <p className="text-2xl font-bold">{staff.filter(s => s.status === 'on_leave').length}</p>
+                  <p className="text-sm text-[var(--ff-text-secondary)]">On Leave</p>
+                  <p className="text-2xl font-bold text-[var(--ff-text-primary)]">{staff.filter(s => s.status === 'on_leave').length}</p>
                 </div>
-                <div className="bg-yellow-100 p-3 rounded-full">
-                  <Eye className="h-6 w-6 text-yellow-600" />
+                <div className="bg-yellow-500/20 p-3 rounded-full">
+                  <Eye className="h-6 w-6 text-yellow-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Departments</p>
-                  <p className="text-2xl font-bold">{departments.length}</p>
+                  <p className="text-sm text-[var(--ff-text-secondary)]">Departments</p>
+                  <p className="text-2xl font-bold text-[var(--ff-text-primary)]">{departments.length}</p>
                 </div>
-                <div className="bg-purple-100 p-3 rounded-full">
-                  <Eye className="h-6 w-6 text-purple-600" />
+                <div className="bg-purple-500/20 p-3 rounded-full">
+                  <Eye className="h-6 w-6 text-purple-400" />
                 </div>
               </div>
             </CardContent>
@@ -266,20 +266,20 @@ export default function StaffPage() {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--ff-text-secondary)] h-5 w-5" />
               <Input
                 type="text"
                 placeholder="Search by name, ID, or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border-[var(--ff-border-light)]"
               />
             </div>
           </div>
           <select
             value={filterDepartment}
             onChange={(e) => setFilterDepartment(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Departments</option>
             {departments.map(dept => (
@@ -289,7 +289,7 @@ export default function StaffPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -299,72 +299,76 @@ export default function StaffPage() {
         </div>
 
         {/* Staff Table */}
-        <Card>
+        <Card className="bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)]">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-[var(--ff-border-light)]">
+                <thead className="bg-[var(--ff-bg-tertiary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                       Staff Member
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                       Position
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                       Department
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                       Contact
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                       Projects
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-[var(--ff-bg-secondary)] divide-y divide-[var(--ff-border-light)]">
                   {filteredStaff.map((member) => (
-                    <tr key={member.id} className="hover:bg-gray-50">
+                    <tr
+                      key={member.id}
+                      className="hover:bg-[var(--ff-bg-hover)] cursor-pointer transition-colors"
+                      onClick={() => handleView(member)}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                              <span className="text-sm font-medium text-blue-600">
+                            <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                              <span className="text-sm font-medium text-blue-400">
                                 {member.name ? member.name.charAt(0) : ''}{member.name ? member.name.split(' ')[1]?.charAt(0) || '' : ''}
                               </span>
                             </div>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-[var(--ff-text-primary)]">
                               {member.name || 'Unknown'}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-[var(--ff-text-secondary)]">
                               ID: {member.employeeId}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{member.position || '-'}</div>
+                        <div className="text-sm text-[var(--ff-text-primary)]">{member.position || '-'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{member.department || '-'}</div>
+                        <div className="text-sm text-[var(--ff-text-primary)]">{member.department || '-'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
                           {member.email && (
-                            <a href={`mailto:${member.email}`} className="text-blue-600 hover:text-blue-800">
+                            <a href={`mailto:${member.email}`} onClick={(e) => e.stopPropagation()} className="text-blue-400 hover:text-blue-300">
                               <Mail className="h-4 w-4" />
                             </a>
                           )}
                           {member.phone && (
-                            <a href={`tel:${member.phone}`} className="text-blue-600 hover:text-blue-800">
+                            <a href={`tel:${member.phone}`} onClick={(e) => e.stopPropagation()} className="text-blue-400 hover:text-blue-300">
                               <Phone className="h-4 w-4" />
                             </a>
                           )}
@@ -376,25 +380,25 @@ export default function StaffPage() {
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{member.projects || 0}</div>
+                        <div className="text-sm text-[var(--ff-text-primary)]">{member.projects || 0}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
                           <button
-                            onClick={() => handleView(member)}
-                            className="text-blue-600 hover:text-blue-900"
+                            onClick={(e) => { e.stopPropagation(); handleView(member); }}
+                            className="text-blue-400 hover:text-blue-300"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleEdit(member)}
-                            className="text-yellow-600 hover:text-yellow-900"
+                            onClick={(e) => { e.stopPropagation(); handleEdit(member); }}
+                            className="text-indigo-400 hover:text-indigo-300"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(member.id)}
-                            className="text-red-600 hover:text-red-900"
+                            onClick={(e) => { e.stopPropagation(); handleDelete(member.id); }}
+                            className="text-red-400 hover:text-red-300"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -406,7 +410,7 @@ export default function StaffPage() {
               </table>
               {filteredStaff.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">No staff members found</p>
+                  <p className="text-[var(--ff-text-secondary)]">No staff members found</p>
                 </div>
               )}
             </div>

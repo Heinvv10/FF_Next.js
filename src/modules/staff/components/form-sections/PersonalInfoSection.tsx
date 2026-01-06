@@ -5,13 +5,16 @@ interface PersonalInfoSectionProps {
   handleInputChange: (field: keyof StaffFormData, value: any) => void;
 }
 
+const inputClasses = "w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-[var(--ff-text-secondary)]";
+const labelClasses = "block text-sm font-medium text-[var(--ff-text-secondary)] mb-1";
+
 export function PersonalInfoSection({ formData, handleInputChange }: PersonalInfoSectionProps) {
   return (
     <div>
-      <h2 className="text-lg font-medium text-gray-900 mb-4">Personal Information</h2>
+      <h2 className="text-lg font-medium text-[var(--ff-text-primary)] mb-4">Personal Information</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelClasses}>
             Full Name *
           </label>
           <input
@@ -19,12 +22,12 @@ export function PersonalInfoSection({ formData, handleInputChange }: PersonalInf
             required
             value={formData.name}
             onChange={(e) => handleInputChange('name', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClasses}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelClasses}>
             Employee ID *
           </label>
           <input
@@ -32,12 +35,12 @@ export function PersonalInfoSection({ formData, handleInputChange }: PersonalInf
             required
             value={formData.employeeId}
             onChange={(e) => handleInputChange('employeeId', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClasses}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelClasses}>
             Email *
           </label>
           <input
@@ -45,12 +48,12 @@ export function PersonalInfoSection({ formData, handleInputChange }: PersonalInf
             required
             value={formData.email}
             onChange={(e) => handleInputChange('email', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClasses}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelClasses}>
             Phone *
           </label>
           <input
@@ -58,19 +61,19 @@ export function PersonalInfoSection({ formData, handleInputChange }: PersonalInf
             required
             value={formData.phone}
             onChange={(e) => handleInputChange('phone', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClasses}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={labelClasses}>
             Alternative Phone
           </label>
           <input
             type="tel"
             value={formData.alternativePhone || ''}
             onChange={(e) => handleInputChange('alternativePhone', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClasses}
           />
         </div>
       </div>
