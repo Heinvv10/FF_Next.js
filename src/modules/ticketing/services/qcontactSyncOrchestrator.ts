@@ -24,7 +24,7 @@ import type {
   SyncStats,
   SyncError,
 } from '../types/qcontact';
-import { SyncDirection, SyncType } from '../types/qcontact';
+import { SyncDirection, SyncType, SyncStatus } from '../types/qcontact';
 import { createLogger } from '@/lib/logger';
 
 // 🟢 WORKING: Logger instance for orchestrator operations
@@ -94,6 +94,73 @@ function createEmptyStats(): SyncStats {
     created: 0,
     updated: 0,
   };
+}
+
+/**
+ * Log sync summary to qcontact_sync_log table
+ * 🟢 WORKING: Creates a summary log entry for the sync operation
+ */
+async function logSyncSummary(
+  direction: SyncDirection,
+  status: SyncStatus,
+  result: FullSyncResult,
+  errorMessage: string | null = null
+): Promise<void> {
+  try {
+    const sql = `
+      INSERT INTO qcontact_sync_log (
+        ticket_id,
+        qcontact_ticket_id,
+        sync_direction,
+        sync_type,
+        request_payload,
+        response_payload,
+        status,
+        error_message
+      ) VALUES (
+        NULL,
+        NULL,
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6
+      )
+    `;
+
+    const requestPayload = {
+      started_at: result.started_at,
+      direction,
+    };
+
+    const responsePayload = {
+      completed_at: result.completed_at,
+      duration_seconds: result.duration_seconds,
+      inbound_stats: result.inbound_stats,
+      outbound_stats: result.outbound_stats,
+      total_success: result.total_success,
+      total_failed: result.total_failed,
+      success_rate: result.success_rate,
+    };
+
+    await query(sql, [
+      direction,
+      SyncType.FULL_SYNC,
+      JSON.stringify(requestPayload),
+      JSON.stringify(responsePayload),
+      status,
+      errorMessage,
+    ]);
+
+    logger.debug('Sync summary logged', { direction, status });
+  } catch (error) {
+    logger.error('Failed to log sync summary', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    // Don't throw - logging failure shouldn't stop the sync result
+  }
 }
 
 /**
@@ -263,6 +330,12 @@ export async function runFullSync(
       success_rate: result.success_rate,
     });
 
+    // Log sync summary to database
+    const syncStatus = result.total_failed > 0
+      ? (result.total_success > 0 ? SyncStatus.PARTIAL : SyncStatus.FAILED)
+      : SyncStatus.SUCCESS;
+    await logSyncSummary(SyncDirection.INBOUND, syncStatus, result);
+
     return result;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -331,6 +404,12 @@ export async function runInboundOnlySync(
       total_failed: result.total_failed,
       success_rate: result.success_rate,
     });
+
+    // Log sync summary to database
+    const syncStatus = result.total_failed > 0
+      ? (result.total_success > 0 ? SyncStatus.PARTIAL : SyncStatus.FAILED)
+      : SyncStatus.SUCCESS;
+    await logSyncSummary(SyncDirection.INBOUND, syncStatus, result);
 
     return result;
   } catch (error) {
