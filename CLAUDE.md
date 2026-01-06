@@ -25,12 +25,39 @@ docs/             # Documentation & logs
 
 ## 🚨 CRITICAL: Database Configuration
 
-**Single Database for ALL Environments:**
+**Neon Branching Setup (Jan 2026):**
+
+All environments use branches within the **FF_React** project (sparkling-bar-47287977):
+
+| Environment | Branch | Endpoint | Worktree |
+|-------------|--------|----------|----------|
+| **Production** | `production` | `ep-dry-night-a9qyh4sj` | `FF_Next.js` (master) |
+| **Development** | `hein-dev` | `ep-aged-poetry-a9bbd8e9` | `FF_Next.js-hein` (hein/dev) |
+
+**Connection Strings:**
+```bash
+# PRODUCTION (master branch) - REAL CUSTOMER DATA
+DATABASE_URL=postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb
+
+# DEVELOPMENT (hein-dev branch) - SAFE TO EXPERIMENT
+DATABASE_URL=postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-aged-poetry-a9bbd8e9.gwc.azure.neon.tech/neondb
 ```
-postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb
+
+**Sync Dev from Production (reset to fresh data):**
+```bash
+export NEON_API_KEY="napi_2afbjxk3l7jh71x10log1icm4yycl3n2hqag9wrg1jgvwqg5z955c2tnt0ip4gwx"
+npx neonctl branches reset br-summer-brook-a9jlv58r --project-id sparkling-bar-47287977 --parent
 ```
-- ✅ Use: `ep-dry-night-a9qyh4sj`
+
+**Git Worktrees:**
+```bash
+git worktree list  # See all worktrees
+# /home/hein/Workspace/FF_Next.js       [master]      - Production DB
+# /home/hein/Workspace/FF_Next.js-hein  [hein/dev]    - Dev DB (branch)
+```
+
 - ❌ Never use: `ep-damp-credit-a857vku0` (old/incorrect)
+- ❌ Deprecated: `ep-jolly-flower-a8zu8hnz` (separate project, not a branch)
 
 ### Two Drop Tables - DO NOT CONFUSE!
 
@@ -64,7 +91,7 @@ PORT=3005 npm start
 # Access at http://localhost:3005
 ```
 
-**DO NOT use dev mode** - Has Watchpack bug from nested package.json in neon/
+Dev mode now works after removing duplicate routes in src/app/ and src/pages/
 
 ## Key Commands
 ```bash

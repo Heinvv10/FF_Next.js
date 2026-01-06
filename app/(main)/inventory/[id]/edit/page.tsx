@@ -58,13 +58,13 @@ export default async function EditAssetPage({ params }: PageProps) {
       <div className="mb-6">
         <Link
           href={`/inventory/${id}`}
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
+          className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back to Asset
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Asset</h1>
-        <p className="text-gray-600">{asset.name} - {asset.assetNumber}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Asset</h1>
+        <p className="text-gray-600 dark:text-gray-400">{asset.name} - {asset.assetNumber}</p>
       </div>
 
       <EditAssetClient asset={asset} categories={categories} />

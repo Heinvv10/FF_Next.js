@@ -43,20 +43,20 @@ function StatCard({
   href?: string;
 }) {
   const content = (
-    <div className={`bg-white rounded-lg shadow p-6 border-l-4 ${color}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-6 border-l-4 ${color}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
         </div>
-        <div className={`p-3 rounded-full bg-opacity-10 ${color.replace('border-', 'bg-')}`}>
+        <div className={`p-3 rounded-full bg-opacity-10 dark:bg-opacity-20 ${color.replace('border-', 'bg-')}`}>
           <Icon className={`h-6 w-6 ${color.replace('border-', 'text-')}`} />
         </div>
       </div>
       {href && (
         <Link
           href={href}
-          className="mt-4 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+          className="mt-4 inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
         >
           View details <ArrowRight className="ml-1 h-4 w-4" />
         </Link>
@@ -74,12 +74,12 @@ export default async function AssetDashboardPage() {
     <div className="p-6">
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Asset Dashboard</h1>
-          <p className="text-gray-600">Overview of company assets</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Asset Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400">Overview of company assets</p>
         </div>
         <Link
           href="/inventory/new"
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm"
         >
           <Plus className="h-5 w-5 mr-2" />
           Add Asset
@@ -120,61 +120,61 @@ export default async function AssetDashboardPage() {
 
       {/* Alerts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
             Calibration Alerts
           </h2>
           <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-              <span className="text-red-800">Overdue</span>
-              <span className="font-bold text-red-600">
+            <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <span className="text-red-800 dark:text-red-300">Overdue</span>
+              <span className="font-bold text-red-600 dark:text-red-400">
                 {stats?.assets?.calibrationOverdue || 0}
               </span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
-              <span className="text-yellow-800">Due within 30 days</span>
-              <span className="font-bold text-yellow-600">
+            <div className="flex justify-between items-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+              <span className="text-yellow-800 dark:text-yellow-300">Due within 30 days</span>
+              <span className="font-bold text-yellow-600 dark:text-yellow-400">
                 {stats?.assets?.calibrationDue || 0}
               </span>
             </div>
           </div>
           <Link
             href="/inventory/calibration"
-            className="mt-4 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+            className="mt-4 inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
           >
             View calibration schedule <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
             <Calendar className="h-5 w-5 text-blue-500 mr-2" />
             Maintenance Overview
           </h2>
           <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-              <span className="text-blue-800">Scheduled</span>
-              <span className="font-bold text-blue-600">
+            <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <span className="text-blue-800 dark:text-blue-300">Scheduled</span>
+              <span className="font-bold text-blue-600 dark:text-blue-400">
                 {stats?.maintenance?.totalScheduled || 0}
               </span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
-              <span className="text-orange-800">Overdue</span>
-              <span className="font-bold text-orange-600">
+            <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <span className="text-orange-800 dark:text-orange-300">Overdue</span>
+              <span className="font-bold text-orange-600 dark:text-orange-400">
                 {stats?.maintenance?.totalOverdue || 0}
               </span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-              <span className="text-green-800">Completed</span>
-              <span className="font-bold text-green-600">
+            <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <span className="text-green-800 dark:text-green-300">Completed</span>
+              <span className="font-bold text-green-600 dark:text-green-400">
                 {stats?.maintenance?.totalCompleted || 0}
               </span>
             </div>
           </div>
           <Link
             href="/inventory/maintenance"
-            className="mt-4 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+            className="mt-4 inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
           >
             View maintenance schedule <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
@@ -182,36 +182,36 @@ export default async function AssetDashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link
             href="/inventory/checkout"
-            className="p-4 border rounded-lg hover:bg-gray-50 text-center"
+            className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-center transition-colors"
           >
             <Package className="h-8 w-8 mx-auto text-blue-500 mb-2" />
-            <span className="text-sm font-medium">Check Out Asset</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">Check Out Asset</span>
           </Link>
           <Link
             href="/inventory/checkout?mode=checkin"
-            className="p-4 border rounded-lg hover:bg-gray-50 text-center"
+            className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-center transition-colors"
           >
             <CheckCircle className="h-8 w-8 mx-auto text-green-500 mb-2" />
-            <span className="text-sm font-medium">Check In Asset</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">Check In Asset</span>
           </Link>
           <Link
             href="/inventory/maintenance"
-            className="p-4 border rounded-lg hover:bg-gray-50 text-center"
+            className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-center transition-colors"
           >
             <Wrench className="h-8 w-8 mx-auto text-orange-500 mb-2" />
-            <span className="text-sm font-medium">Schedule Maintenance</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">Schedule Maintenance</span>
           </Link>
           <Link
             href="/inventory/new"
-            className="p-4 border rounded-lg hover:bg-gray-50 text-center"
+            className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-center transition-colors"
           >
             <Plus className="h-8 w-8 mx-auto text-purple-500 mb-2" />
-            <span className="text-sm font-medium">Register New Asset</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">Register New Asset</span>
           </Link>
         </div>
       </div>

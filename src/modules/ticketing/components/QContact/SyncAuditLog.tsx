@@ -32,6 +32,7 @@ import {
   ArrowLeftRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useQContactSyncLog } from '../../hooks/useQContactSync';
 import type {
   QContactSyncLog,
   SyncLogListResponse,
@@ -41,8 +42,8 @@ import type {
 } from '../../types/qcontact';
 
 interface SyncAuditLogProps {
-  /** Sync log data */
-  data: SyncLogListResponse | null;
+  /** Sync log data (optional - will fetch internally if not provided) */
+  data?: SyncLogListResponse | null;
   /** Loading state */
   isLoading?: boolean;
   /** Error message */
@@ -386,11 +387,15 @@ function FilterPanel({
 
 /**
  * 🟢 WORKING: Sync audit log component
+ *
+ * Can be used in two modes:
+ * 1. Controlled: Pass data, isLoading, error props
+ * 2. Uncontrolled: Component fetches its own data using useQContactSyncLog
  */
 export function SyncAuditLog({
-  data,
-  isLoading = false,
-  error = null,
+  data: externalData,
+  isLoading: externalIsLoading = false,
+  error: externalError = null,
   onFilterChange,
   onPageChange,
   currentPage = 1,
@@ -398,6 +403,38 @@ export function SyncAuditLog({
   compact = false,
 }: SyncAuditLogProps) {
   const [filters, setFilters] = useState<AuditLogFilters>({});
+
+  // Fetch data internally if not provided externally
+  const {
+    syncLogs,
+    total,
+    byDirection,
+    byStatus,
+    successRate,
+    isLoading: internalIsLoading,
+    isError,
+    error: internalError,
+    refetch,
+  } = useQContactSyncLog(undefined, {
+    // Only fetch if no external data is provided
+    enabled: externalData === undefined,
+  });
+
+  // Use external data if provided, otherwise use internally fetched data
+  const data: SyncLogListResponse | null = externalData !== undefined
+    ? externalData
+    : syncLogs
+      ? {
+          logs: syncLogs,
+          total,
+          by_direction: byDirection || { inbound: 0, outbound: 0 },
+          by_status: byStatus || { success: 0, failed: 0, partial: 0, pending: 0 },
+          success_rate: successRate,
+        }
+      : null;
+
+  const isLoading = externalData !== undefined ? externalIsLoading : internalIsLoading;
+  const error = externalData !== undefined ? externalError : (isError ? (internalError as Error)?.message : null);
 
   const handleFilterChange = (newFilters: AuditLogFilters) => {
     setFilters(newFilters);
