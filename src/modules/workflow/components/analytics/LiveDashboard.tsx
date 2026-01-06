@@ -57,7 +57,7 @@ interface ActivityFeed {
 
 export function LiveDashboard({ analytics, onRefresh, refreshing = false }: LiveDashboardProps) {
   const [isLive, setIsLive] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connected');
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [activityFeed, setActivityFeed] = useState<ActivityFeed[]>([]);
@@ -305,7 +305,7 @@ export function LiveDashboard({ analytics, onRefresh, refreshing = false }: Live
             {connectionStatus === 'connected' ? 'Live' : connectionStatus === 'connecting' ? 'Connecting' : 'Offline'}
           </div>
           <div className="text-sm text-gray-500">
-            Last updated: {formatTimeAgo(lastUpdate)}
+            Last updated: {lastUpdate ? formatTimeAgo(lastUpdate) : 'Loading...'}
           </div>
         </div>
 
