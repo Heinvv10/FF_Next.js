@@ -471,6 +471,7 @@ export async function runOutboundOnlySync(
 export async function getSyncProgress(): Promise<SyncProgress> {
   logger.debug('Fetching sync progress');
 
+  // Note: synced_at is TIMESTAMP WITHOUT TIME ZONE, so cast NOW() to match
   const sql = `
     SELECT
       COUNT(*) as total,
@@ -478,7 +479,7 @@ export async function getSyncProgress(): Promise<SyncProgress> {
       COUNT(*) FILTER (WHERE status = 'failed') as failed,
       COUNT(*) FILTER (WHERE status = 'partial') as partial
     FROM qcontact_sync_log
-    WHERE synced_at >= NOW() - INTERVAL '24 hours'
+    WHERE synced_at >= (NOW() AT TIME ZONE 'UTC')::timestamp - INTERVAL '24 hours'
   `;
 
   try {

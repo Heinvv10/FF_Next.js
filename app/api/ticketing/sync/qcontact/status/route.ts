@@ -18,6 +18,9 @@ import { createLogger } from '@/lib/logger';
 import { getSyncProgress } from '@/modules/ticketing/services/qcontactSyncOrchestrator';
 import { query, queryOne } from '@/modules/ticketing/utils/db';
 
+// Disable caching - status should always be fresh
+export const dynamic = 'force-dynamic';
+
 const logger = createLogger('ticketing:api:sync:status');
 
 // ==================== GET /api/ticketing/sync/qcontact/status ====================
@@ -52,6 +55,7 @@ export async function GET(req: NextRequest) {
     }>(lastSyncSql, []);
 
     // Get total counts by direction (last 7 days)
+    // Note: synced_at is TIMESTAMP WITHOUT TIME ZONE, so cast NOW() to match
     const directionStatsSql = `
       SELECT
         sync_direction,
@@ -59,7 +63,7 @@ export async function GET(req: NextRequest) {
         COUNT(*) FILTER (WHERE status = 'success') as successful,
         COUNT(*) FILTER (WHERE status = 'failed') as failed
       FROM qcontact_sync_log
-      WHERE synced_at >= NOW() - INTERVAL '7 days'
+      WHERE synced_at >= (NOW() AT TIME ZONE 'UTC')::timestamp - INTERVAL '7 days'
       GROUP BY sync_direction
     `;
 

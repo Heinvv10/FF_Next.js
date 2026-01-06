@@ -50,7 +50,9 @@ export function getConnection(): NeonQueryFunction<false, false> {
   if (!connection) {
     const databaseUrl = getDatabaseUrl();
     connection = neon(databaseUrl);
-    logger.info('Database connection initialized');
+    // Log partial URL for debugging (hide password)
+    const safeUrl = databaseUrl.replace(/:[^:@]+@/, ':***@');
+    logger.info('Database connection initialized', { url: safeUrl });
   }
 
   return connection;
