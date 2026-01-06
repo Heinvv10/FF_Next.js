@@ -1,17 +1,23 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { ArrowLeft, Edit, Mail, Phone, Calendar, Briefcase, Award } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Phone, Calendar, Briefcase, Award, FileText, FolderKanban, User } from 'lucide-react';
 import { useStaffMember, useDeleteStaff } from '@/hooks/useStaff';
 import { format } from 'date-fns';
 import { safeToDate } from '@/utils/dateHelpers';
 import { log } from '@/lib/logger';
+import { StaffDocumentList } from '@/components/staff/StaffDocumentList';
+import { StaffProjectAssignment } from '@/components/staff/StaffProjectAssignment';
+
+type TabType = 'overview' | 'documents' | 'projects';
 
 export function StaffDetail() {
   const router = useRouter();
   const { id } = router.query as { id: string };
   const { data: staff, isLoading, error } = useStaffMember(id || '');
   const deleteMutation = useDeleteStaff();
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this staff member?')) return;
@@ -98,8 +104,60 @@ export function StaffDetail() {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="flex -mb-px px-6" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`py-3 px-4 text-sm font-medium border-b-2 flex items-center gap-2 ${
+                activeTab === 'overview'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <User className="h-4 w-4" />
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('documents')}
+              className={`py-3 px-4 text-sm font-medium border-b-2 flex items-center gap-2 ${
+                activeTab === 'documents'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              Documents
+            </button>
+            <button
+              onClick={() => setActiveTab('projects')}
+              className={`py-3 px-4 text-sm font-medium border-b-2 flex items-center gap-2 ${
+                activeTab === 'projects'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <FolderKanban className="h-4 w-4" />
+              Projects
+            </button>
+          </nav>
+        </div>
+
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6">
+          {/* Documents Tab */}
+          {activeTab === 'documents' && (
+            <StaffDocumentList staffId={id} />
+          )}
+
+          {/* Projects Tab */}
+          {activeTab === 'projects' && (
+            <StaffProjectAssignment staffId={id} staffName={staff.name} />
+          )}
+
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
           {/* Status Badge */}
           <div>
             <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(staff.status)}`}>
@@ -300,6 +358,8 @@ export function StaffDetail() {
                 <p>{staff.address}</p>
                 <p>{staff.city}, {staff.province} {staff.postalCode}</p>
               </div>
+            </div>
+          )}
             </div>
           )}
         </div>
