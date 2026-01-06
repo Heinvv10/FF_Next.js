@@ -20,12 +20,12 @@ export function FileUploadArea({ selectedFile, onFileSelect, onClearFile }: File
   };
 
   return (
-    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+    <div className="border-2 border-dashed border-[var(--ff-border-light)] rounded-lg p-6 text-center hover:border-blue-500/50 transition-colors">
       {!selectedFile ? (
         <label className="cursor-pointer">
-          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-lg font-medium text-gray-900 mb-2">Choose a file to upload</p>
-          <p className="text-sm text-gray-600 mb-4">CSV, Excel (.xlsx, .xls) files supported</p>
+          <Upload className="w-12 h-12 text-[var(--ff-text-secondary)] mx-auto mb-4" />
+          <p className="text-lg font-medium text-[var(--ff-text-primary)] mb-2">Choose a file to upload</p>
+          <p className="text-sm text-[var(--ff-text-secondary)] mb-4">CSV, Excel (.xlsx, .xls) files supported</p>
           <div className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
             <Upload className="w-4 h-4 mr-2" />
             Select File
@@ -38,19 +38,19 @@ export function FileUploadArea({ selectedFile, onFileSelect, onClearFile }: File
           />
         </label>
       ) : (
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-[var(--ff-bg-tertiary)] rounded-lg">
           <div className="flex items-center space-x-3">
             {getFileIcon(selectedFile.name)}
             <div className="text-left">
-              <p className="font-medium text-gray-900">{selectedFile.name}</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-[var(--ff-text-primary)]">{selectedFile.name}</p>
+              <p className="text-sm text-[var(--ff-text-secondary)]">
                 {formatFileSize(selectedFile.size)}
               </p>
             </div>
           </div>
           <button
             onClick={onClearFile}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1 text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>

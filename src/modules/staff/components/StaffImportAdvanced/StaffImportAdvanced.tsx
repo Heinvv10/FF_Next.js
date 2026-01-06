@@ -24,10 +24,10 @@ export function StaffImportAdvanced() {
   } = useStaffImportAdvanced();
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-[var(--ff-bg-secondary)] rounded-lg shadow-sm border border-[var(--ff-border-light)] p-6">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Import Staff Data</h3>
-        <p className="text-sm text-gray-600">
+        <h3 className="text-lg font-semibold text-[var(--ff-text-primary)] mb-2">Import Staff Data</h3>
+        <p className="text-sm text-[var(--ff-text-secondary)]">
           Upload CSV or Excel files to import staff members. Supports both new records and updates to existing staff.
         </p>
       </div>
@@ -39,13 +39,13 @@ export function StaffImportAdvanced() {
             type="checkbox"
             checked={overwriteExisting}
             onChange={(e) => setOverwriteExisting(e.target.checked)}
-            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            className="h-4 w-4 text-blue-600 border-[var(--ff-border-light)] rounded focus:ring-blue-500 bg-[var(--ff-bg-tertiary)]"
           />
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-[var(--ff-text-primary)]">
             Overwrite existing staff records
           </span>
         </label>
-        <p className="text-xs text-gray-500 mt-1 ml-7">
+        <p className="text-xs text-[var(--ff-text-secondary)] mt-1 ml-7">
           When enabled, staff with matching Employee IDs will be updated. When disabled, duplicates will be skipped.
         </p>
       </div>
@@ -62,7 +62,7 @@ export function StaffImportAdvanced() {
       <div className="flex items-center justify-between mt-6">
         <button
           onClick={downloadTemplate}
-          className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-[var(--ff-text-secondary)] bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg hover:bg-[var(--ff-bg-hover)] transition-colors"
         >
           <Download className="w-4 h-4 mr-2" />
           Download Template
