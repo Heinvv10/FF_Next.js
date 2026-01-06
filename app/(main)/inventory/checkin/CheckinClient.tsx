@@ -7,8 +7,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, Package, User } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { ArrowLeft, Loader2, Package, User, ScanLine } from 'lucide-react';
 import type { Asset } from '@/modules/assets/types';
+
+// Dynamic import for barcode scanner (client-side only)
+const BarcodeScannerModal = dynamic(
+  () => import('@/modules/barcode-scanner/components/BarcodeScannerModal').then(mod => mod.default),
+  { ssr: false, loading: () => null }
+);
 
 interface CheckinClientProps {
   assets: Asset[];
@@ -30,6 +37,7 @@ export function CheckinClient({ assets, preselectedAssetId }: CheckinClientProps
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     assetId: preselectedAssetId || '',
@@ -45,6 +53,16 @@ export function CheckinClient({ assets, preselectedAssetId }: CheckinClientProps
   ) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  }
+
+  // Handle asset found from barcode scanner
+  function handleAssetScanned(asset: Asset) {
+    if (asset.status !== 'assigned') {
+      setError(`Asset "${asset.name}" is not checked out (status: ${asset.status}).`);
+      return;
+    }
+    setFormData((prev) => ({ ...prev, assetId: asset.id }));
+    setError('');
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -100,21 +118,32 @@ export function CheckinClient({ assets, preselectedAssetId }: CheckinClientProps
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Select Asset to Return *
             </label>
-            <select
-              name="assetId"
-              value={formData.assetId}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Choose an asset...</option>
-              {assets.map((asset) => (
-                <option key={asset.id} value={asset.id}>
-                  {asset.assetNumber} - {asset.name}
-                  {asset.currentAssigneeName && ` (with ${asset.currentAssigneeName})`}
-                </option>
-              ))}
-            </select>
+            <div className="flex gap-2">
+              <select
+                name="assetId"
+                value={formData.assetId}
+                onChange={handleChange}
+                required
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Choose an asset...</option>
+                {assets.map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.assetNumber} - {asset.name}
+                    {asset.currentAssigneeName && ` (with ${asset.currentAssigneeName})`}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setScannerOpen(true)}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                title="Scan barcode"
+              >
+                <ScanLine className="h-5 w-5" />
+                <span className="hidden sm:inline">Scan</span>
+              </button>
+            </div>
           </div>
 
           {/* Selected Asset Info */}
@@ -236,6 +265,17 @@ export function CheckinClient({ assets, preselectedAssetId }: CheckinClientProps
             </button>
           </div>
         </>
+      )}
+
+      {/* Barcode Scanner Modal - only render when open */}
+      {scannerOpen && (
+        <BarcodeScannerModal
+          isOpen={scannerOpen}
+          onClose={() => setScannerOpen(false)}
+          onAssetFound={handleAssetScanned}
+          title="Scan Asset to Check In"
+          filterByStatus={['assigned']}
+        />
       )}
     </form>
   );

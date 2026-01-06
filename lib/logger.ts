@@ -86,8 +86,8 @@ const baseLogger = pino({
   // Error key
   errorKey: 'error',
   
-  // Pretty print in development for better readability
-  ...((!isProduction && process.stdout.isTTY) ? {
+  // Pretty print in development for better readability (server-side only)
+  ...((!isProduction && typeof process !== 'undefined' && process.stdout?.isTTY) ? {
     transport: {
       target: 'pino-pretty',
       options: {
