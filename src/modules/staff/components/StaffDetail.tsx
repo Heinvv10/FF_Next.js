@@ -41,8 +41,8 @@ export function StaffDetail() {
   if (error || !staff) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600">Staff member not found</p>
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+          <p className="text-red-400">Staff member not found</p>
         </div>
       </div>
     );
@@ -50,11 +50,11 @@ export function StaffDetail() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'on_leave': return 'bg-yellow-100 text-yellow-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
-      case 'suspended': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active': return 'bg-green-500/20 text-green-400';
+      case 'on_leave': return 'bg-yellow-500/20 text-yellow-400';
+      case 'inactive': return 'bg-gray-500/20 text-gray-400';
+      case 'suspended': return 'bg-red-500/20 text-red-400';
+      default: return 'bg-gray-500/20 text-gray-400';
     }
   };
 
