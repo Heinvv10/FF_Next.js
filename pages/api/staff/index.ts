@@ -21,6 +21,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
           const staff = await sql`
             SELECT
               s.*,
+              s.employee_id as "employeeId",
               CONCAT(s.first_name, ' ', s.last_name) as name,
               CONCAT(s.first_name, ' ', s.last_name) as full_name
             FROM staff s
@@ -47,6 +48,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             staff = await sql`
               SELECT
                 s.*,
+                s.employee_id as "employeeId",
                 CONCAT(s.first_name, ' ', s.last_name) as name,
                 CONCAT(s.first_name, ' ', s.last_name) as full_name
               FROM staff s
@@ -64,6 +66,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             staff = await sql`
               SELECT
                 s.*,
+                s.employee_id as "employeeId",
                 CONCAT(s.first_name, ' ', s.last_name) as name,
                 CONCAT(s.first_name, ' ', s.last_name) as full_name
               FROM staff s
@@ -81,6 +84,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             staff = await sql`
               SELECT
                 s.*,
+                s.employee_id as "employeeId",
                 CONCAT(s.first_name, ' ', s.last_name) as name,
                 CONCAT(s.first_name, ' ', s.last_name) as full_name
               FROM staff s
@@ -98,6 +102,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             staff = await sql`
               SELECT
                 s.*,
+                s.employee_id as "employeeId",
                 CONCAT(s.first_name, ' ', s.last_name) as name,
                 CONCAT(s.first_name, ' ', s.last_name) as full_name
               FROM staff s
@@ -115,6 +120,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             staff = await sql`
               SELECT
                 s.*,
+                s.employee_id as "employeeId",
                 CONCAT(s.first_name, ' ', s.last_name) as name,
                 CONCAT(s.first_name, ' ', s.last_name) as full_name
               FROM staff s
@@ -125,6 +131,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             staff = await sql`
               SELECT
                 s.*,
+                s.employee_id as "employeeId",
                 CONCAT(s.first_name, ' ', s.last_name) as name,
                 CONCAT(s.first_name, ' ', s.last_name) as full_name
               FROM staff s
@@ -135,6 +142,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             staff = await sql`
               SELECT
                 s.*,
+                s.employee_id as "employeeId",
                 CONCAT(s.first_name, ' ', s.last_name) as name,
                 CONCAT(s.first_name, ' ', s.last_name) as full_name
               FROM staff s
@@ -145,6 +153,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             staff = await sql`
               SELECT
                 s.*,
+                s.employee_id as "employeeId",
                 CONCAT(s.first_name, ' ', s.last_name) as name,
                 CONCAT(s.first_name, ' ', s.last_name) as full_name
               FROM staff s
@@ -156,6 +165,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             staff = await sql`
               SELECT
                 s.*,
+                s.employee_id as "employeeId",
                 CONCAT(s.first_name, ' ', s.last_name) as name,
                 CONCAT(s.first_name, ' ', s.last_name) as full_name
               FROM staff s
@@ -167,6 +177,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
             staff = await sql`
               SELECT
                 s.*,
+                s.employee_id as "employeeId",
                 CONCAT(s.first_name, ' ', s.last_name) as name,
                 CONCAT(s.first_name, ' ', s.last_name) as full_name
               FROM staff s
@@ -211,7 +222,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
               ${staffData.join_date || staffData.startDate || new Date().toISOString()},
               ${staffData.status || 'ACTIVE'}
             )
-            RETURNING *, CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
+            RETURNING *, employee_id as "employeeId", CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
           `;
 
           // Log successful staff creation
@@ -301,7 +312,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
                 exit_processed_date = NOW(),
                 updated_at = NOW()
             WHERE id = ${req.query.id as string}
-            RETURNING *, CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
+            RETURNING *, employee_id as "employeeId", CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
           `;
         } else {
           updatedStaff = await sql`
@@ -322,7 +333,7 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
                 exit_processed_by = COALESCE(${exitProcessedBy}, exit_processed_by),
                 updated_at = NOW()
             WHERE id = ${req.query.id as string}
-            RETURNING *, CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
+            RETURNING *, employee_id as "employeeId", CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
           `;
         }
 
