@@ -1,8 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'' -c \"\"SELECT dr_number FROM foto_ai_reviews WHERE dr_number IN (''DR1856255'', ''DR1856232'', ''DR1856248'', ''DR1752318'');\"\"\")",
-      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'' -c \"\"SELECT drop_number FROM qa_photo_reviews WHERE drop_number IN (''DR1854650'', ''DR1854713'', ''DR1854832'', ''DR1854833'');\"\"\")"
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(scp:*)",
+      "Bash(npm install:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": [],
