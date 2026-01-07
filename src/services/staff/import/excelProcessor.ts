@@ -38,13 +38,13 @@ export async function importFromExcel(file: File, overwriteExisting: boolean = t
         
         // Map Excel columns to staff fields
         const rows: StaffImportRow[] = jsonData.map((row: any) => ({
-          employeeId: row['Employee ID'] || row['employee id'] || '',
+          employeeId: row['Employee ID'] || row['Employee id'] || row['employee id'] || '',
           name: row['Name'] || row['name'] || '',
           email: row['Email'] || row['email'] || '',
           phone: row['Phone'] || row['phone'] || '',
           position: row['Position'] || row['position'] || 'Staff',
           department: row['Department'] || row['department'] || row['Primary Group'] || 'Operations',
-          managerName: row['Reports To'] || row['reports to'] || '',
+          managerName: row['Reports To'] || row['Reports to'] || row['reports to'] || '',
           skills: row['Skills'] || row['skills'] || '',
           alternativePhone: row['Alternative Phone'] || row['alternative phone'] || '',
           address: row['Address'] || row['address'] || '',
@@ -53,7 +53,7 @@ export async function importFromExcel(file: File, overwriteExisting: boolean = t
           postalCode: row['Postal Code'] || row['postal code'] || '',
           emergencyContactName: row['Emergency Contact Name'] || '',
           emergencyContactPhone: row['Emergency Contact Phone'] || '',
-          startDate: row['Start Date'] || row['start date'] || '',
+          startDate: row['Start Date'] || row['Start date'] || row['start date'] || '',
           contractType: row['Contract Type'] || '',
           workingHours: row['Working Hours'] || ''
         }));
