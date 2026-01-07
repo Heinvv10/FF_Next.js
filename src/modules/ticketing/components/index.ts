@@ -53,3 +53,6 @@ export { UserSelector, TeamSelector, AssignmentPanel } from './Assignment';
 
 // KanbanBoard Components (✅ Completed)
 export { KanbanBoard } from './KanbanBoard/KanbanBoard';
+
+// TicketForm Components (✅ Completed - ticket creation form)
+export { TicketForm } from './TicketForm';
