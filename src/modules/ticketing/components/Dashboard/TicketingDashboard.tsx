@@ -56,7 +56,7 @@ export function TicketingDashboard({
   const [summaryData, setSummaryData] = useState<DashboardSummary | null>(null);
   const [workloadData, setWorkloadData] = useState<WorkloadByAssignee[]>([]);
   const [recentTickets, setRecentTickets] = useState<RecentTicket[]>([]);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   // 🟢 WORKING: Fetch dashboard data
   const fetchDashboardData = React.useCallback(async () => {
@@ -167,7 +167,7 @@ export function TicketingDashboard({
         <div>
           <h1 className="text-2xl font-bold text-[var(--ff-text-primary)]">Ticketing Dashboard</h1>
           <p className="text-sm text-[var(--ff-text-secondary)] mt-1">
-            Last updated {lastRefresh.toLocaleTimeString()}
+            Last updated {lastRefresh?.toLocaleTimeString() ?? 'Loading...'}
           </p>
         </div>
 

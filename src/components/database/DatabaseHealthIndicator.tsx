@@ -16,7 +16,7 @@ export const DatabaseHealthIndicator: React.FC<DatabaseHealthIndicatorProps> = (
   showDetails = false,
   children
 }) => {
-  const [lastCheck, setLastCheck] = useState<Date>(new Date());
+  const [lastCheck, setLastCheck] = useState<Date | null>(null);
 
   const {
     data: healthStatus,

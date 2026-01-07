@@ -8,7 +8,7 @@ import { StaffImportRow, StaffImportResult, StaffMember } from '@/types/staff.ty
 import { processImportRows } from './rowProcessor';
 import { SecureExcelProcessor } from '@/excel/secureExcelProcessor';
 import { log } from '@/lib/logger';
-import { safeToDate } from '@/src/utils/dateHelpers';
+import { safeToDate } from '@/utils/dateHelpers';
 
 /**
  * Import staff from Excel file with enhanced security and performance

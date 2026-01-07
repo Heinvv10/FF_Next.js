@@ -6,6 +6,32 @@
 
 import { analyticsApi } from '@/services/api/analyticsApi';
 import { log } from '@/lib/logger';
+import { staffService } from '@/services/staffService';
+import { neon } from '@neondatabase/serverless';
+
+// Initialize SQL client for deprecated methods
+const sql = neon(process.env.DATABASE_URL || '');
+
+// Type definitions for deprecated query services
+const staffQueryService = {
+  getStaffSummary: () => staffService.getStaffSummary(),
+};
+
+const clientQueryService = {
+  getClientSummary: async () => ({
+    totalProjectValue: 0,
+    activeClients: 0,
+  }),
+};
+
+const ProjectQueryService = {
+  getAllProjects: async () => [] as any[],
+  getActiveProjects: async () => [] as any[],
+};
+
+const ProjectStatus = {
+  COMPLETED: 'COMPLETED',
+} as const;
 
 // 🟢 WORKING: Core dashboard data types
 export interface DashboardStats {

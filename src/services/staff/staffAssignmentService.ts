@@ -61,8 +61,9 @@ export const staffAssignmentService = {
           where('id', '==', id)
         ));
         
-        if (!assignmentDoc.empty) {
-          const assignment = assignmentDoc.docs[0].data() as ProjectAssignment;
+        const firstDoc = assignmentDoc.docs[0];
+        if (!assignmentDoc.empty && firstDoc) {
+          const assignment = firstDoc.data() as ProjectAssignment;
           await this.updateStaffProjectCount(assignment.staffId);
         }
       }

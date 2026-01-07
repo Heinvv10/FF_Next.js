@@ -10,10 +10,22 @@ export function createLoggedSql(databaseUrl: string): NeonQueryFunction<false, f
   return new Proxy(baseSql, {
     apply: async (target, thisArg, argumentsList) => {
       const startTime = Date.now();
-      const [strings, ...values] = argumentsList;
-      
-      // Reconstruct query for logging (safely, without actual values)
-      const query = strings.join('$?');
+      const [first, ...rest] = argumentsList;
+
+      // Handle both tagged template and regular function call syntax
+      let query: string;
+      let paramCount: number;
+
+      if (Array.isArray(first)) {
+        // Tagged template literal: sql`SELECT * FROM ...`
+        query = first.join('$?');
+        paramCount = rest.length;
+      } else {
+        // Regular function call: sql('SELECT * FROM ...', [params])
+        query = String(first);
+        paramCount = Array.isArray(rest[0]) ? rest[0].length : rest.length;
+      }
+
       const queryPreview = query.length > 200 ? query.substring(0, 200) + '...' : query;
       
       try {
@@ -24,7 +36,7 @@ export function createLoggedSql(databaseUrl: string): NeonQueryFunction<false, f
         // Log query details
         const logData = {
           query: queryPreview,
-          paramCount: values.length,
+          paramCount,
           rowCount: Array.isArray(result) ? result.length : 1,
           duration: `${duration}ms`,
           slow: duration > 1000
@@ -46,7 +58,7 @@ export function createLoggedSql(databaseUrl: string): NeonQueryFunction<false, f
           query: queryPreview,
           error: error instanceof Error ? error.message : 'Unknown error',
           duration: `${duration}ms`,
-          paramCount: values.length
+          paramCount
         }, 'Database query failed');
         
         throw error;

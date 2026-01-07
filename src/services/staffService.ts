@@ -7,51 +7,112 @@ import { staffNeonService } from './staff/staffNeonService';
 import { staffApiService } from './staff/staffApiService';
 import { staffImportService } from './staff/staffImportService';
 import { staffExportService } from './staff/staffExportService';
+import type { StaffMember, StaffFilter, StaffDropdownOption, StaffSummary } from '@/types/staff.types';
 
 // Use API service in browser, Neon service for server/build
 const isBrowser = typeof window !== 'undefined';
-const baseService = isBrowser ? staffApiService : staffNeonService;
 
-export const staffService = {
+/**
+ * Staff Service Interface
+ * Provides consistent typing regardless of browser/server environment
+ */
+interface StaffService {
+  getAll: (filter?: StaffFilter) => Promise<StaffMember[]>;
+  getById: (id: string) => Promise<StaffMember | null>;
+  create: (data: Partial<StaffMember>) => Promise<StaffMember>;
+  createOrUpdate: (data: Partial<StaffMember>) => Promise<StaffMember>;
+  update: (id: string, data: Partial<StaffMember>) => Promise<StaffMember>;
+  delete: (id: string) => Promise<void>;
+  getActiveStaff: () => Promise<StaffDropdownOption[]>;
+  getProjectManagers: () => Promise<StaffDropdownOption[]>;
+  getStaffSummary: () => Promise<StaffSummary>;
+  getProjectAssignments: () => Promise<unknown[]>;
+  assignToProject: () => Promise<{ success: boolean }>;
+  updateStaffProjectCount: () => Promise<{ success: boolean }>;
+  importFromCSV: typeof staffImportService.importFromCSV;
+  importFromExcel: typeof staffImportService.importFromExcel;
+  getImportTemplate: () => string;
+  exportToExcel: typeof staffExportService.exportToExcel;
+  import: typeof staffImportService;
+  export: typeof staffExportService;
+}
+
+export const staffService: StaffService = {
   // Main CRUD operations
-  getAll: baseService.getAll,
-  getById: baseService.getById,
-  create: baseService.create,
-  createOrUpdate: isBrowser ? baseService.create : staffNeonService.createOrUpdate,
-  update: baseService.update,
-  delete: baseService.delete,
-  
+  getAll: async (filter?: StaffFilter): Promise<StaffMember[]> => {
+    return isBrowser ? staffApiService.getAll(filter) : staffNeonService.getAll(filter);
+  },
+
+  getById: async (id: string): Promise<StaffMember | null> => {
+    return isBrowser ? staffApiService.getById(id) : staffNeonService.getById(id);
+  },
+
+  create: async (data: Partial<StaffMember>): Promise<StaffMember> => {
+    return isBrowser ? staffApiService.create(data) : staffNeonService.create(data);
+  },
+
+  createOrUpdate: async (data: Partial<StaffMember>): Promise<StaffMember> => {
+    return isBrowser ? staffApiService.create(data) : staffNeonService.createOrUpdate(data);
+  },
+
+  update: async (id: string, data: Partial<StaffMember>): Promise<StaffMember> => {
+    return isBrowser ? staffApiService.update(id, data) : staffNeonService.update(id, data);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    return isBrowser ? staffApiService.delete(id) : staffNeonService.delete(id);
+  },
+
   // Query operations
-  getActiveStaff: baseService.getActiveStaff,
-  getProjectManagers: isBrowser ? 
-    () => baseService.getAll().then(staff => staff.filter(s => s.status === 'active')) :
-    staffNeonService.getProjectManagers,
-  getStaffSummary: baseService.getStaffSummary,
-  
+  getActiveStaff: async (): Promise<StaffDropdownOption[]> => {
+    return isBrowser ? staffApiService.getActiveStaff() : staffNeonService.getActiveStaff();
+  },
+
+  getProjectManagers: async (): Promise<StaffDropdownOption[]> => {
+    if (isBrowser) {
+      // In browser, filter active staff as project managers
+      const staff = await staffApiService.getAll();
+      return staff
+        .filter(s => s.status === 'active')
+        .map(s => ({
+          id: s.id || '',
+          name: s.name,
+          email: s.email,
+          position: s.position as string,
+          department: s.department as any,
+          status: s.status,
+          currentProjectCount: s.currentProjectCount,
+          maxProjectCount: s.maxProjectCount,
+        }));
+    }
+    return staffNeonService.getProjectManagers();
+  },
+
+  getStaffSummary: async (): Promise<StaffSummary> => {
+    return isBrowser ? staffApiService.getStaffSummary() : staffNeonService.getStaffSummary();
+  },
+
   // Extended operations
   getProjectAssignments: async () => {
-    // Mock implementation - should be implemented in staffNeonService
     return Promise.resolve([]);
   },
-  
+
   assignToProject: async () => {
-    // Mock implementation - should be implemented in staffNeonService
     return Promise.resolve({ success: true });
   },
-  
+
   updateStaffProjectCount: async () => {
-    // Mock implementation - should be implemented in staffNeonService
     return Promise.resolve({ success: true });
   },
-  
+
   // Import operations
   importFromCSV: staffImportService.importFromCSV,
   importFromExcel: staffImportService.importFromExcel,
   getImportTemplate: staffImportService.getImportTemplate || (() => 'Name,Email,Phone,Employee ID,Position,Department'),
-  
+
   // Export operations
   exportToExcel: staffExportService.exportToExcel,
-  
+
   // Legacy structure for backward compatibility
   import: staffImportService,
   export: staffExportService,

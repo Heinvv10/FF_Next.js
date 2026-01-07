@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Calendar, FolderOpen, Users, CheckCircle, AlertTriangle, MapPin, TrendingUp } from 'lucide-react';
 import { ProjectOverviewCard } from './components/ProjectOverviewCard';
 import { RecentActivityFeed } from './components/RecentActivityFeed';
@@ -14,22 +15,39 @@ import { Permission } from '../../types/auth.types';
 
 export function Dashboard() {
   const { currentUser, hasPermission } = useAuth();
-  const { 
-    stats, 
-    trends, 
- 
-    formatNumber, 
-    formatCurrency, 
+  const {
+    stats,
+    trends,
+
+    formatNumber,
+    formatCurrency,
     formatPercentage
   } = useMainDashboardData();
 
+  // Fix hydration: only render time-dependent content after mount
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const getGreeting = () => {
+    if (!mounted) return 'Welcome';
     const hour = new Date().getHours();
     const name = currentUser?.displayName?.split(' ')[0] || 'there';
-    
+
     if (hour < 12) return `Good morning, ${name}`;
     if (hour < 17) return `Good afternoon, ${name}`;
     return `Good evening, ${name}`;
+  };
+
+  const getFormattedDate = () => {
+    if (!mounted) return '';
+    return new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   };
 
   // 🟢 WORKING: Get dashboard cards configuration
@@ -131,12 +149,7 @@ export function Dashboard() {
             <div>
               <div className="text-sm text-primary-200">Today</div>
               <div className="font-semibold">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                {getFormattedDate()}
               </div>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">

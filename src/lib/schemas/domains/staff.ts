@@ -35,6 +35,9 @@ export const StaffStatusSchema = z.enum([
   'suspended',
 ]);
 
+/**
+ * @deprecated Use SAContractTypeSchema instead
+ */
 export const EmploymentTypeSchema = z.enum([
   'full_time',
   'part_time',
@@ -42,6 +45,99 @@ export const EmploymentTypeSchema = z.enum([
   'freelance',
   'intern',
 ]);
+
+// ============================================================================
+// SA Labour Law Compliant Contract Types
+// ============================================================================
+
+/** SA-compliant contract types per BCEA */
+export const SAContractTypeSchema = z.enum([
+  'permanent',        // Indefinite employment
+  'fixed_term',       // Specific duration (max 3 years per LRA)
+  'part_time',        // <24 hours/week
+  'temporary',        // Casual/seasonal
+  'independent_contractor', // Not an employee
+  'intern',           // Skills development
+]);
+
+/** UIF registration status */
+export const UIFStatusSchema = z.enum([
+  'registered',
+  'pending',
+  'exempt',
+  'not_applicable',
+]);
+
+/** COIDA coverage status */
+export const COIDAStatusSchema = z.enum([
+  'covered',
+  'pending',
+  'not_applicable',
+]);
+
+/** Tax deduction method */
+export const TaxStatusSchema = z.enum([
+  'paye',         // Employer deducts
+  'provisional',  // Self-managed (contractors)
+]);
+
+/** Probation period status */
+export const ProbationStatusSchema = z.enum([
+  'in_probation',
+  'completed',
+  'extended',
+  'not_applicable',
+]);
+
+/** Notice period per BCEA Section 37 */
+export const NoticePeriodSchema = z.enum([
+  '1_week',         // <6 months service
+  '2_weeks',        // 6-12 months service
+  '4_weeks',        // >1 year service
+  'as_per_contract',
+  'not_applicable',
+]);
+
+/** Working hours category */
+export const WorkingHoursCategorySchema = z.enum([
+  'full_time',
+  'part_time',
+  'shift_work',
+  'flexible',
+  'not_applicable',
+]);
+
+/** SA Labour Compliance data */
+export const SAComplianceSchema = z.object({
+  // UIF
+  uifStatus: UIFStatusSchema.default('pending'),
+  uifNumber: z.string().optional(),
+  uifRegistrationDate: z.string().datetime().or(z.date()).optional(),
+  // COIDA
+  coidaStatus: COIDAStatusSchema.default('pending'),
+  // Tax
+  taxStatus: TaxStatusSchema.default('paye'),
+  // Probation
+  probationStatus: ProbationStatusSchema.default('not_applicable'),
+  probationStartDate: z.string().datetime().or(z.date()).optional(),
+  probationEndDate: z.string().datetime().or(z.date()).optional(),
+  probationExtended: z.boolean().default(false),
+  probationExtensionReason: z.string().optional(),
+  // Notice Period
+  noticePeriod: NoticePeriodSchema.default('as_per_contract'),
+  customNoticePeriodDays: z.number().min(0).max(90).optional(),
+  // Working Hours
+  workingHoursCategory: WorkingHoursCategorySchema.default('full_time'),
+  weeklyHours: z.number().min(0).max(45).optional(), // Max 45 per BCEA
+  // Contract Dates
+  contractEndDate: z.string().datetime().or(z.date()).optional(),
+  contractRenewalDate: z.string().datetime().or(z.date()).optional(),
+  // SA Identity
+  idNumber: z.string().length(13).optional(), // SA ID is 13 digits
+  passportNumber: z.string().optional(),
+  workPermitNumber: z.string().optional(),
+  workPermitExpiry: z.string().datetime().or(z.date()).optional(),
+});
 
 export const SkillLevelSchema = z.enum([
   'beginner',
@@ -275,5 +371,16 @@ export type CreateStaffAssignment = z.infer<typeof CreateStaffAssignmentSchema>;
 export type StaffPerformance = z.infer<typeof StaffPerformanceSchema>;
 export type StaffRole = z.infer<typeof StaffRoleSchema>;
 export type StaffStatus = z.infer<typeof StaffStatusSchema>;
+/** @deprecated Use SAContractType instead */
 export type EmploymentType = z.infer<typeof EmploymentTypeSchema>;
 export type SkillLevel = z.infer<typeof SkillLevelSchema>;
+
+// SA Labour Compliance Types
+export type SAContractType = z.infer<typeof SAContractTypeSchema>;
+export type UIFStatus = z.infer<typeof UIFStatusSchema>;
+export type COIDAStatus = z.infer<typeof COIDAStatusSchema>;
+export type TaxStatus = z.infer<typeof TaxStatusSchema>;
+export type ProbationStatus = z.infer<typeof ProbationStatusSchema>;
+export type NoticePeriod = z.infer<typeof NoticePeriodSchema>;
+export type WorkingHoursCategory = z.infer<typeof WorkingHoursCategorySchema>;
+export type SACompliance = z.infer<typeof SAComplianceSchema>;

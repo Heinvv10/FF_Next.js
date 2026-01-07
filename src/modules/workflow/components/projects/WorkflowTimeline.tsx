@@ -45,7 +45,12 @@ export function WorkflowTimeline({
   onWorkflowSelect 
 }: WorkflowTimelineProps) {
   const [timelineData, setTimelineData] = useState<TimelineData | null>(null);
-  const [currentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
+
+  // Fix hydration: set date only on client
+  useEffect(() => {
+    setCurrentDate(new Date());
+  }, []);
   const [zoomLevel, setZoomLevel] = useState(1); // 1 = normal, 2 = zoomed in
 
   useEffect(() => {
@@ -82,6 +87,7 @@ export function WorkflowTimeline({
   };
 
   const getCurrentDatePosition = (): number => {
+    if (!currentDate) return 0;
     return getDatePosition(currentDate);
   };
 

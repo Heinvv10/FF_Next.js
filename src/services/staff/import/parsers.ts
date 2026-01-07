@@ -28,23 +28,20 @@ export function parseDate(dateValue: any): Date | undefined {
   if (typeof dateValue === 'string') {
     // Try parsing YYYY/MM/DD format (from your CSV)
     const yyyymmdd = dateValue.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
-    if (yyyymmdd) {
-      const [, year, month, day] = yyyymmdd;
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    if (yyyymmdd && yyyymmdd[1] && yyyymmdd[2] && yyyymmdd[3]) {
+      return new Date(parseInt(yyyymmdd[1]), parseInt(yyyymmdd[2]) - 1, parseInt(yyyymmdd[3]));
     }
-    
+
     // Try parsing DD/MM/YYYY format
     const ddmmyyyy = dateValue.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (ddmmyyyy) {
-      const [, day, month, year] = ddmmyyyy;
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    if (ddmmyyyy && ddmmyyyy[1] && ddmmyyyy[2] && ddmmyyyy[3]) {
+      return new Date(parseInt(ddmmyyyy[3]), parseInt(ddmmyyyy[2]) - 1, parseInt(ddmmyyyy[1]));
     }
-    
+
     // Try parsing YYYY-MM-DD format
     const yyyymmdd2 = dateValue.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-    if (yyyymmdd2) {
-      const [, year, month, day] = yyyymmdd2;
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    if (yyyymmdd2 && yyyymmdd2[1] && yyyymmdd2[2] && yyyymmdd2[3]) {
+      return new Date(parseInt(yyyymmdd2[1]), parseInt(yyyymmdd2[2]) - 1, parseInt(yyyymmdd2[3]));
     }
     
     // Try standard date parsing

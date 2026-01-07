@@ -53,7 +53,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
           p.created_at,
           p.updated_at,
           c.company_name as client_name,
-          s.name as manager_name
+          CONCAT(s.first_name, ' ', s.last_name) as manager_name
         FROM projects p
         LEFT JOIN clients c ON p.client_id = c.id
         LEFT JOIN staff s ON p.project_manager = s.id
@@ -87,7 +87,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
         p.created_at,
         p.updated_at,
         c.company_name as client_name,
-        s.name as manager_name,
+        CONCAT(s.first_name, ' ', s.last_name) as manager_name,
         COUNT(DISTINCT t.id) as task_count
       FROM projects p
       LEFT JOIN clients c ON p.client_id = c.id
@@ -117,7 +117,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       paramIndex++;
     }
     
-    query += ` GROUP BY p.id, p.project_code, p.project_name, p.client_id, p.description, p.project_type, p.status, p.priority, p.start_date, p.end_date, p.budget, p.actual_cost, p.project_manager, p.progress, p.created_at, p.updated_at, c.company_name, s.name ORDER BY p.created_at DESC`;
+    query += ` GROUP BY p.id, p.project_code, p.project_name, p.client_id, p.description, p.project_type, p.status, p.priority, p.start_date, p.end_date, p.budget, p.actual_cost, p.project_manager, p.progress, p.created_at, p.updated_at, c.company_name, s.first_name, s.last_name ORDER BY p.created_at DESC`;
     
     if (limit) {
       query += ` LIMIT $${paramIndex}`;
@@ -130,9 +130,9 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       params.push(Number(offset));
     }
     
-    const projects = params.length > 0 
-      ? await sql.call(null, query, params)
-      : await sql(query);
+    const projects = params.length > 0
+      ? await sql.query(query, params)
+      : await sql.query(query);
     
     return res.status(200).json({ success: true, data: projects || [] });
   } catch (error) {
