@@ -5,7 +5,7 @@
 import {
   Position, Department, StaffLevel, StaffStatus, ContractType, Skill,
   SAContractType, UIFStatus, COIDAStatus, TaxStatus, ProbationStatus, NoticePeriod,
-  WorkingHoursCategory
+  WorkingHoursCategory, ExitType
 } from './enums.types';
 
 export interface StaffFormData {
@@ -74,6 +74,11 @@ export interface StaffFormData {
   passportNumber?: string;
   workPermitNumber?: string;
   workPermitExpiry?: Date;
+
+  // Exit/Termination Data (for former employees)
+  exitType?: ExitType;
+  exitReason?: string;
+  isRehireable?: boolean;
 }
 
 // Dropdown Data Types for UI
@@ -107,4 +112,6 @@ export interface StaffFilter {
   availableWeekends?: boolean;
   availableNights?: boolean;
   searchTerm?: string;
+  /** Include former employees (resigned/terminated/retired) */
+  includeFormerEmployees?: boolean;
 }

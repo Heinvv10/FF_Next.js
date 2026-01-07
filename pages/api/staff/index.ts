@@ -265,44 +265,91 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
           return res.status(400).json({ success: false, error: 'Staff ID required' });
         }
         const updates = req.body;
-        
+
         // Handle name field updates - extract first and last name
         const name = updates.name || '';
         const firstName = updates.first_name || updates.firstName || name.split(' ')[0] || '';
         const lastName = updates.last_name || updates.lastName || name.split(' ').slice(1).join(' ') || '';
-        
-        const updatedStaff = await sql`
-          UPDATE staff
-          SET
-              first_name = COALESCE(${firstName}, first_name),
-              last_name = COALESCE(${lastName}, last_name),
-              email = COALESCE(${updates.email}, email),
-              phone = COALESCE(${updates.phone}, phone),
-              position = COALESCE(${updates.position}, position),
-              department = COALESCE(${updates.department}, department),
-              status = COALESCE(${updates.status}, status),
-              join_date = COALESCE(${updates.join_date || updates.startDate}, join_date),
-              updated_at = NOW()
-          WHERE id = ${req.query.id as string}
-          RETURNING *, CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
-        `;
-        
+
+        // Check if this is an exit/termination update
+        const isExitUpdate = updates.exitType || updates.exit_type;
+        const exitType = updates.exitType || updates.exit_type || null;
+        const exitReason = updates.exitReason || updates.exit_reason || null;
+        const endDate = updates.endDate || updates.end_date || null;
+        const isRehireable = updates.isRehireable ?? updates.is_rehireable ?? null;
+        const exitProcessedBy = updates.exitProcessedBy || updates.exit_processed_by || null;
+
+        // Use different SQL based on whether this is an exit update
+        let updatedStaff;
+        if (isExitUpdate) {
+          updatedStaff = await sql`
+            UPDATE staff
+            SET
+                first_name = COALESCE(${firstName || null}, first_name),
+                last_name = COALESCE(${lastName || null}, last_name),
+                email = COALESCE(${updates.email}, email),
+                phone = COALESCE(${updates.phone}, phone),
+                position = COALESCE(${updates.position}, position),
+                department = COALESCE(${updates.department}, department),
+                status = COALESCE(${updates.status}, status),
+                join_date = COALESCE(${updates.join_date || updates.startDate}, join_date),
+                end_date = COALESCE(${endDate}, end_date),
+                exit_type = COALESCE(${exitType}, exit_type),
+                exit_reason = COALESCE(${exitReason}, exit_reason),
+                is_rehireable = COALESCE(${isRehireable}, is_rehireable),
+                exit_processed_by = COALESCE(${exitProcessedBy}, exit_processed_by),
+                exit_processed_date = NOW(),
+                updated_at = NOW()
+            WHERE id = ${req.query.id as string}
+            RETURNING *, CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
+          `;
+        } else {
+          updatedStaff = await sql`
+            UPDATE staff
+            SET
+                first_name = COALESCE(${firstName || null}, first_name),
+                last_name = COALESCE(${lastName || null}, last_name),
+                email = COALESCE(${updates.email}, email),
+                phone = COALESCE(${updates.phone}, phone),
+                position = COALESCE(${updates.position}, position),
+                department = COALESCE(${updates.department}, department),
+                status = COALESCE(${updates.status}, status),
+                join_date = COALESCE(${updates.join_date || updates.startDate}, join_date),
+                end_date = COALESCE(${endDate}, end_date),
+                exit_type = COALESCE(${exitType}, exit_type),
+                exit_reason = COALESCE(${exitReason}, exit_reason),
+                is_rehireable = COALESCE(${isRehireable}, is_rehireable),
+                exit_processed_by = COALESCE(${exitProcessedBy}, exit_processed_by),
+                updated_at = NOW()
+            WHERE id = ${req.query.id as string}
+            RETURNING *, CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
+          `;
+        }
+
         const updatedStaffRows = updatedStaff as any[];
         if (updatedStaffRows.length === 0) {
-          return res.status(404).json({ 
-            success: false, 
-            error: 'Staff member not found' 
+          return res.status(404).json({
+            success: false,
+            error: 'Staff member not found'
           });
         }
-        
+
         // Log successful staff update
         if (updatedStaffRows[0]) {
-          logUpdate('staff', req.query.id as string, {
+          const logData: Record<string, any> = {
             updated_fields: Object.keys(updates),
             name: updatedStaffRows[0].full_name
-          });
+          };
+
+          // Add exit-specific logging if this was an exit update
+          if (isExitUpdate) {
+            logData.exit_type = exitType;
+            logData.exit_status = updates.status;
+          }
+
+          logUpdate('staff', req.query.id as string, logData);
         }
-        
+
         res.status(200).json({ success: true, data: updatedStaffRows[0] });
         break;
       }

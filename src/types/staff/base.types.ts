@@ -6,7 +6,7 @@ import { Timestamp } from 'firebase/firestore';
 import {
   Department, Position, StaffLevel, StaffStatus, ContractType,
   Skill, Certification, Equipment, TrainingRecord,
-  SAContractType, SAComplianceData
+  SAContractType, SAComplianceData, ExitType
 } from './enums.types';
 
 export interface StaffMember {
@@ -72,7 +72,19 @@ export interface StaffMember {
   inProbation?: boolean;
   /** All required compliance fields are completed */
   complianceComplete?: boolean;
-  
+
+  // Exit/Termination Data (for former employees)
+  /** Type of exit - voluntary, involuntary, retirement, etc. */
+  exitType?: ExitType;
+  /** Detailed reason for leaving */
+  exitReason?: string;
+  /** Whether the employee can be rehired */
+  isRehireable?: boolean;
+  /** Staff ID of person who processed the exit */
+  exitProcessedBy?: string;
+  /** When the exit was processed */
+  exitProcessedDate?: Timestamp;
+
   // Availability and Scheduling
   workingHours: string;
   workLocation?: string;

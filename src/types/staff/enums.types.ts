@@ -76,6 +76,69 @@ export enum StaffStatus {
 }
 
 /**
+ * Exit types for employment termination
+ * Used to categorize why an employee left the company
+ */
+export enum ExitType {
+  VOLUNTARY = 'voluntary',           // Employee resigned
+  INVOLUNTARY = 'involuntary',       // Terminated by company
+  RETIREMENT = 'retirement',         // Retired
+  CONTRACT_END = 'contract_end',     // Fixed-term contract ended
+  MUTUAL_AGREEMENT = 'mutual',       // Mutual separation agreement
+  DEATH = 'death',                   // Deceased
+  ABSCONDED = 'absconded',           // Employee abandoned job
+}
+
+export const EXIT_TYPE_LABELS: Record<ExitType, string> = {
+  [ExitType.VOLUNTARY]: 'Voluntary Resignation',
+  [ExitType.INVOLUNTARY]: 'Terminated by Company',
+  [ExitType.RETIREMENT]: 'Retirement',
+  [ExitType.CONTRACT_END]: 'Contract End',
+  [ExitType.MUTUAL_AGREEMENT]: 'Mutual Separation',
+  [ExitType.DEATH]: 'Deceased',
+  [ExitType.ABSCONDED]: 'Absconded',
+};
+
+/**
+ * Exit data for staff members who have left the company
+ */
+export interface StaffExitData {
+  exitType: ExitType;
+  exitReason: string;
+  endDate: string;  // ISO date string
+  isRehireable: boolean;
+  exitProcessedBy?: string;  // Staff ID who processed the exit
+  exitProcessedDate?: string;  // ISO timestamp
+}
+
+/**
+ * Check if a staff status indicates the employee has left
+ */
+export function isFormerEmployee(status: StaffStatus): boolean {
+  return [
+    StaffStatus.TERMINATED,
+    StaffStatus.RESIGNED,
+    StaffStatus.RETIRED,
+  ].includes(status);
+}
+
+/**
+ * Get the appropriate exit type based on status
+ */
+export function getExitTypeForStatus(status: StaffStatus): ExitType | null {
+  switch (status) {
+    case StaffStatus.RESIGNED:
+      return ExitType.VOLUNTARY;
+    case StaffStatus.TERMINATED:
+      return ExitType.INVOLUNTARY;
+    case StaffStatus.RETIRED:
+      return ExitType.RETIREMENT;
+    default:
+      return null;
+  }
+}
+
+/**
  * @deprecated Use SAContractType from './compliance.types' instead.
  * This enum is kept for backward compatibility with existing data.
  * New code should use SAContractType which aligns with SA labour law.

@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { AlertCircle, Info } from 'lucide-react';
 import {
   StaffFormData,
@@ -29,6 +28,13 @@ import {
   getContractConfig,
 } from '@/types/staff/compliance.types';
 import { useStaff } from '@/hooks/useStaff';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface EmploymentSectionProps {
   formData: StaffFormData;
@@ -37,16 +43,15 @@ interface EmploymentSectionProps {
 
 const inputClasses = "w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500";
 const labelClasses = "block text-sm font-medium text-[var(--ff-text-secondary)] mb-1";
+const selectTriggerClasses = "w-full h-10 px-3 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 export function EmploymentSection({ formData, handleInputChange }: EmploymentSectionProps) {
-  const { data: staffList } = useStaff(); // Get all staff for Reports To dropdown
+  const { data: staffList } = useStaff();
 
-  // Filter positions based on selected department
   const availablePositions = formData.department
     ? getPositionsByDepartment(formData.department)
     : Object.values(StaffPosition);
 
-  // Get potential managers (exclude current staff member if editing)
   const potentialManagers = staffList?.filter(staff =>
     staff.id !== formData.id &&
     ['MD', 'CCSO', 'BDO', 'Head', 'Manager'].some(title =>
@@ -58,110 +63,116 @@ export function EmploymentSection({ formData, handleInputChange }: EmploymentSec
     <div>
       <h2 className="text-lg font-medium text-[var(--ff-text-primary)] mb-4">Employment Details</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Department */}
         <div>
-          <label className={labelClasses}>
-            Department *
-          </label>
-          <select
-            value={formData.department}
-            onChange={(e) => handleInputChange('department', e.target.value)}
-            className={inputClasses}
-            required
+          <label className={labelClasses}>Department *</label>
+          <Select
+            value={formData.department || ''}
+            onValueChange={(value) => handleInputChange('department', value)}
           >
-            <option value="">Select Department</option>
-            {Object.values(StaffDepartment).map(dept => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={selectTriggerClasses}>
+              <SelectValue placeholder="Select Department" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(StaffDepartment).map(dept => (
+                <SelectItem key={dept} value={dept}>
+                  {dept}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
+        {/* Position */}
         <div>
-          <label className={labelClasses}>
-            Position
-          </label>
-          <select
-            value={formData.position}
-            onChange={(e) => handleInputChange('position', e.target.value)}
-            className={inputClasses}
+          <label className={labelClasses}>Position</label>
+          <Select
+            value={formData.position || ''}
+            onValueChange={(value) => handleInputChange('position', value)}
           >
-            <option value="">Select Position</option>
-            {availablePositions.map(position => (
-              <option key={position} value={position}>
-                {position}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={selectTriggerClasses}>
+              <SelectValue placeholder="Select Position" />
+            </SelectTrigger>
+            <SelectContent>
+              {availablePositions.map(position => (
+                <SelectItem key={position} value={position}>
+                  {position}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
+        {/* Reports To */}
         <div>
-          <label className={labelClasses}>
-            Reports To
-          </label>
-          <select
-            value={formData.reportsTo || ''}
-            onChange={(e) => handleInputChange('reportsTo', e.target.value)}
-            className={inputClasses}
+          <label className={labelClasses}>Reports To</label>
+          <Select
+            value={formData.reportsTo || '__none__'}
+            onValueChange={(value) => handleInputChange('reportsTo', value === '__none__' ? '' : value)}
           >
-            <option value="">No Direct Manager</option>
-            {potentialManagers.map(manager => (
-              <option key={manager.id} value={manager.id}>
-                {manager.name} - {manager.position}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={selectTriggerClasses}>
+              <SelectValue placeholder="No Direct Manager" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">No Direct Manager</SelectItem>
+              {potentialManagers.map(manager => (
+                <SelectItem key={manager.id} value={manager.id}>
+                  {manager.name} - {manager.position}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
+        {/* Level */}
         <div>
-          <label className={labelClasses}>
-            Level
-          </label>
-          <select
-            value={formData.level}
-            onChange={(e) => handleInputChange('level', e.target.value as StaffLevel)}
-            className={inputClasses}
+          <label className={labelClasses}>Level</label>
+          <Select
+            value={formData.level || ''}
+            onValueChange={(value) => handleInputChange('level', value as StaffLevel)}
           >
-            <option value="">Select Level</option>
-            {Object.values(StaffLevel).map(level => (
-              <option key={level} value={level}>
-                {level.charAt(0).toUpperCase() + level.slice(1)}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={selectTriggerClasses}>
+              <SelectValue placeholder="Select Level" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(StaffLevel).map(level => (
+                <SelectItem key={level} value={level}>
+                  {level.charAt(0).toUpperCase() + level.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
+        {/* Status */}
         <div>
-          <label className={labelClasses}>
-            Status *
-          </label>
-          <select
-            value={formData.status}
-            onChange={(e) => handleInputChange('status', e.target.value as StaffStatus)}
-            className={inputClasses}
-            required
+          <label className={labelClasses}>Status *</label>
+          <Select
+            value={formData.status || ''}
+            onValueChange={(value) => handleInputChange('status', value as StaffStatus)}
           >
-            <option value="">Select Status</option>
-            {Object.values(StaffStatus).map(status => (
-              <option key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={selectTriggerClasses}>
+              <SelectValue placeholder="Select Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(StaffStatus).map(status => (
+                <SelectItem key={status} value={status}>
+                  {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
+        {/* Contract Type */}
         <div>
-          <label className={labelClasses}>
-            Contract Type *
-          </label>
-          <select
-            value={formData.saContractType || formData.contractType}
-            onChange={(e) => {
-              const newType = e.target.value as SAContractType;
+          <label className={labelClasses}>Contract Type *</label>
+          <Select
+            value={formData.saContractType || formData.contractType || ''}
+            onValueChange={(value) => {
+              const newType = value as SAContractType;
               handleInputChange('saContractType', newType);
-              // Also update legacy field for backward compatibility
               handleInputChange('contractType', newType as unknown as ContractType);
-              // Set default compliance values based on contract type
               const defaults = getDefaultCompliance(newType);
               if (defaults.uifStatus) handleInputChange('uifStatus', defaults.uifStatus);
               if (defaults.coidaStatus) handleInputChange('coidaStatus', defaults.coidaStatus);
@@ -169,16 +180,18 @@ export function EmploymentSection({ formData, handleInputChange }: EmploymentSec
               if (defaults.probationStatus) handleInputChange('probationStatus', defaults.probationStatus);
               if (defaults.noticePeriod) handleInputChange('noticePeriod', defaults.noticePeriod);
             }}
-            className={inputClasses}
-            required
           >
-            <option value="">Select Contract Type</option>
-            {Object.values(SAContractType).map(type => (
-              <option key={type} value={type}>
-                {SA_CONTRACT_TYPE_LABELS[type]}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={selectTriggerClasses}>
+              <SelectValue placeholder="Select Contract Type" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(SAContractType).map(type => (
+                <SelectItem key={type} value={type}>
+                  {SA_CONTRACT_TYPE_LABELS[type]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {formData.saContractType && (
             <p className="mt-1 text-xs text-[var(--ff-text-secondary)]">
               {SA_CONTRACT_CONFIG[formData.saContractType as SAContractType]?.description}
@@ -186,10 +199,9 @@ export function EmploymentSection({ formData, handleInputChange }: EmploymentSec
           )}
         </div>
 
+        {/* Start Date */}
         <div>
-          <label className={labelClasses}>
-            Start Date *
-          </label>
+          <label className={labelClasses}>Start Date *</label>
           <input
             type="date"
             required
@@ -199,10 +211,9 @@ export function EmploymentSection({ formData, handleInputChange }: EmploymentSec
           />
         </div>
 
+        {/* End Date */}
         <div>
-          <label className={labelClasses}>
-            End Date
-          </label>
+          <label className={labelClasses}>End Date</label>
           <input
             type="date"
             value={formData.endDate ? formData.endDate.toISOString().split('T')[0] : ''}
@@ -211,10 +222,9 @@ export function EmploymentSection({ formData, handleInputChange }: EmploymentSec
           />
         </div>
 
+        {/* Experience Years */}
         <div>
-          <label className={labelClasses}>
-            Experience Years
-          </label>
+          <label className={labelClasses}>Experience Years</label>
           <input
             type="number"
             min="0"
@@ -225,10 +235,9 @@ export function EmploymentSection({ formData, handleInputChange }: EmploymentSec
           />
         </div>
 
+        {/* Max Project Count */}
         <div>
-          <label className={labelClasses}>
-            Max Project Count
-          </label>
+          <label className={labelClasses}>Max Project Count</label>
           <input
             type="number"
             min="0"
@@ -240,16 +249,11 @@ export function EmploymentSection({ formData, handleInputChange }: EmploymentSec
         </div>
       </div>
 
-      {/* SA Labour Compliance Section */}
       <SAComplianceSection formData={formData} handleInputChange={handleInputChange} />
     </div>
   );
 }
 
-/**
- * SA Labour Compliance Fields Section
- * Conditionally renders compliance fields based on contract type
- */
 function SAComplianceSection({
   formData,
   handleInputChange,
@@ -264,6 +268,7 @@ function SAComplianceSection({
 
   const inputClasses = "w-full px-3 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500";
   const labelClasses = "block text-sm font-medium text-[var(--ff-text-secondary)] mb-1";
+  const selectTriggerClasses = "w-full h-10 px-3 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   return (
     <div className="mt-6 pt-6 border-t border-[var(--ff-border-light)]">
@@ -274,7 +279,6 @@ function SAComplianceSection({
         </span>
       </h3>
 
-      {/* Info banner for contractors */}
       {!config.isEmployee && (
         <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-2">
           <Info className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
@@ -286,25 +290,28 @@ function SAComplianceSection({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* UIF Section - only for employees */}
+        {/* UIF Section */}
         {config.requiresUIF && (
           <>
             <div>
               <label className={labelClasses}>UIF Status *</label>
-              <select
+              <Select
                 value={formData.uifStatus || UIFStatus.PENDING}
-                onChange={(e) => handleInputChange('uifStatus', e.target.value as UIFStatus)}
-                className={inputClasses}
-                required
+                onValueChange={(value) => handleInputChange('uifStatus', value as UIFStatus)}
               >
-                {Object.values(UIFStatus)
-                  .filter(s => s !== UIFStatus.NOT_APPLICABLE)
-                  .map(status => (
-                    <option key={status} value={status}>
-                      {UIF_STATUS_LABELS[status]}
-                    </option>
-                  ))}
-              </select>
+                <SelectTrigger className={selectTriggerClasses}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(UIFStatus)
+                    .filter(s => s !== UIFStatus.NOT_APPLICABLE)
+                    .map(status => (
+                      <SelectItem key={status} value={status}>
+                        {UIF_STATUS_LABELS[status]}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
             {formData.uifStatus === UIFStatus.REGISTERED && (
               <div>
@@ -321,60 +328,70 @@ function SAComplianceSection({
           </>
         )}
 
-        {/* COIDA Section - only for employees */}
+        {/* COIDA Section */}
         {config.requiresCOIDA && (
           <div>
             <label className={labelClasses}>COIDA Status *</label>
-            <select
+            <Select
               value={formData.coidaStatus || COIDAStatus.PENDING}
-              onChange={(e) => handleInputChange('coidaStatus', e.target.value as COIDAStatus)}
-              className={inputClasses}
-              required
+              onValueChange={(value) => handleInputChange('coidaStatus', value as COIDAStatus)}
             >
-              {Object.values(COIDAStatus)
-                .filter(s => s !== COIDAStatus.NOT_APPLICABLE)
-                .map(status => (
-                  <option key={status} value={status}>
-                    {COIDA_STATUS_LABELS[status]}
-                  </option>
-                ))}
-            </select>
+              <SelectTrigger className={selectTriggerClasses}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(COIDAStatus)
+                  .filter(s => s !== COIDAStatus.NOT_APPLICABLE)
+                  .map(status => (
+                    <SelectItem key={status} value={status}>
+                      {COIDA_STATUS_LABELS[status]}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
         {/* Tax Status */}
         <div>
           <label className={labelClasses}>Tax Status *</label>
-          <select
+          <Select
             value={formData.taxStatus || (config.requiresPAYE ? TaxStatus.PAYE : TaxStatus.PROVISIONAL)}
-            onChange={(e) => handleInputChange('taxStatus', e.target.value as TaxStatus)}
-            className={inputClasses}
-            required
+            onValueChange={(value) => handleInputChange('taxStatus', value as TaxStatus)}
           >
-            {Object.values(TaxStatus).map(status => (
-              <option key={status} value={status}>
-                {TAX_STATUS_LABELS[status]}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={selectTriggerClasses}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(TaxStatus).map(status => (
+                <SelectItem key={status} value={status}>
+                  {TAX_STATUS_LABELS[status]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Probation Section - only if applicable */}
+        {/* Probation Section */}
         {config.hasProbation && (
           <>
             <div>
               <label className={labelClasses}>Probation Status</label>
-              <select
+              <Select
                 value={formData.probationStatus || ProbationStatus.IN_PROBATION}
-                onChange={(e) => handleInputChange('probationStatus', e.target.value as ProbationStatus)}
-                className={inputClasses}
+                onValueChange={(value) => handleInputChange('probationStatus', value as ProbationStatus)}
               >
-                {Object.values(ProbationStatus).map(status => (
-                  <option key={status} value={status}>
-                    {PROBATION_STATUS_LABELS[status]}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className={selectTriggerClasses}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(ProbationStatus).map(status => (
+                    <SelectItem key={status} value={status}>
+                      {PROBATION_STATUS_LABELS[status]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             {formData.probationStatus === ProbationStatus.IN_PROBATION && (
               <>
@@ -406,7 +423,7 @@ function SAComplianceSection({
           </>
         )}
 
-        {/* Contract End Date - for fixed-term and contractors */}
+        {/* Contract End Date */}
         {config.requiresEndDate && (
           <div>
             <label className={labelClasses}>Contract End Date *</label>
@@ -447,23 +464,27 @@ function SAComplianceSection({
           )}
         </div>
 
-        {/* Notice Period - only for employees */}
+        {/* Notice Period */}
         {config.hasNoticePeriod && (
           <div>
             <label className={labelClasses}>Notice Period</label>
-            <select
+            <Select
               value={formData.noticePeriod || NoticePeriod.AS_PER_CONTRACT}
-              onChange={(e) => handleInputChange('noticePeriod', e.target.value as NoticePeriod)}
-              className={inputClasses}
+              onValueChange={(value) => handleInputChange('noticePeriod', value as NoticePeriod)}
             >
-              {Object.values(NoticePeriod)
-                .filter(p => p !== NoticePeriod.NOT_APPLICABLE)
-                .map(period => (
-                  <option key={period} value={period}>
-                    {NOTICE_PERIOD_LABELS[period]}
-                  </option>
-                ))}
-            </select>
+              <SelectTrigger className={selectTriggerClasses}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(NoticePeriod)
+                  .filter(p => p !== NoticePeriod.NOT_APPLICABLE)
+                  .map(period => (
+                    <SelectItem key={period} value={period}>
+                      {NOTICE_PERIOD_LABELS[period]}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
@@ -480,7 +501,7 @@ function SAComplianceSection({
           />
         </div>
 
-        {/* Work Permit (for foreign nationals) */}
+        {/* Work Permit */}
         <div>
           <label className={labelClasses}>Work Permit Number</label>
           <input

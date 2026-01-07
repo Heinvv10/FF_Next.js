@@ -10,6 +10,9 @@ export default function Document() {
         {/* Build version for cache busting */}
         <meta name="build-version" content={buildVersion} />
 
+        {/* Support dark mode for native form controls (select dropdowns, date pickers) */}
+        <meta name="color-scheme" content="light dark" />
+
         {/* Meta tags for SEO and responsiveness */}
         <meta name="description" content="FibreFlow - Fiber Network Project Management" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
