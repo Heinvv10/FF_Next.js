@@ -50,6 +50,8 @@ const nextConfig = {
     disableOptimizedLoading: true,
     // Enable optimized package imports
     optimizePackageImports: ['@tanstack/react-query', 'react-icons'],
+    // Allow access from network IPs for local development
+    allowedDevOrigins: ['http://192.168.1.150:3005', 'http://localhost:3005'],
   },
 
   // Security and performance headers
@@ -125,50 +127,7 @@ const nextConfig = {
       };
     }
 
-    // Production optimizations
-    if (!dev && !isServer) {
-      // Optimize chunk splitting
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            // Framework chunk (React, Next.js)
-            framework: {
-              name: 'framework',
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler|prop-types|use-subscription)[\\/]/,
-              priority: 40,
-              enforce: true,
-            },
-            // Common libraries chunk
-            lib: {
-              test: /[\\/]node_modules[\\/]/,
-              name(module) {
-                const packageName = module.context.match(
-                  /[\\/]node_modules[\\/](.*?)([\\/]|$)/
-                )?.[1];
-                return `npm.${packageName?.replace('@', '')}`;
-              },
-              priority: 30,
-              minChunks: 1,
-              reuseExistingChunk: true,
-            },
-            // Shared application code
-            commons: {
-              name: 'commons',
-              minChunks: 2,
-              priority: 20,
-            },
-          },
-        },
-        // Minimize runtime chunk
-        runtimeChunk: {
-          name: 'runtime',
-        },
-      };
-    }
+    // Note: Using Next.js default chunk splitting for better dynamic import compatibility
 
     // Ensure proper handling of undefined paths
     if (config.resolve && config.resolve.alias) {
