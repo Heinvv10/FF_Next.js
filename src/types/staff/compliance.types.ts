@@ -360,13 +360,25 @@ export function getDefaultCompliance(contractType: SAContractType): Partial<SACo
  * Map legacy ContractType values to new SAContractType
  */
 export function mapLegacyContractType(legacyType: string): SAContractType {
+  if (!legacyType) return SAContractType.PERMANENT;
+
   const mapping: Record<string, SAContractType> = {
+    // Legacy values that need mapping
     permanent: SAContractType.PERMANENT,
     contract: SAContractType.FIXED_TERM,
     temporary: SAContractType.TEMPORARY,
     freelance: SAContractType.INDEPENDENT_CONTRACTOR,
     consultant: SAContractType.INDEPENDENT_CONTRACTOR,
     intern: SAContractType.INTERN,
+    // Common variations
+    'full-time': SAContractType.PERMANENT,
+    'full_time': SAContractType.PERMANENT,
+    'fulltime': SAContractType.PERMANENT,
+    'part-time': SAContractType.PART_TIME,
+    'parttime': SAContractType.PART_TIME,
+    'contractor': SAContractType.INDEPENDENT_CONTRACTOR,
+    'casual': SAContractType.TEMPORARY,
+    'seasonal': SAContractType.TEMPORARY,
     // New values map to themselves
     fixed_term: SAContractType.FIXED_TERM,
     part_time: SAContractType.PART_TIME,
@@ -374,4 +386,12 @@ export function mapLegacyContractType(legacyType: string): SAContractType {
   };
 
   return mapping[legacyType.toLowerCase()] || SAContractType.PERMANENT;
+}
+
+/**
+ * Check if a contract type string is a valid SAContractType
+ */
+export function isValidContractType(contractType: string | undefined | null): boolean {
+  if (!contractType) return false;
+  return Object.values(SAContractType).includes(contractType as SAContractType);
 }
