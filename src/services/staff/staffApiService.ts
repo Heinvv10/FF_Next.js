@@ -120,6 +120,20 @@ function transformDbToStaffMember(dbStaff: DbStaff): StaffMember {
 }
 
 /**
+ * Convert date value to ISO string for database
+ */
+function toDateString(value: unknown): string | undefined {
+  if (!value) return undefined;
+  if (typeof value === 'string') return value;
+  if (value instanceof Date) return value.toISOString();
+  // Handle Timestamp from Firebase
+  if (typeof value === 'object' && value !== null && 'toDate' in value) {
+    return (value as Timestamp).toDate().toISOString();
+  }
+  return undefined;
+}
+
+/**
  * Transform StaffMember to database format
  */
 function transformStaffMemberToDb(staff: Partial<StaffMember>): Partial<DbStaff> {
@@ -139,20 +153,12 @@ function transformStaffMemberToDb(staff: Partial<StaffMember>): Partial<DbStaff>
     level: staff.level as string,
     status: staff.status as string,
     salary: staff.salaryAmount,
-    join_date: staff.startDate instanceof Timestamp
-      ? staff.startDate.toDate().toISOString()
-      : staff.startDate instanceof Date
-        ? staff.startDate.toISOString()
-        : (staff.startDate as string) || undefined,
-    end_date: staff.endDate instanceof Timestamp
-      ? staff.endDate.toDate().toISOString()
-      : staff.endDate instanceof Date
-        ? staff.endDate.toISOString()
-        : (staff.endDate as string) || undefined,
+    join_date: toDateString(staff.startDate),
+    end_date: toDateString(staff.endDate),
     emergency_contact_name: staff.emergencyContactName,
     emergency_contact_phone: staff.emergencyContactPhone,
-    skills: staff.skills as string[],
-    certifications: staff.certifications as string[],
+    skills: staff.skills as unknown as string[],
+    certifications: staff.certifications as unknown as string[],
     notes: staff.notes,
     reports_to: staff.reportsTo,
     hourly_rate: staff.hourlyRate,

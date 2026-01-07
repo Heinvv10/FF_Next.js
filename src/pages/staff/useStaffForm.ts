@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStaffMember, useCreateStaff, useUpdateStaff } from '@/hooks/useStaff';
-import { safeToDate } from '@/src/utils/dateHelpers';
+import { safeToDate } from '@/utils/dateHelpers';
 import { log } from '@/lib/logger';
 import { 
   StaffFormData, 

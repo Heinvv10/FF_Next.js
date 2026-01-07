@@ -19,14 +19,28 @@ export async function importFromCSV(file: File, overwriteExisting: boolean = tru
       try {
         const text = e.target?.result as string;
         const lines = text.split('\n').filter(line => line.trim());
-        const headers = lines[0].split(',').map(h => h.trim());
+
+        if (lines.length === 0) {
+          reject(new Error('CSV file is empty'));
+          return;
+        }
+
+        const headerLine = lines[0];
+        if (!headerLine) {
+          reject(new Error('CSV file has no header row'));
+          return;
+        }
+
+        const headers = headerLine.split(',').map(h => h.trim());
 
         log.info('Header mapping will be:', { data: headers.map(h => `${h} -> ${DEFAULT_HEADER_MAPPING[h] || 'unmapped'}`) }, 'csvProcessor');
-        
+
         const rows: StaffImportRow[] = [];
-        
+
         for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',').map(v => v.trim());
+          const line = lines[i];
+          if (!line) continue;
+          const values = line.split(',').map(v => v.trim());
           const row: any = {};
           
           headers.forEach((header, index) => {

@@ -3,8 +3,8 @@
  * Central exports for staff service using Neon PostgreSQL
  */
 
-import { 
-  StaffMember, 
+import {
+  StaffMember,
   StaffFilter,
   StaffDropdownOption
 } from '@/types/staff.types';
@@ -13,6 +13,14 @@ import { mapToStaffMember, mapToStaffMembers, mapToDropdownOption } from './data
 import { createStaff, createOrUpdateStaff, updateStaff, deleteStaff } from './crudOperations';
 import { getStaffSummary as getStaffSummaryStats } from './statistics';
 import { log } from '@/lib/logger';
+
+/**
+ * Helper to safely cast Neon query results to array
+ */
+function asArray<T = any>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  return [];
+}
 
 /**
  * Staff service using Neon PostgreSQL database
@@ -24,7 +32,7 @@ export const staffNeonService = {
   async getAll(filter?: StaffFilter): Promise<StaffMember[]> {
     try {
       const result = await queryStaffWithFilters(filter);
-      return mapToStaffMembers(result);
+      return mapToStaffMembers(asArray(result));
     } catch (error) {
       log.error('Error fetching staff:', { data: error }, 'index');
       throw error;
@@ -37,10 +45,11 @@ export const staffNeonService = {
   async getById(id: string): Promise<StaffMember | null> {
     try {
       const result = await queryStaffById(id);
-      
-      if (result.length === 0) return null;
-      
-      return mapToStaffMember(result[0]);
+      const rows = asArray(result);
+
+      if (rows.length === 0) return null;
+
+      return mapToStaffMember(rows[0]);
     } catch (error) {
       log.error('Error fetching staff member:', { data: error }, 'index');
       throw error;
@@ -73,7 +82,7 @@ export const staffNeonService = {
   async getActiveStaff(): Promise<StaffDropdownOption[]> {
     try {
       const result = await queryActiveStaff();
-      return result.map((staff: any) => mapToDropdownOption(staff));
+      return asArray(result).map((staff: any) => mapToDropdownOption(staff));
     } catch (error) {
       log.error('Error fetching active staff:', { data: error }, 'index');
       throw error;
@@ -86,7 +95,7 @@ export const staffNeonService = {
   async getProjectManagers(): Promise<StaffDropdownOption[]> {
     try {
       const result = await queryProjectManagers();
-      return result.map((staff: any) => mapToDropdownOption(staff, true));
+      return asArray(result).map((staff: any) => mapToDropdownOption(staff, true));
     } catch (error) {
       log.error('Error fetching project managers:', { data: error }, 'index');
       throw error;
