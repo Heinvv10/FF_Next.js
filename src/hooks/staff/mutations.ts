@@ -5,7 +5,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { staffService } from '@/services/staffService';
-import { StaffFormData } from '@/types/staff.types';
+import type { StaffFormData, StaffMember } from '@/types/staff.types';
 import { staffKeys } from './queryKeys';
 import { log } from '@/lib/logger';
 
@@ -14,9 +14,9 @@ import { log } from '@/lib/logger';
  */
 export function useCreateStaff() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (data: StaffFormData) => staffService.create(data),
+    mutationFn: (data: StaffFormData) => staffService.create(data as unknown as Partial<StaffMember>),
     onSuccess: () => {
       // Invalidate and refetch staff queries
       queryClient.invalidateQueries({ queryKey: staffKeys.all });
@@ -33,9 +33,9 @@ export function useCreateStaff() {
  */
 export function useCreateOrUpdateStaff() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (data: StaffFormData) => staffService.createOrUpdate(data),
+    mutationFn: (data: StaffFormData) => staffService.createOrUpdate(data as unknown as Partial<StaffMember>),
     onSuccess: () => {
       // Invalidate and refetch all staff queries since we don't know if it was create or update
       queryClient.invalidateQueries({ queryKey: staffKeys.all });
@@ -52,10 +52,10 @@ export function useCreateOrUpdateStaff() {
  */
 export function useUpdateStaff() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<StaffFormData> }) => 
-      staffService.update(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Partial<StaffFormData> }) =>
+      staffService.update(id, data as unknown as Partial<StaffMember>),
     onSuccess: (_, { id }) => {
       // Invalidate specific staff member and list queries
       queryClient.invalidateQueries({ queryKey: staffKeys.detail(id) });

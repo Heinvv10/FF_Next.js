@@ -4,6 +4,16 @@
  */
 
 import { StaffMember, StaffDropdownOption, Timestamp } from '@/types/staff.types';
+import {
+  SAContractType,
+  UIFStatus,
+  COIDAStatus,
+  TaxStatus,
+  ProbationStatus,
+  NoticePeriod,
+  WorkingHoursCategory,
+  mapLegacyContractType,
+} from '@/types/staff/compliance.types';
 import { safeToDate } from '@/utils/dateHelpers';
 
 // Helper function to convert Date to Timestamp for Firebase compatibility
@@ -79,6 +89,57 @@ export function mapToStaffMember(staff: any): StaffMember {
     endDate: staff.end_date ? dateToTimestamp(safeToDate(staff.end_date)) : undefined,
     salaryGrade: staff.salary_grade,
     hourlyRate: staff.hourly_rate,
+
+    // SA Contract Type (mapped from legacy if needed)
+    saContractType: staff.contract_type
+      ? mapLegacyContractType(staff.contract_type)
+      : SAContractType.PERMANENT,
+
+    // SA Labour Compliance
+    saCompliance: {
+      // UIF
+      uifStatus: (staff.uif_status as UIFStatus) || UIFStatus.PENDING,
+      uifNumber: staff.uif_number,
+      uifRegistrationDate: staff.uif_registration_date
+        ? safeToDate(staff.uif_registration_date)
+        : undefined,
+      // COIDA
+      coidaStatus: (staff.coida_status as COIDAStatus) || COIDAStatus.PENDING,
+      // Tax
+      taxStatus: (staff.tax_status as TaxStatus) || TaxStatus.PAYE,
+      // Probation
+      probationStatus: (staff.probation_status as ProbationStatus) || ProbationStatus.NOT_APPLICABLE,
+      probationStartDate: staff.probation_start_date
+        ? safeToDate(staff.probation_start_date)
+        : undefined,
+      probationEndDate: staff.probation_end_date
+        ? safeToDate(staff.probation_end_date)
+        : undefined,
+      probationExtended: staff.probation_extended || false,
+      probationExtensionReason: staff.probation_extension_reason,
+      // Notice Period
+      noticePeriod: (staff.notice_period as NoticePeriod) || NoticePeriod.AS_PER_CONTRACT,
+      customNoticePeriodDays: staff.custom_notice_period_days,
+      // Working Hours
+      workingHoursCategory: (staff.working_hours_category as WorkingHoursCategory) || WorkingHoursCategory.FULL_TIME,
+      weeklyHours: staff.weekly_hours,
+      // Contract Dates
+      contractEndDate: staff.end_date ? safeToDate(staff.end_date) : undefined,
+      contractRenewalDate: staff.contract_renewal_date
+        ? safeToDate(staff.contract_renewal_date)
+        : undefined,
+      // SA Identity
+      idNumber: staff.id_number,
+      passportNumber: staff.passport_number,
+      workPermitNumber: staff.work_permit_number,
+      workPermitExpiry: staff.work_permit_expiry
+        ? safeToDate(staff.work_permit_expiry)
+        : undefined,
+    },
+
+    // Computed flags
+    isEmployee: staff.is_employee ?? (staff.contract_type !== 'independent_contractor'),
+    inProbation: staff.probation_status === 'in_probation',
     
     // Required fields with defaults
     // joinDate is mapped to startDate above
