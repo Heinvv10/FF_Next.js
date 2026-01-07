@@ -18,7 +18,8 @@ import {
   EmploymentSection,
   EmergencyContactSection,
   AvailabilitySection,
-  SkillsSection
+  SkillsSection,
+  DocumentsSection
 } from './StaffFormSections';
 import { ExitEmployeeModal, ExitFormData } from './ExitEmployeeModal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -238,10 +239,16 @@ export function StaffForm() {
             handleInputChange={handleInputChange}
           />
           
-          <SkillsSection 
+          <SkillsSection
             formData={formData}
             handleInputChange={handleInputChange}
             toggleSkill={toggleSkill}
+          />
+
+          <DocumentsSection
+            staffId={id}
+            isEditing={isEditing}
+            contractType={formData.contractType}
           />
 
           {/* Form Actions */}
