@@ -255,3 +255,6 @@ export function Dashboard() {
     </div>
   );
 }
+
+// Default export for simpler dynamic imports
+export default Dashboard;
