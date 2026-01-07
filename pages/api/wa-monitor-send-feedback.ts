@@ -77,9 +77,9 @@ interface WhatsAppApiResponse {
 }
 
 /**
- * Send message to WhatsApp group via Sender API with optional @mention
- * Uses second phone number (+27 71 155 8396) for sending messages
- * If recipientJID is null/empty, sends as group message without @mention
+ * Send message to WhatsApp group via Bridge API
+ * Always uses port 8080 /api/send endpoint
+ * Note: Sender API on port 8081 doesn't exist
  */
 async function sendWhatsAppMessage(
   groupJID: string,
@@ -87,75 +87,34 @@ async function sendWhatsAppMessage(
   message: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    // Use Sender API (port 8081) - Second WhatsApp number
-    // Sender API format with @mentions: { group_jid: "JID", recipient_jid: "JID", message: "text" }
+    // Always use Bridge API (port 8080) - Only WhatsApp service available
+    const requestBody = {
+      recipient: groupJID,
+      message: message,
+    };
 
-    // Check if we have recipient info for @mention
-    if (recipientJID && recipientJID.trim() !== '' && recipientJID !== 'Unknown') {
-      // Ensure recipient_jid is in WhatsApp JID format (phone@s.whatsapp.net)
-      const formattedRecipientJID = recipientJID.includes('@')
-        ? recipientJID
-        : `${recipientJID}@s.whatsapp.net`;
+    const response = await fetch(`${WHATSAPP_BRIDGE_URL}/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(60000), // 60 second timeout for slow connections
+    });
 
-      // Send with @mention
-      const requestBody = {
-        group_jid: groupJID,
-        recipient_jid: formattedRecipientJID,
-        message: message,
-      };
-
-      const response = await fetch(`${WHATSAPP_SENDER_URL}/send-message`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(60000), // 60 second timeout for slow connections
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        return {
-          success: false,
-          message: `WhatsApp Sender API error: HTTP ${response.status} - ${errorText}`
-        };
-      }
-
-      const result: WhatsAppApiResponse = await response.json();
+    if (!response.ok) {
+      const errorText = await response.text();
       return {
-        success: result.success || false,
-        message: result.message || 'Message sent with @mention'
-      };
-    } else {
-      // No recipient info - send as simple group message via bridge
-      const requestBody = {
-        recipient: groupJID,
-        message: message,
-      };
-
-      const response = await fetch(`${WHATSAPP_BRIDGE_URL}/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(60000), // 60 second timeout for slow connections
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        return {
-          success: false,
-          message: `WhatsApp Bridge API error: HTTP ${response.status} - ${errorText}`
-        };
-      }
-
-      const result: WhatsAppApiResponse = await response.json();
-      return {
-        success: result.success || false,
-        message: result.message || 'Group message sent successfully'
+        success: false,
+        message: `WhatsApp Bridge API error: HTTP ${response.status} - ${errorText}`
       };
     }
+
+    const result: WhatsAppApiResponse = await response.json();
+    return {
+      success: result.success || false,
+      message: result.message || 'Group message sent successfully'
+    };
   } catch (error) {
     console.error('WhatsApp API communication error:', error);
     return {
@@ -286,18 +245,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     console.log(`📤 Sending feedback for ${drop.drop_number} to ${groupConfig.name} (${groupConfig.jid})`);
 
-    // Log mention status
     if (drop.submitted_by && drop.submitted_by.trim() !== '' && drop.submitted_by !== 'Unknown') {
-      console.log(`   With @mention: ${drop.submitted_by}`);
+      console.log(`   Submitted by: ${drop.submitted_by}`);
     } else {
-      console.log(`   Without @mention (no sender info - manually added drop)`);
+      console.log(`   No submitter info (manually added drop)`);
     }
 
     // 3. Use the custom message directly (user already generated feedback with Auto-Generate)
-    // Add blank lines at start to separate @mention from content
+    // Add blank lines at start for better readability
     const feedbackMessage = `\n\n${message || ''}`;
 
-    // 4. Send to WhatsApp (with or without mention depending on sender info)
+    // 4. Send to WhatsApp group
     const whatsappResult = await sendWhatsAppMessage(
       groupConfig.jid,
       drop.submitted_by,
