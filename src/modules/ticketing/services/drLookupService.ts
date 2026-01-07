@@ -4,7 +4,7 @@
  * Queries SOW module for DR (Drop) details including project, zone, pole, and PON information.
  *
  * Features:
- * - Lookup DR from drops table in SOW module
+ * - Lookup DR from sow_drops table in SOW module
  * - Returns project, zone, pole, PON details
  * - In-memory caching to reduce database queries
  * - Comprehensive error handling
@@ -88,7 +88,7 @@ export async function lookupDR(drNumber: string): Promise<DRLookupResult> {
         status,
         created_date,
         created_by
-      FROM drops
+      FROM sow_drops
       WHERE drop_number = $1`,
       [trimmedDR]
     );
