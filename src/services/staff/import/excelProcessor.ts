@@ -20,10 +20,18 @@ export async function importFromExcel(file: File, overwriteExisting: boolean = t
         const data = e.target?.result;
         const workbook = XLSX.read(data, { type: 'binary' });
         const firstSheetName = workbook.SheetNames[0];
+        if (!firstSheetName) {
+          reject(new Error('Excel file has no sheets'));
+          return;
+        }
         const worksheet = workbook.Sheets[firstSheetName];
-        
-        // Convert to JSON
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+        if (!worksheet) {
+          reject(new Error('Could not read worksheet'));
+          return;
+        }
+
+        // Convert to JSON - use type assertion to handle xlsx type issues
+        const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
           raw: false,
           dateNF: 'yyyy/mm/dd'
         });

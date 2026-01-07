@@ -3,11 +3,14 @@
  * Processes imported rows and creates/updates staff records
  */
 
-import { 
-  StaffImportRow, 
-  StaffImportResult, 
+import {
+  StaffImportRow,
+  StaffImportResult,
   StaffImportError,
-  StaffFormData, ContractType, StaffStatus
+  StaffFormData,
+  StaffMember,
+  ContractType,
+  StaffStatus
 } from '@/types/staff.types';
 import { extractUniqueManagers, sortByManagerHierarchy, findManagerByName } from './managerResolver';
 import { parseDate, parseSkills } from './parsers';
@@ -167,8 +170,8 @@ export async function processImportRows(
       };
       
       // Import the staff member using createOrUpdate to handle both new and existing
-      log.info(`📝 Creating or updating staff member: ${formData.name} (Employee ID: ${formData.employeeId}, undefined, 'rowProcessor');`);
-      const staffMember = await staffService.createOrUpdate(formData);
+      log.info(`📝 Creating or updating staff member: ${formData.name} (Employee ID: ${formData.employeeId})`, undefined, 'rowProcessor');
+      const staffMember = await staffService.createOrUpdate(formData as unknown as Partial<StaffMember>);
       
       if (staffMember) {
         importedStaff.push(staffMember);

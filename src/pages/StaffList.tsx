@@ -12,7 +12,7 @@ import { StaffImport } from '@/components/staff/StaffImport';
 import { StaffFilter, Department, StaffStatus, StaffLevel, StaffMember } from '@/types/staff.types';
 import { format } from 'date-fns';
 // import { Timestamp } from 'firebase/firestore'; // Unused in current implementation
-import { safeToDate } from '@/src/utils/dateHelpers';
+import { safeToDate } from '@/utils/dateHelpers';
 import {
   StandardModuleHeader,
   StandardSummaryCards,
