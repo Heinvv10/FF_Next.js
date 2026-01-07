@@ -23,9 +23,6 @@ export interface DRLookupData {
   latitude: number | null;
   longitude: number | null;
   municipality: string | null;
-  cable_type: string | null;
-  cable_length: string | null;
-  status: string | null;
 }
 
 export interface DRLookupResult {
