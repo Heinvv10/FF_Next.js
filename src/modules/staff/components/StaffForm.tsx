@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ArrowLeft, Save, User } from 'lucide-react';
 import { useStaffMember, useCreateStaff, useUpdateStaff } from '@/hooks/useStaff';
-import { 
-  StaffFormData, 
+import {
+  StaffFormData,
   StaffStatus,
   ContractType,
-  Skill 
+  Skill,
+  isFormerEmployee,
 } from '@/types/staff.types';
 import { safeToDate } from '@/utils/dateHelpers';
 import {
@@ -18,6 +19,7 @@ import {
   AvailabilitySection,
   SkillsSection
 } from './StaffFormSections';
+import { ExitEmployeeModal, ExitFormData } from './ExitEmployeeModal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Timestamp } from 'firebase/firestore';
 import { log } from '@/lib/logger';
@@ -32,6 +34,8 @@ export function StaffForm() {
   const updateMutation = useUpdateStaff();
 
   const [error, setError] = useState<string | null>(null);
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [pendingExitStatus, setPendingExitStatus] = useState<StaffStatus | null>(null);
   const [formData, setFormData] = useState<StaffFormData>({
     name: '',
     email: '',
@@ -120,7 +124,38 @@ export function StaffForm() {
   };
 
   const handleInputChange = (field: keyof StaffFormData, value: any) => {
+    // Intercept status changes to exit statuses
+    if (field === 'status') {
+      const newStatus = value as StaffStatus;
+      const currentStatus = formData.status;
+
+      // Check if changing to an exit status from a non-exit status
+      if (isFormerEmployee(newStatus) && !isFormerEmployee(currentStatus)) {
+        // Show exit modal instead of immediately changing status
+        setPendingExitStatus(newStatus);
+        setShowExitModal(true);
+        return;
+      }
+    }
+
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleExitConfirm = async (exitData: ExitFormData) => {
+    // Apply exit data to form
+    setFormData(prev => ({
+      ...prev,
+      status: exitData.finalStatus,
+      exitType: exitData.exitType,
+      exitReason: exitData.exitReason,
+      endDate: new Date(exitData.endDate),
+      isRehireable: exitData.isRehireable,
+    }));
+  };
+
+  const handleExitModalClose = () => {
+    setShowExitModal(false);
+    setPendingExitStatus(null);
   };
 
   const toggleSkill = (skill: Skill) => {
@@ -231,6 +266,17 @@ export function StaffForm() {
           </div>
         </form>
       </div>
+
+      {/* Exit Employee Modal */}
+      <ExitEmployeeModal
+        isOpen={showExitModal}
+        onClose={handleExitModalClose}
+        onConfirm={handleExitConfirm}
+        staffName={formData.name || 'Employee'}
+        staffId={id || ''}
+        currentStatus={formData.status}
+        targetStatus={pendingExitStatus || StaffStatus.RESIGNED}
+      />
     </div>
   );
 }

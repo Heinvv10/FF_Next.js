@@ -434,21 +434,37 @@
    ================================ */
 
 /* Apply color-scheme to root element for native controls */
+/* CRITICAL: color-scheme tells the browser to render native controls in dark mode */
 :root[data-theme="dark"],
 :root.dark,
-html.dark {
-  color-scheme: dark;
+html.dark,
+.dark {
+  color-scheme: dark !important;
+}
+
+/* Ensure body also inherits */
+.dark body,
+html.dark body {
+  color-scheme: dark !important;
 }
 
 /* Dark mode select elements - ensure proper contrast */
 /* Support both data-theme="dark" and .dark class (Tailwind) */
+/* Force dark color scheme on all select elements for native dark dropdown rendering */
 :root[data-theme="dark"] select,
 :root[data-theme="dark"] .ff-select,
 .dark select,
-.dark .ff-select {
-  color-scheme: dark;
-  background-color: var(--ff-bg-tertiary, #334155);
-  color: var(--ff-text-primary, #f1f5f9);
+.dark .ff-select,
+html[style*="color-scheme: dark"] select {
+  color-scheme: dark !important;
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
+}
+
+/* Force select to inherit color-scheme */
+select {
+  color-scheme: inherit;
 }
 
 :root[data-theme="dark"] select option,

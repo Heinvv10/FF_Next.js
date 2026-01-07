@@ -120,8 +120,11 @@ export function ThemeProvider({
     // Apply dark class for compatibility
     if (themeConfig.isDark) {
       document.documentElement.classList.add('dark');
+      // CRITICAL: Set color-scheme for native form controls (select dropdowns, date inputs)
+      document.documentElement.style.colorScheme = 'dark';
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
     }
   }, []);
 
