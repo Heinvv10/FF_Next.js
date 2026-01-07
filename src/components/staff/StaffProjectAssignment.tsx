@@ -180,7 +180,7 @@ export function StaffProjectAssignment({ staffId, staffName }: StaffProjectAssig
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Project Assignments</h3>
+        <h3 className="text-lg font-semibold text-[var(--ff-text-primary)]">Project Assignments</h3>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
           className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
@@ -192,27 +192,27 @@ export function StaffProjectAssignment({ staffId, staffName }: StaffProjectAssig
 
       {/* Error */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
 
       {/* Add assignment form */}
       {showAddForm && (
-        <form onSubmit={handleAddAssignment} className="p-4 bg-gray-50 rounded-lg space-y-4 border border-gray-200">
-          <h4 className="font-medium text-gray-900">Assign {staffName} to Project</h4>
+        <form onSubmit={handleAddAssignment} className="p-4 bg-[var(--ff-bg-tertiary)] rounded-lg space-y-4 border border-[var(--ff-border-light)]">
+          <h4 className="font-medium text-[var(--ff-text-primary)]">Assign {staffName} to Project</h4>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Project selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-1">
                 Project *
               </label>
               <select
                 value={newAssignment.projectId}
                 onChange={(e) => setNewAssignment({ ...newAssignment, projectId: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-[var(--ff-border-light)] rounded-lg bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               >
                 <option value="">Select a project...</option>
@@ -231,11 +231,11 @@ export function StaffProjectAssignment({ staffId, staffName }: StaffProjectAssig
 
             {/* Role selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+              <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-1">Role</label>
               <select
                 value={newAssignment.role}
                 onChange={(e) => setNewAssignment({ ...newAssignment, role: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-[var(--ff-border-light)] rounded-lg bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select a role...</option>
                 {PROJECT_ROLES.map((role) => (
@@ -248,23 +248,23 @@ export function StaffProjectAssignment({ staffId, staffName }: StaffProjectAssig
 
             {/* Start date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-1">Start Date</label>
               <input
                 type="date"
                 value={newAssignment.startDate}
                 onChange={(e) => setNewAssignment({ ...newAssignment, startDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-[var(--ff-border-light)] rounded-lg bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* End date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+              <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-1">End Date</label>
               <input
                 type="date"
                 value={newAssignment.endDate}
                 onChange={(e) => setNewAssignment({ ...newAssignment, endDate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-[var(--ff-border-light)] rounded-lg bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -274,7 +274,7 @@ export function StaffProjectAssignment({ staffId, staffName }: StaffProjectAssig
             <button
               type="button"
               onClick={() => setShowAddForm(false)}
-              className="px-3 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+              className="px-3 py-2 text-[var(--ff-text-secondary)] bg-[var(--ff-bg-secondary)] border border-[var(--ff-border-light)] rounded-lg hover:bg-[var(--ff-bg-hover)] text-sm"
             >
               Cancel
             </button>
@@ -301,38 +301,38 @@ export function StaffProjectAssignment({ staffId, staffName }: StaffProjectAssig
 
       {/* Assignments list */}
       {activeAssignments.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <Briefcase className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No project assignments</p>
-          <p className="text-sm text-gray-400 mt-1">
+        <div className="text-center py-12 ff-bg-tertiary rounded-lg">
+          <Briefcase className="h-12 w-12 text-[var(--ff-text-secondary)] mx-auto mb-3" />
+          <p className="text-[var(--ff-text-secondary)]">No project assignments</p>
+          <p className="text-sm text-[var(--ff-text-secondary)] opacity-70 mt-1">
             Click "Assign to Project" to add this staff member to a project
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden">
+        <div className="divide-y divide-[var(--ff-border-light)] border border-[var(--ff-border-light)] rounded-lg overflow-hidden">
           {activeAssignments.map((assignment) => (
-            <div key={assignment.id} className="p-4 bg-white hover:bg-gray-50 transition-colors">
+            <div key={assignment.id} className="p-4 bg-[var(--ff-bg-secondary)] hover:bg-[var(--ff-bg-hover)] transition-colors">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3 flex-1">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Briefcase className="h-5 w-5 text-blue-600" />
+                  <div className="p-2 bg-blue-500/20 rounded-lg">
+                    <Briefcase className="h-5 w-5 text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900">
+                    <h4 className="text-sm font-medium text-[var(--ff-text-primary)]">
                       {assignment.project?.name || 'Unknown Project'}
                     </h4>
                     {assignment.project?.client && (
-                      <p className="text-xs text-gray-500">{assignment.project.client}</p>
+                      <p className="text-xs text-[var(--ff-text-secondary)]">{assignment.project.client}</p>
                     )}
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
                       {assignment.role && (
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-600">
+                        <span className="inline-flex items-center gap-1 text-xs text-[var(--ff-text-secondary)]">
                           <User className="h-3 w-3" />
                           {assignment.role}
                         </span>
                       )}
                       {assignment.startDate && (
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                        <span className="inline-flex items-center gap-1 text-xs text-[var(--ff-text-secondary)]">
                           <Calendar className="h-3 w-3" />
                           {new Date(assignment.startDate).toLocaleDateString()}
                           {assignment.endDate && (
@@ -348,7 +348,7 @@ export function StaffProjectAssignment({ staffId, staffName }: StaffProjectAssig
                 <button
                   onClick={() => handleRemoveAssignment(assignment.projectId)}
                   disabled={removingId === assignment.projectId}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                  className="p-2 text-[var(--ff-text-secondary)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
                   title="Remove from project"
                 >
                   {removingId === assignment.projectId ? (
@@ -364,7 +364,7 @@ export function StaffProjectAssignment({ staffId, staffName }: StaffProjectAssig
       )}
 
       {/* Summary */}
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-[var(--ff-text-secondary)]">
         {activeAssignments.length} active project{activeAssignments.length !== 1 ? 's' : ''}
       </div>
     </div>
