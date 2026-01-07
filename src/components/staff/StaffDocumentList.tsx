@@ -140,10 +140,10 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
     const label = VERIFICATION_STATUS_LABELS[status];
 
     const colorClasses: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      verified: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
-      expired: 'bg-gray-100 text-gray-800',
+      pending: 'bg-yellow-500/20 text-yellow-400',
+      verified: 'bg-green-500/20 text-green-400',
+      rejected: 'bg-red-500/20 text-red-400',
+      expired: 'bg-gray-500/20 text-gray-400',
     };
 
     const icons: Record<VerificationStatus, React.ReactNode> = {
@@ -200,7 +200,7 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
     <div className="space-y-4">
       {/* Header with actions */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Documents</h3>
+        <h3 className="text-lg font-semibold text-[var(--ff-text-primary)]">Documents</h3>
         <button
           onClick={() => setShowUploadForm(true)}
           className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
@@ -211,17 +211,17 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 p-4 bg-gray-50 rounded-lg">
+      <div className="flex flex-wrap items-center gap-3 p-4 ff-bg-tertiary rounded-lg border border-[var(--ff-border-light)]">
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-gray-400" />
-          <span className="text-sm text-gray-600">Filter:</span>
+          <Filter className="h-4 w-4 text-[var(--ff-text-secondary)]" />
+          <span className="text-sm text-[var(--ff-text-secondary)]">Filter:</span>
         </div>
 
         {/* Category filter */}
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="text-sm border border-gray-300 rounded-md px-2 py-1"
+          className="text-sm border border-[var(--ff-border-light)] rounded-md px-2 py-1 bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)]"
         >
           <option value="all">All Categories</option>
           {Object.entries(DOCUMENT_CATEGORY_LABELS).map(([key, label]) => (
@@ -235,7 +235,7 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
         <select
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value)}
-          className="text-sm border border-gray-300 rounded-md px-2 py-1"
+          className="text-sm border border-[var(--ff-border-light)] rounded-md px-2 py-1 bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)]"
         >
           <option value="all">All Status</option>
           {Object.entries(VERIFICATION_STATUS_LABELS).map(([key, label]) => (
@@ -247,54 +247,54 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
 
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--ff-text-secondary)]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search documents..."
-            className="w-full pl-8 pr-3 py-1 text-sm border border-gray-300 rounded-md"
+            className="w-full pl-8 pr-3 py-1 text-sm border border-[var(--ff-border-light)] rounded-md bg-[var(--ff-bg-secondary)] text-[var(--ff-text-primary)]"
           />
         </div>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
           {error}
         </div>
       )}
 
       {/* Document list */}
       {filteredDocuments.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">No documents found</p>
+        <div className="text-center py-12 ff-bg-tertiary rounded-lg">
+          <FileText className="h-12 w-12 text-[var(--ff-text-secondary)] mx-auto mb-3" />
+          <p className="text-[var(--ff-text-secondary)]">No documents found</p>
           {documents.length > 0 && (
-            <p className="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
+            <p className="text-sm text-[var(--ff-text-secondary)] opacity-70 mt-1">Try adjusting your filters</p>
           )}
         </div>
       ) : (
-        <div className="divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden">
+        <div className="divide-y divide-[var(--ff-border-light)] border border-[var(--ff-border-light)] rounded-lg overflow-hidden">
           {filteredDocuments.map((doc) => (
-            <div key={doc.id} className="p-4 bg-white hover:bg-gray-50 transition-colors">
+            <div key={doc.id} className="p-4 bg-[var(--ff-bg-secondary)] hover:bg-[var(--ff-bg-hover)] transition-colors">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3 flex-1">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <FileText className="h-5 w-5 text-gray-600" />
+                  <div className="p-2 bg-[var(--ff-bg-tertiary)] rounded-lg">
+                    <FileText className="h-5 w-5 text-[var(--ff-text-secondary)]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-sm font-medium text-gray-900 truncate">{doc.documentName}</h4>
+                      <h4 className="text-sm font-medium text-[var(--ff-text-primary)] truncate">{doc.documentName}</h4>
                       {getStatusBadge(doc.verificationStatus)}
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">{DOCUMENT_TYPE_LABELS[doc.documentType]}</p>
+                    <p className="text-xs text-[var(--ff-text-secondary)] mt-0.5">{DOCUMENT_TYPE_LABELS[doc.documentType]}</p>
                     {doc.documentNumber && (
-                      <p className="text-xs text-gray-400 mt-0.5">#{doc.documentNumber}</p>
+                      <p className="text-xs text-[var(--ff-text-secondary)] opacity-70 mt-0.5">#{doc.documentNumber}</p>
                     )}
                     {getExpiryWarning(doc.expiryDate)}
                     {doc.expiryDate && !getExpiryWarning(doc.expiryDate) && (
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-[var(--ff-text-secondary)] opacity-70 mt-0.5">
                         Expires: {new Date(doc.expiryDate).toLocaleDateString()}
                       </p>
                     )}
@@ -307,7 +307,7 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
                     href={doc.fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="p-2 text-[var(--ff-text-secondary)] hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                     title="View"
                   >
                     <Eye className="h-4 w-4" />
@@ -315,7 +315,7 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
                   <a
                     href={doc.fileUrl}
                     download
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="p-2 text-[var(--ff-text-secondary)] hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                     title="Download"
                   >
                     <Download className="h-4 w-4" />
@@ -323,7 +323,7 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
                   {isAdmin && doc.verificationStatus === 'pending' && onVerify && (
                     <button
                       onClick={() => onVerify(doc.id, 'verified')}
-                      className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      className="p-2 text-[var(--ff-text-secondary)] hover:text-green-400 hover:bg-green-500/10 rounded-lg transition-colors"
                       title="Verify"
                     >
                       <Shield className="h-4 w-4" />
@@ -332,7 +332,7 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
                   <button
                     onClick={() => handleDelete(doc.id)}
                     disabled={deletingId === doc.id}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                    className="p-2 text-[var(--ff-text-secondary)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
                     title="Delete"
                   >
                     {deletingId === doc.id ? (
@@ -349,15 +349,15 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
       )}
 
       {/* Summary */}
-      <div className="flex items-center gap-4 text-sm text-gray-500">
+      <div className="flex items-center gap-4 text-sm text-[var(--ff-text-secondary)]">
         <span>
           {filteredDocuments.length} of {documents.length} documents
         </span>
         <span>•</span>
-        <span className="text-green-600">
+        <span className="text-green-400">
           {documents.filter((d) => d.verificationStatus === 'verified').length} verified
         </span>
-        <span className="text-yellow-600">
+        <span className="text-yellow-400">
           {documents.filter((d) => d.verificationStatus === 'pending').length} pending
         </span>
       </div>
