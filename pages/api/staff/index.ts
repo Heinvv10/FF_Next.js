@@ -206,10 +206,28 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
           const firstName = staffData.first_name || staffData.firstName || name.split(' ')[0] || '';
           const lastName = staffData.last_name || staffData.lastName || name.split(' ').slice(1).join(' ') || '';
 
+          // Handle reports_to - convert empty string to null for UUID field
+          const reportsTo = staffData.reports_to || staffData.reportsTo;
+          const reportsToValue = reportsTo && reportsTo.trim() !== '' ? reportsTo : null;
+
+          // Handle contract_type
+          const contractType = staffData.contract_type || staffData.contractType || null;
+
+          // Handle address fields
+          const address = staffData.address || null;
+          const city = staffData.city || null;
+          const state = staffData.state || staffData.province || null;
+          const postalCode = staffData.postal_code || staffData.postalCode || null;
+
+          // Handle alternate phone
+          const alternatePhone = staffData.alternate_phone || staffData.alternativePhone || null;
+
           const newStaff = await sql`
             INSERT INTO staff (
-              employee_id, first_name, last_name, email, phone,
-              department, position, join_date, status
+              employee_id, first_name, last_name, email, phone, alternate_phone,
+              department, position, join_date, status,
+              reports_to, contract_type,
+              address, city, state, postal_code
             )
             VALUES (
               ${staffData.employee_id || staffData.employeeId || `EMP-${Date.now()}`},
@@ -217,10 +235,17 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
               ${lastName},
               ${staffData.email},
               ${staffData.phone || null},
+              ${alternatePhone},
               ${staffData.department || 'General'},
               ${staffData.position || 'Staff'},
               ${staffData.join_date || staffData.startDate || new Date().toISOString()},
-              ${staffData.status || 'ACTIVE'}
+              ${staffData.status || 'ACTIVE'},
+              ${reportsToValue},
+              ${contractType},
+              ${address},
+              ${city},
+              ${state},
+              ${postalCode}
             )
             RETURNING *, employee_id as "employeeId", CONCAT(first_name, ' ', last_name) as name, CONCAT(first_name, ' ', last_name) as full_name
           `;
@@ -282,6 +307,26 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
         const firstName = updates.first_name || updates.firstName || name.split(' ')[0] || '';
         const lastName = updates.last_name || updates.lastName || name.split(' ').slice(1).join(' ') || '';
 
+        // Handle reports_to - convert empty string to null for UUID field
+        const reportsTo = updates.reports_to || updates.reportsTo;
+        const reportsToValue = reportsTo && reportsTo.trim() !== '' ? reportsTo : null;
+
+        // Handle contract_type
+        const contractType = updates.contract_type || updates.contractType || null;
+
+        // Handle address fields
+        const address = updates.address || null;
+        const city = updates.city || null;
+        const state = updates.state || updates.province || null;
+        const postalCode = updates.postal_code || updates.postalCode || null;
+
+        // Handle alternate phone
+        const alternatePhone = updates.alternate_phone || updates.alternativePhone || null;
+
+        // Handle salary fields
+        const salary = updates.salary || null;
+        const hourlyRate = updates.hourly_rate || updates.hourlyRate || null;
+
         // Check if this is an exit/termination update
         const isExitUpdate = updates.exitType || updates.exit_type;
         const exitType = updates.exitType || updates.exit_type || null;
@@ -300,10 +345,19 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
                 last_name = COALESCE(${lastName || null}, last_name),
                 email = COALESCE(${updates.email}, email),
                 phone = COALESCE(${updates.phone}, phone),
+                alternate_phone = COALESCE(${alternatePhone}, alternate_phone),
                 position = COALESCE(${updates.position}, position),
                 department = COALESCE(${updates.department}, department),
+                reports_to = ${reportsToValue},
+                contract_type = COALESCE(${contractType}, contract_type),
                 status = COALESCE(${updates.status}, status),
                 join_date = COALESCE(${updates.join_date || updates.startDate}, join_date),
+                address = COALESCE(${address}, address),
+                city = COALESCE(${city}, city),
+                state = COALESCE(${state}, state),
+                postal_code = COALESCE(${postalCode}, postal_code),
+                salary = COALESCE(${salary}, salary),
+                hourly_rate = COALESCE(${hourlyRate}, hourly_rate),
                 end_date = COALESCE(${endDate}, end_date),
                 exit_type = COALESCE(${exitType}, exit_type),
                 exit_reason = COALESCE(${exitReason}, exit_reason),
@@ -322,10 +376,19 @@ export default withErrorHandler(async (req: NextApiRequest, res: NextApiResponse
                 last_name = COALESCE(${lastName || null}, last_name),
                 email = COALESCE(${updates.email}, email),
                 phone = COALESCE(${updates.phone}, phone),
+                alternate_phone = COALESCE(${alternatePhone}, alternate_phone),
                 position = COALESCE(${updates.position}, position),
                 department = COALESCE(${updates.department}, department),
+                reports_to = ${reportsToValue},
+                contract_type = COALESCE(${contractType}, contract_type),
                 status = COALESCE(${updates.status}, status),
                 join_date = COALESCE(${updates.join_date || updates.startDate}, join_date),
+                address = COALESCE(${address}, address),
+                city = COALESCE(${city}, city),
+                state = COALESCE(${state}, state),
+                postal_code = COALESCE(${postalCode}, postal_code),
+                salary = COALESCE(${salary}, salary),
+                hourly_rate = COALESCE(${hourlyRate}, hourly_rate),
                 end_date = COALESCE(${endDate}, end_date),
                 exit_type = COALESCE(${exitType}, exit_type),
                 exit_reason = COALESCE(${exitReason}, exit_reason),

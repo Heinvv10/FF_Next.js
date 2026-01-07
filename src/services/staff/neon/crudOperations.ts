@@ -41,7 +41,7 @@ export async function createStaff(data: Partial<StaffMember>): Promise<StaffMemb
     const result = await getSql()`
       INSERT INTO staff (
         employee_id, first_name, last_name, email, phone, alternate_phone,
-        department, position, status, join_date, reports_to,
+        department, position, status, join_date, reports_to, contract_type,
         address, city, state, postal_code,
         created_at, updated_at
       ) VALUES (
@@ -50,6 +50,7 @@ export async function createStaff(data: Partial<StaffMember>): Promise<StaffMemb
         ${formData.alternativePhone || null},
         ${formData.department}, ${formData.position}, ${formData.status || 'ACTIVE'},
         ${formData.startDate || new Date()}, ${processedReportsTo},
+        ${formData.contractType || null},
         ${formData.address || null}, ${formData.city || null},
         ${formData.province || null}, ${formData.postalCode || null},
         NOW(), NOW()
@@ -100,6 +101,7 @@ export async function createOrUpdateStaff(data: Partial<StaffMember>): Promise<S
           position = ${formData.position},
           status = ${formData.status || 'ACTIVE'},
           reports_to = ${processedReportsTo},
+          contract_type = ${formData.contractType || null},
           address = ${formData.address || null},
           city = ${formData.city || null},
           state = ${formData.province || null},
@@ -116,7 +118,7 @@ export async function createOrUpdateStaff(data: Partial<StaffMember>): Promise<S
       const result = await getSql()`
         INSERT INTO staff (
           employee_id, first_name, last_name, email, phone, alternate_phone,
-          department, position, status, join_date, reports_to,
+          department, position, status, join_date, reports_to, contract_type,
           address, city, state, postal_code,
           created_at, updated_at
         ) VALUES (
@@ -124,6 +126,7 @@ export async function createOrUpdateStaff(data: Partial<StaffMember>): Promise<S
           ${formData.email}, ${formData.phone}, ${formData.alternativePhone || null},
           ${formData.department}, ${formData.position}, ${formData.status || 'ACTIVE'},
           ${formData.startDate || new Date()}, ${processedReportsTo},
+          ${formData.contractType || null},
           ${formData.address || null}, ${formData.city || null},
           ${formData.province || null}, ${formData.postalCode || null},
           NOW(), NOW()
@@ -157,6 +160,9 @@ export async function updateStaff(id: string, data: Partial<StaffMember>): Promi
       lastName = nameParts.lastName;
     }
 
+    // Handle contract_type
+    const contractType = (data as any).contractType || (data as any).contract_type || null;
+
     const result = await getSql()`
       UPDATE staff SET
         first_name = COALESCE(${firstName}, first_name),
@@ -168,6 +174,7 @@ export async function updateStaff(id: string, data: Partial<StaffMember>): Promi
         position = COALESCE(${data.position}, position),
         status = COALESCE(${data.status}, status),
         reports_to = ${reportsTo},
+        contract_type = COALESCE(${contractType}, contract_type),
         address = COALESCE(${formData.address}, address),
         city = COALESCE(${formData.city}, city),
         state = COALESCE(${formData.province}, state),
