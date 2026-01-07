@@ -118,6 +118,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         logger.info('Staff project assignment reactivated', { staffId, projectId });
 
+        if (!updated) {
+          return res.status(500).json({ error: 'Failed to update assignment' });
+        }
+
         // Fetch with joins
         const [assignment] = await sql`
           SELECT
@@ -135,9 +139,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           WHERE sp.id = ${updated.id}
         `;
 
+        if (!assignment) {
+          return res.status(500).json({ error: 'Failed to fetch updated assignment' });
+        }
+
         return res.status(200).json({
           success: true,
-          assignment: mapDbToStaffProject(assignment),
+          assignment: mapDbToStaffProject(assignment as Record<string, unknown>),
         });
       }
 
@@ -165,6 +173,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       logger.info('Staff assigned to project', { staffId, projectId });
 
+      if (!created) {
+        return res.status(500).json({ error: 'Failed to create assignment' });
+      }
+
       // Fetch with joins
       const [assignment] = await sql`
         SELECT
@@ -182,9 +194,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         WHERE sp.id = ${created.id}
       `;
 
+      if (!assignment) {
+        return res.status(500).json({ error: 'Failed to fetch created assignment' });
+      }
+
       return res.status(201).json({
         success: true,
-        assignment: mapDbToStaffProject(assignment),
+        assignment: mapDbToStaffProject(assignment as Record<string, unknown>),
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';

@@ -3,9 +3,10 @@
  */
 
 import { Timestamp } from 'firebase/firestore';
-import { 
+import {
   Department, Position, StaffLevel, StaffStatus, ContractType,
-  Skill, Certification, Equipment, TrainingRecord 
+  Skill, Certification, Equipment, TrainingRecord,
+  SAContractType, SAComplianceData
 } from './enums.types';
 
 export interface StaffMember {
@@ -50,7 +51,10 @@ export interface StaffMember {
   // Employment Terms
   startDate: Timestamp;
   endDate?: Timestamp;
+  /** @deprecated Use saContractType instead */
   contractType: ContractType;
+  /** SA Labour Law compliant contract type */
+  saContractType?: SAContractType;
   salaryGrade?: string;
   hourlyRate?: number;
   taxNumber?: string;
@@ -58,6 +62,16 @@ export interface StaffMember {
   bankName?: string;
   salaryAmount?: number;
   benefitsPackage?: string;
+
+  // SA Labour Compliance
+  /** South African labour law compliance data */
+  saCompliance?: SAComplianceData;
+  /** True if staff member is an employee (not independent contractor) */
+  isEmployee?: boolean;
+  /** Currently in probation period */
+  inProbation?: boolean;
+  /** All required compliance fields are completed */
+  complianceComplete?: boolean;
   
   // Availability and Scheduling
   workingHours: string;

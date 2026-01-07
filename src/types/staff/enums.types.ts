@@ -75,6 +75,11 @@ export enum StaffStatus {
   RETIRED = 'retired',
 }
 
+/**
+ * @deprecated Use SAContractType from './compliance.types' instead.
+ * This enum is kept for backward compatibility with existing data.
+ * New code should use SAContractType which aligns with SA labour law.
+ */
 export enum ContractType {
   PERMANENT = 'permanent',
   CONTRACT = 'contract',
@@ -83,6 +88,34 @@ export enum ContractType {
   INTERN = 'intern',
   CONSULTANT = 'consultant',
 }
+
+// Re-export SA-compliant contract types for convenience
+export {
+  SAContractType,
+  SA_CONTRACT_TYPE_LABELS,
+  UIFStatus,
+  UIF_STATUS_LABELS,
+  COIDAStatus,
+  COIDA_STATUS_LABELS,
+  TaxStatus,
+  TAX_STATUS_LABELS,
+  ProbationStatus,
+  PROBATION_STATUS_LABELS,
+  NoticePeriod,
+  NOTICE_PERIOD_LABELS,
+  WorkingHoursCategory,
+  WORKING_HOURS_LABELS,
+  SA_CONTRACT_CONFIG,
+  getContractConfig,
+  isEmployee,
+  getDefaultCompliance,
+  mapLegacyContractType,
+} from './compliance.types';
+
+export type {
+  SAComplianceData,
+  ContractTypeConfig,
+} from './compliance.types';
 
 export enum Skill {
   // Technical Skills

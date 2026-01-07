@@ -132,7 +132,7 @@ export function ComplianceDashboard({
           return a.compliancePercentage - b.compliancePercentage;
         case 'status':
         default:
-          return STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status];
+          return (STATUS_PRIORITY[a.status] ?? 3) - (STATUS_PRIORITY[b.status] ?? 3);
       }
     });
 

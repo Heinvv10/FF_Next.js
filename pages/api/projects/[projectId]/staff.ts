@@ -128,9 +128,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         logger.info('Staff assignment reactivated', { staffId, projectId });
 
+        if (!updated) {
+          return res.status(500).json({ error: 'Failed to update assignment' });
+        }
+
         return res.status(200).json({
           success: true,
-          assignment: mapDbToStaffProject(updated),
+          assignment: mapDbToStaffProject(updated as Record<string, unknown>),
         });
       }
 
@@ -158,9 +162,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       logger.info('Staff assigned to project', { staffId, projectId });
 
+      if (!created) {
+        return res.status(500).json({ error: 'Failed to create assignment' });
+      }
+
       return res.status(201).json({
         success: true,
-        assignment: mapDbToStaffProject(created),
+        assignment: mapDbToStaffProject(created as Record<string, unknown>),
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
