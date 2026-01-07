@@ -1,7 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-// TODO: Re-enable Clerk middleware when ready for production
-// import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+// Define public routes that don't require authentication
+const isPublicRoute = createRouteMatcher([
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+  '/api/health(.*)',
+  '/',
+  '/api/webhook(.*)', // Webhook endpoints
+]);
+
+// Define role-based route matchers
+const isAdminRoute = createRouteMatcher([
+  '/admin(.*)',
+  '/api/admin(.*)',
+]);
+
+const isStaffRoute = createRouteMatcher([
+  '/ticketing(.*)',
+  '/contractors(.*)',
+  '/inventory(.*)',
+  '/api/ticketing(.*)',
+  '/api/contractors(.*)',
+]);
 
 // Simple edge-compatible logging
 function edgeLog(level: string, message: string, data?: any) {
@@ -20,18 +41,10 @@ function edgeLog(level: string, message: string, data?: any) {
   }
 }
 
-// TODO: Re-enable when adding Clerk auth back
-// const isPublicRoute = createRouteMatcher([
-//   '/sign-in(.*)',
-//   '/sign-up(.*)',
-//   '/api/health(.*)',
-//   '/',
-// ]);
-
-export async function middleware(request: NextRequest) {
+export default clerkMiddleware(async (auth, req) => {
   const startTime = Date.now();
-  const { pathname, searchParams } = request.nextUrl;
-  
+  const { pathname } = req.nextUrl;
+
   // Skip static files and Next.js internals
   if (
     pathname.startsWith('/_next') ||
@@ -44,48 +57,65 @@ export async function middleware(request: NextRequest) {
   // Log API requests
   if (pathname.startsWith('/api/')) {
     edgeLog('info', 'API Request', {
-      method: request.method,
+      method: req.method,
       path: pathname,
-      query: Object.fromEntries(searchParams),
-      ip: request.ip || request.headers.get('x-forwarded-for'),
-      userAgent: request.headers.get('user-agent')
+      ip: req.ip || req.headers.get('x-forwarded-for'),
+      userAgent: req.headers.get('user-agent')
     });
-    
-    // Clone response to log status
-    const response = NextResponse.next();
-    
-    // Log response time
-    response.headers.set('X-Response-Time', `${Date.now() - startTime}ms`);
-    
-    // Log slow requests
-    const responseTime = Date.now() - startTime;
-    if (responseTime > 1000) {
-      edgeLog('warn', 'Slow API Request', {
-        path: pathname,
-        responseTime: `${responseTime}ms`
-      });
-    }
-    
-    return response;
   }
 
-  // TODO: Re-enable when adding Clerk auth back
-  // if (!isPublicRoute(request)) {
-  //   auth().protect();
-  // }
+  // Check if route requires authentication
+  if (!isPublicRoute(req)) {
+    const { userId, sessionClaims } = await auth();
+    
+    if (!userId) {
+      // Redirect to sign-in if not authenticated
+      const signInUrl = new URL('/sign-in', req.url);
+      signInUrl.searchParams.set('redirect_url', pathname);
+      return NextResponse.redirect(signInUrl);
+    }
 
-  // For pages, just add response time header
+    // Check role-based access
+    const userRole = sessionClaims?.metadata?.role as string;
+
+    if (isAdminRoute(req) && userRole !== 'admin') {
+      return NextResponse.json(
+        { error: 'Unauthorized: Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    if (isStaffRoute(req) && !['admin', 'staff', 'contractor'].includes(userRole)) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Staff access required' },
+        { status: 403 }
+      );
+    }
+  }
+
   const response = NextResponse.next();
   response.headers.set('X-Response-Time', `${Date.now() - startTime}ms`);
-
+  
+  // Log slow requests
+  const responseTime = Date.now() - startTime;
+  if (responseTime > 1000) {
+    edgeLog('warn', 'Slow Request', {
+      path: pathname,
+      responseTime: `${responseTime}ms`
+    });
+  }
+  
   return response;
-}
+}, {
+  // Clerk middleware configuration
+  debug: process.env.NODE_ENV === 'development',
+});
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except static files
-     */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    // Skip Next.js internals and static files
+    '/((?!_next|[^?]*\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
   ],
 };
