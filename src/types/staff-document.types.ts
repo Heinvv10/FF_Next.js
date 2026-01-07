@@ -13,6 +13,10 @@ export type DocumentType =
   | 'police_clearance'
   | 'bank_details'
   | 'tax_document'
+  // Independent Contractor specific
+  | 'cipc_registration'
+  | 'tax_clearance'
+  | 'insurance_liability'
   | 'other';
 
 export type VerificationStatus = 'pending' | 'verified' | 'rejected' | 'expired';
@@ -119,6 +123,10 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   police_clearance: 'Police Clearance',
   bank_details: 'Banking Details',
   tax_document: 'Tax Document',
+  // Independent Contractor specific
+  cipc_registration: 'CIPC Registration',
+  tax_clearance: 'Tax Clearance Certificate',
+  insurance_liability: 'Public Liability Insurance',
   other: 'Other'
 };
 
@@ -132,6 +140,10 @@ export const DOCUMENT_TYPE_ICONS: Record<DocumentType, string> = {
   police_clearance: 'Shield',
   bank_details: 'Building2',
   tax_document: 'Receipt',
+  // Independent Contractor specific
+  cipc_registration: 'Building',
+  tax_clearance: 'FileCheck',
+  insurance_liability: 'ShieldCheck',
   other: 'File'
 };
 
@@ -139,13 +151,50 @@ export const DOCUMENTS_WITH_EXPIRY: DocumentType[] = [
   'drivers_license',
   'medical_certificate',
   'police_clearance',
-  'certification'
+  'certification',
+  // IC documents with expiry
+  'tax_clearance',
+  'insurance_liability'
 ];
 
+/** @deprecated Use REQUIRED_DOCUMENTS_EMPLOYEE or getRequiredDocuments() instead */
 export const REQUIRED_DOCUMENTS: DocumentType[] = [
   'id_document',
   'employment_contract'
 ];
+
+/**
+ * Required documents for Employees (permanent, fixed-term, part-time, temporary, intern)
+ */
+export const REQUIRED_DOCUMENTS_EMPLOYEE: DocumentType[] = [
+  'id_document',
+  'employment_contract'
+];
+
+/**
+ * Required documents for Independent Contractors
+ */
+export const REQUIRED_DOCUMENTS_IC: DocumentType[] = [
+  'cipc_registration',
+  'tax_clearance',
+  'insurance_liability'
+];
+
+/**
+ * Get required documents based on employment type
+ * @param isEmployee - true for employees, false for independent contractors
+ */
+export function getRequiredDocuments(isEmployee: boolean): DocumentType[] {
+  return isEmployee ? REQUIRED_DOCUMENTS_EMPLOYEE : REQUIRED_DOCUMENTS_IC;
+}
+
+/**
+ * Check if a document type is required for the given employment type
+ */
+export function isRequiredDocument(docType: DocumentType, isEmployee: boolean): boolean {
+  const required = getRequiredDocuments(isEmployee);
+  return required.includes(docType);
+}
 
 export const VERIFICATION_STATUS_LABELS: Record<VerificationStatus, string> = {
   pending: 'Pending Review',
@@ -166,6 +215,7 @@ export const DOCUMENT_CATEGORIES = {
   identity: ['id_document', 'drivers_license', 'police_clearance'] as DocumentType[],
   employment: ['employment_contract', 'bank_details', 'tax_document'] as DocumentType[],
   qualifications: ['certification', 'qualification', 'medical_certificate'] as DocumentType[],
+  contractor: ['cipc_registration', 'tax_clearance', 'insurance_liability'] as DocumentType[],
   other: ['other'] as DocumentType[]
 };
 
@@ -173,5 +223,6 @@ export const DOCUMENT_CATEGORY_LABELS: Record<string, string> = {
   identity: 'Identity & Verification',
   employment: 'Employment & Financial',
   qualifications: 'Qualifications & Certifications',
+  contractor: 'Contractor Compliance',
   other: 'Other Documents'
 };
