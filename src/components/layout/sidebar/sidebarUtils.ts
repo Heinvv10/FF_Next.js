@@ -18,6 +18,22 @@ export const filterNavigationItems = (
   })).filter(section => section.items.length > 0); // Remove empty sections
 };
 
+/**
+ * Find which section contains a route matching the given pathname
+ * Used for auto-expanding the active section
+ */
+export const getSectionForRoute = (pathname: string, sections: NavSection[]): string | null => {
+  for (const section of sections) {
+    for (const item of section.items) {
+      // Exact match or starts with (for nested routes like /staff/123)
+      if (pathname === item.to || pathname.startsWith(item.to + '/')) {
+        return section.section;
+      }
+    }
+  }
+  return null;
+};
+
 export const getSidebarStyles = (themeConfig: ThemeConfig): SidebarStyles => {
   const baseStyles = themeConfig.name === 'vf' ? {
     backgroundColor: themeConfig.colors.surface.sidebar || themeConfig.colors.surface.primary,

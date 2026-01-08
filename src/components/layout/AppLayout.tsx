@@ -23,26 +23,29 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    // Load sidebar state from localStorage (only on client)
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('fibreflow-sidebar-collapsed');
-      return saved ? JSON.parse(saved) : false;
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Load sidebar state from localStorage after mount to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem('fibreflow-sidebar-collapsed');
+    if (saved) {
+      setSidebarCollapsed(JSON.parse(saved));
     }
-    return false;
-  });
+  }, []);
 
   const pathname = usePathname();
   const { currentUser, loading } = useAuth();
   // Theme hook ready for future use
   // const { theme } = useTheme();
 
-  // Save sidebar state to localStorage (only on client)
+  // Save sidebar state to localStorage (only after initial mount)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (mounted) {
       localStorage.setItem('fibreflow-sidebar-collapsed', JSON.stringify(sidebarCollapsed));
     }
-  }, [sidebarCollapsed]);
+  }, [sidebarCollapsed, mounted]);
 
   // Close mobile sidebar when route changes
   useEffect(() => {

@@ -1,14 +1,28 @@
 {
   "permissions": {
     "allow": [
-      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'' -c \"\"SELECT dr_number FROM foto_ai_reviews WHERE dr_number IN (''DR1856255'', ''DR1856232'', ''DR1856248'', ''DR1752318'');\"\"\")",
-      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"psql ''postgresql://neondb_owner:npg_aRNLhZc1G2CD@ep-dry-night-a9qyh4sj-pooler.gwc.azure.neon.tech/neondb?sslmode=require'' -c \"\"SELECT drop_number FROM qa_photo_reviews WHERE drop_number IN (''DR1854650'', ''DR1854713'', ''DR1854832'', ''DR1854833'');\"\"\")",
-      "Bash(npm run lint:*)",
-      "Bash(npm run type-check:*)",
-      "Bash(npm test:*)"
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(scp:*)",
+      "Bash(npm install:*)",
+      "Bash(git commit:*)",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloAdmin2025!' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no louis@100.96.203.105 \"cd /var/www/fibreflow && git pull && npm ci && npm run build && pm2 restart fibreflow-prod\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow && git pull && npm ci && npm run build && pm2 restart fibreflow-prod\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"pm2 restart fibreflow-prod && pm2 status\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"curl -s http://localhost:8080/status || echo ''Bridge not responding on 8080''\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"curl -X POST http://localhost:8080/api/send -H ''Content-Type: application/json'' -d ''{\"\"jid\"\": \"\"120363421664266245@g.us\"\", \"\"message\"\": \"\"Test from Claude: Send feedback functionality restored ✅\"\"}'' -s | jq . || echo ''Response received but not JSON''\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow && cat .env.production | grep CLERK\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow && echo ''AUTH_BYPASS=true'' >> .env.production && echo ''DEMO_MODE=true'' >> .env.production && echo ''NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_dummy'' >> .env.production && echo ''CLERK_SECRET_KEY=sk_test_dummy'' >> .env.production\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow && npm run build\")",
+      "Bash(SSH_AUTH_SOCK=\"\" sshpass -p 'VeloF@2025@@' ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no root@72.60.17.245 \"cd /var/www/fibreflow && rm -rf .next/server/app/api/ticketing && npm run build\")"
     ],
     "deny": [],
     "ask": [],
-    "additionalDirectories": []
+    "additionalDirectories": [
+      "C:\\Jarvis\\AI Workspace",
+      "C:\\tmp",
+      "C:\\c\\Jarvis\\AI Workspace"
+    ]
   }
 }

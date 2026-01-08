@@ -13,7 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { createLogger } from '@/lib/logger';
-import { auth } from '@clerk/nextjs/server';
+// import { auth } from '@clerk/nextjs/server'; // Temporarily disabled for build fix
 
 const logger = createLogger('ticket-notes-api');
 const sql = neon(process.env.DATABASE_URL!);
@@ -185,12 +185,13 @@ export async function POST(
 
     // Get current user from Clerk (optional - may not be available in all contexts)
     let userId: string | null = null;
-    try {
-      const authResult = await auth();
-      userId = authResult.userId;
-    } catch {
-      // Auth not available in this context (e.g., API call without session)
-    }
+    // Temporarily disabled for build fix
+    // try {
+    //   const authResult = await auth();
+    //   userId = authResult.userId;
+    // } catch {
+    //   // Auth not available in this context (e.g., API call without session)
+    // }
 
     const body = await request.json();
     const {

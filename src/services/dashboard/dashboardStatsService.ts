@@ -7,10 +7,17 @@
 import { analyticsApi } from '@/services/api/analyticsApi';
 import { log } from '@/lib/logger';
 import { staffService } from '@/services/staffService';
-import { neon } from '@neondatabase/serverless';
 
-// Initialize SQL client for deprecated methods
-const sql = neon(process.env.DATABASE_URL || '');
+// Lazy SQL client initialization - only used for deprecated methods
+// This prevents neon() from being called at module load time which fails on client-side
+let _sql: ReturnType<typeof import('@neondatabase/serverless').neon> | null = null;
+const getSql = async () => {
+  if (!_sql) {
+    const { neon } = await import('@neondatabase/serverless');
+    _sql = neon(process.env.DATABASE_URL || '');
+  }
+  return _sql;
+};
 
 // Type definitions for deprecated query services
 const staffQueryService = {
