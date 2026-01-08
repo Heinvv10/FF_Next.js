@@ -9,6 +9,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { initErrorTracking } from '@/lib/errorTracking';
 
@@ -44,11 +45,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       <ErrorBoundary>
-        <ThemeProvider>
-          <QueryClientProvider client={queryClient}>
-            {children}
-          </QueryClientProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <QueryClientProvider client={queryClient}>
+              {children}
+            </QueryClientProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </ErrorBoundary>
     </ClerkProvider>
   );

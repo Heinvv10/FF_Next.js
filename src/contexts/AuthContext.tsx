@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 // import { authService, AuthUser } from '@/services/authService'; // Commented out for development mode
 import { AuthUser } from '@/services/authService';

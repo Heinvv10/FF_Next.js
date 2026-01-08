@@ -1,5 +1,6 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
+import { ClerkProvider } from '@clerk/nextjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -36,13 +37,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <VersionChecker />
-      <AuthProvider>
-        <ThemeProvider>
-          <QueryClientProvider client={queryClient}>
-            <Component {...pageProps} />
-            <Toaster
+    <ClerkProvider>
+      <ErrorBoundary>
+        <VersionChecker />
+        <AuthProvider>
+          <ThemeProvider>
+            <QueryClientProvider client={queryClient}>
+              <Component {...pageProps} />
+              <Toaster
               position="top-right"
               toastOptions={{
                 duration: 4000,
@@ -79,10 +81,11 @@ function MyApp({ Component, pageProps }: AppProps) {
                 },
               }}
             />
-          </QueryClientProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </ErrorBoundary>
+            </QueryClientProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </ClerkProvider>
   );
 }
 

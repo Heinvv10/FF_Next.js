@@ -1,5 +1,9 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher, clerkClient } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+
+// Cache user roles to avoid repeated API calls (5 minute TTL)
+const roleCache = new Map<string, { role: string | undefined; expiry: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -75,8 +79,24 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.redirect(signInUrl);
     }
 
-    // Check role-based access
-    const userRole = sessionClaims?.metadata?.role as string;
+    // Get user role from cache or fetch from Clerk API
+    let userRole: string | undefined;
+    const cached = roleCache.get(userId);
+
+    if (cached && cached.expiry > Date.now()) {
+      userRole = cached.role;
+    } else {
+      try {
+        const client = await clerkClient();
+        const user = await client.users.getUser(userId);
+        userRole = (user.publicMetadata as { role?: string })?.role;
+        roleCache.set(userId, { role: userRole, expiry: Date.now() + CACHE_TTL });
+      } catch (error) {
+        edgeLog('error', 'Failed to fetch user role', { userId, error: String(error) });
+      }
+    }
+
+    edgeLog('debug', 'Auth check', { userId, userRole, path: pathname });
 
     if (isAdminRoute(req) && userRole !== 'admin') {
       return NextResponse.json(
@@ -85,7 +105,7 @@ export default clerkMiddleware(async (auth, req) => {
       );
     }
 
-    if (isStaffRoute(req) && !['admin', 'staff', 'contractor'].includes(userRole)) {
+    if (isStaffRoute(req) && (!userRole || !['admin', 'staff', 'contractor'].includes(userRole))) {
       return NextResponse.json(
         { error: 'Unauthorized: Staff access required' },
         { status: 403 }
