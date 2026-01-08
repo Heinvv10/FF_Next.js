@@ -5,7 +5,6 @@
 
 'use client';
 
-import { ClerkProvider } from '@clerk/nextjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -35,21 +34,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <ClerkProvider
-      appearance={{
-        elements: {
-          formButtonPrimary: 'bg-blue-600 hover:bg-blue-700 text-white',
-          card: 'shadow-lg',
-        },
-      }}
-    >
-      <ErrorBoundary>
-        <ThemeProvider>
-          <QueryClientProvider client={queryClient}>
-            {children}
-          </QueryClientProvider>
-        </ThemeProvider>
-      </ErrorBoundary>
-    </ClerkProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

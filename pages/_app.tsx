@@ -1,5 +1,6 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
+import { ClerkProvider } from '@clerk/nextjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -38,8 +39,16 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ErrorBoundary>
       <VersionChecker />
-      <AuthProvider>
-        <ThemeProvider>
+      <ClerkProvider
+        appearance={{
+          elements: {
+            formButtonPrimary: 'bg-blue-600 hover:bg-blue-700 text-white',
+            card: 'shadow-lg',
+          },
+        }}
+      >
+        <AuthProvider>
+          <ThemeProvider>
           <QueryClientProvider client={queryClient}>
             <Component {...pageProps} />
             <Toaster
@@ -80,8 +89,9 @@ function MyApp({ Component, pageProps }: AppProps) {
               }}
             />
           </QueryClientProvider>
-        </ThemeProvider>
-      </AuthProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </ClerkProvider>
     </ErrorBoundary>
   );
 }

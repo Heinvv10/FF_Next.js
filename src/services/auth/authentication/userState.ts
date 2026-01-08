@@ -3,8 +3,8 @@
  * User state and profile management methods using Clerk
  */
 
-import { useAuth, useUser } from '@clerk/nextjs';
-import { clerkAuth } from '../clerkAuth';
+// import { useAuth, useUser } from '@clerk/nextjs';
+// import { clerkAuth } from '../clerkAuth';
 import { authConfig } from '@/config/auth.config';
 import { User } from '@/types/auth.types';
 import { getUserProfile, getUserFromFirestore } from '../userService';

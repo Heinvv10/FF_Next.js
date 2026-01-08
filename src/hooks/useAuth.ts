@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
+// import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
 import { authConfig } from '@/config/auth.config';
 import { log } from '@/lib/logger';
 

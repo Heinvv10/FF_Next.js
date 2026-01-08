@@ -3,7 +3,7 @@
  * Migrated from Firebase to Clerk with development bypass
  */
 
-import { clerkAuth, User as ClerkUser } from '../clerkAuth';
+// import { clerkAuth, User as ClerkUser } from '../clerkAuth';
 import { authConfig } from '@/config/auth.config';
 import { LoginCredentials, RegisterCredentials, PasswordResetRequest, User } from '@/types/auth.types';
 import { createUserProfile, getUserProfile, updateLastLogin } from '../userService';

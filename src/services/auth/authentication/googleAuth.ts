@@ -3,7 +3,7 @@
  * Google OAuth authentication methods using Clerk
  */
 
-import { clerkAuth } from '../clerkAuth';
+// import { clerkAuth } from '../clerkAuth';
 import { authConfig } from '@/config/auth.config';
 import { User } from '@/types/auth.types';
 import { getUserProfile, updateLastLogin } from '../userService';
