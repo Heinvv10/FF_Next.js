@@ -220,12 +220,13 @@ export class DashboardStatsService {
     try {
       // Try to get infrastructure data from Neon database
       // If tables don't exist, return 0s
+      const sql = await getSql();
       const result = await sql`
-        SELECT 
+        SELECT
           COALESCE(SUM(CASE WHEN type = 'pole' THEN quantity ELSE 0 END), 0) as poles,
           COALESCE(SUM(CASE WHEN type = 'drop' THEN quantity ELSE 0 END), 0) as drops,
           COALESCE(SUM(CASE WHEN type = 'fiber' THEN length ELSE 0 END), 0) as fiber
-        FROM infrastructure_installations 
+        FROM infrastructure_installations
         WHERE status = 'completed'
       `.catch(() => [{ poles: 0, drops: 0, fiber: 0 }]);
 
@@ -253,12 +254,13 @@ export class DashboardStatsService {
     try {
       // Try to get procurement data from Neon database
       // If tables don't exist, return 0s
+      const sql = await getSql();
       const [boqResult, rfqResult, supplierResult, contractorResult] = await Promise.all([
         sql`SELECT COUNT(*) as count FROM boqs WHERE status = 'active'`.catch(() => [{ count: 0 }]),
         sql`SELECT COUNT(*) as count FROM rfqs WHERE status = 'active'`.catch(() => [{ count: 0 }]),
         sql`SELECT COUNT(*) as count FROM suppliers WHERE status = 'active'`.catch(() => [{ count: 0 }]),
         sql`
-          SELECT 
+          SELECT
             COUNT(CASE WHEN status = 'active' THEN 1 END) as active,
             COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending
           FROM contractors

@@ -4,7 +4,7 @@
  * Queries SOW module for DR (Drop) details including project, zone, pole, and PON information.
  *
  * Features:
- * - Lookup DR from drops table in SOW module
+ * - Lookup DR from sow_drops table in SOW module
  * - Returns project, zone, pole, PON details
  * - In-memory caching to reduce database queries
  * - Comprehensive error handling
@@ -56,7 +56,7 @@ export async function lookupDR(drNumber: string): Promise<DRLookupResult> {
 
     logger.info('Looking up DR number in SOW module', { drNumber: trimmedDR });
 
-    // Query drops table for DR details
+    // Query sow_drops table for DR details
     const drData = await queryOne<{
       drop_number: string;
       pole_number: string | null;
@@ -67,11 +67,6 @@ export async function lookupDR(drNumber: string): Promise<DRLookupResult> {
       latitude: number | null;
       longitude: number | null;
       municipality: string | null;
-      cable_type: string | null;
-      cable_length: string | null;
-      status: string | null;
-      created_date: Date | null;
-      created_by: string | null;
     }>(
       `SELECT
         drop_number,
@@ -82,13 +77,8 @@ export async function lookupDR(drNumber: string): Promise<DRLookupResult> {
         address,
         latitude,
         longitude,
-        municipality,
-        cable_type,
-        cable_length,
-        status,
-        created_date,
-        created_by
-      FROM drops
+        municipality
+      FROM sow_drops
       WHERE drop_number = $1`,
       [trimmedDR]
     );
@@ -116,9 +106,6 @@ export async function lookupDR(drNumber: string): Promise<DRLookupResult> {
       latitude: drData.latitude,
       longitude: drData.longitude,
       municipality: drData.municipality,
-      cable_type: drData.cable_type,
-      cable_length: drData.cable_length,
-      status: drData.status
     };
 
     // If project_id exists, lookup project details

@@ -26,6 +26,8 @@ import {
   NOTICE_PERIOD_LABELS,
   getDefaultCompliance,
   getContractConfig,
+  mapLegacyContractType,
+  isValidContractType,
 } from '@/types/staff/compliance.types';
 import { useStaff } from '@/hooks/useStaff';
 import {
@@ -52,7 +54,7 @@ export function EmploymentSection({ formData, handleInputChange }: EmploymentSec
     ? getPositionsByDepartment(formData.department)
     : Object.values(StaffPosition);
 
-  const potentialManagers = staffList?.filter(staff =>
+const potentialManagers = staffList?.filter(staff =>
     staff.id !== formData.id &&
     ['MD', 'CCSO', 'BDO', 'Head', 'Manager'].some(title =>
       staff.position?.includes(title)
@@ -261,8 +263,19 @@ function SAComplianceSection({
   formData: StaffFormData;
   handleInputChange: (field: keyof StaffFormData, value: any) => void;
 }) {
-  const contractType = (formData.saContractType || formData.contractType) as SAContractType;
-  const config = contractType ? getContractConfig(contractType) : null;
+  const rawContractType = formData.saContractType || formData.contractType;
+
+  // Validate that the contract type is a valid SAContractType
+  const validContractTypes = Object.values(SAContractType);
+  const isValidType = rawContractType && validContractTypes.includes(rawContractType as SAContractType);
+
+  if (!isValidType) {
+    // Don't render compliance section for invalid/legacy contract types
+    return null;
+  }
+
+  const contractType = rawContractType as SAContractType;
+  const config = getContractConfig(contractType);
 
   if (!config) return null;
 

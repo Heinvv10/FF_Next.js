@@ -13,6 +13,7 @@ import {
   DOCUMENT_CATEGORIES,
   DOCUMENT_CATEGORY_LABELS,
   DOCUMENTS_WITH_EXPIRY,
+  getRequiredDocuments,
 } from '@/types/staff-document.types';
 import { createLogger } from '@/lib/logger';
 
@@ -23,6 +24,7 @@ interface StaffDocumentUploadFormProps {
   onSuccess: () => void;
   onCancel: () => void;
   defaultDocumentType?: DocumentType;
+  isEmployee?: boolean;
 }
 
 export function StaffDocumentUploadForm({
@@ -30,7 +32,9 @@ export function StaffDocumentUploadForm({
   onSuccess,
   onCancel,
   defaultDocumentType,
+  isEmployee = true,
 }: StaffDocumentUploadFormProps) {
+  const requiredDocs = getRequiredDocuments(isEmployee);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -308,15 +312,29 @@ export function StaffDocumentUploadForm({
               required
               disabled={isSubmitting}
             >
-              {Object.entries(DOCUMENT_CATEGORIES).map(([category, types]) => (
-                <optgroup key={category} label={DOCUMENT_CATEGORY_LABELS[category]}>
-                  {types.map((type) => (
-                    <option key={type} value={type}>
-                      {DOCUMENT_TYPE_LABELS[type]}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
+              {/* Required documents first */}
+              <optgroup label={`Required Documents (${isEmployee ? 'Employee' : 'Contractor'})`}>
+                {requiredDocs.map((type) => (
+                  <option key={type} value={type}>
+                    {DOCUMENT_TYPE_LABELS[type]} (Required)
+                  </option>
+                ))}
+              </optgroup>
+              {/* Other documents by category */}
+              {Object.entries(DOCUMENT_CATEGORIES).map(([category, types]) => {
+                // Filter out required docs from other categories
+                const nonRequiredTypes = types.filter(t => !requiredDocs.includes(t));
+                if (nonRequiredTypes.length === 0) return null;
+                return (
+                  <optgroup key={category} label={DOCUMENT_CATEGORY_LABELS[category]}>
+                    {nonRequiredTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {DOCUMENT_TYPE_LABELS[type]}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })}
             </select>
             {requiresExpiry && (
               <p className="mt-1 text-xs text-amber-600 flex items-center gap-1">

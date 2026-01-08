@@ -1,0 +1,44 @@
+"use client";
+
+import { createContext, useContext } from "react";
+import { useUser } from "@clerk/nextjs";
+
+interface AuthContextValue {
+  currentUser: any;
+  loading: boolean;
+  hasPermission: (permission: string) => boolean;
+}
+
+const AuthContext = createContext<AuthContextValue>({
+  currentUser: null,
+  loading: true,
+  hasPermission: () => true,
+});
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { user, isLoaded } = useUser();
+
+  // Transform Clerk user to match expected format
+  const currentUser = user ? {
+    id: user.id,
+    firstName: user.firstName || "",
+    lastName: user.lastName || "",
+    email: user.primaryEmailAddress?.emailAddress || "",
+    imageUrl: user.imageUrl || ""
+  } : null;
+
+  // For now, allow all permissions when user is logged in
+  const hasPermission = (permission: string) => {
+    return !!user;
+  };
+
+  return (
+    <AuthContext.Provider value={{ currentUser, loading: !isLoaded, hasPermission }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}

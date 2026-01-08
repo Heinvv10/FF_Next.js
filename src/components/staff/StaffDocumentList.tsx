@@ -31,6 +31,7 @@ import {
   DOCUMENT_CATEGORY_LABELS,
 } from '@/types/staff-document.types';
 import { StaffDocumentUploadForm } from './StaffDocumentUploadForm';
+import { StaffDocumentChecklist } from './StaffDocumentChecklist';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger('StaffDocumentList');
@@ -38,10 +39,11 @@ const logger = createLogger('StaffDocumentList');
 interface StaffDocumentListProps {
   staffId: string;
   isAdmin?: boolean;
+  isEmployee?: boolean;
   onVerify?: (documentId: string, status: 'verified' | 'rejected', notes?: string) => void;
 }
 
-export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffDocumentListProps) {
+export function StaffDocumentList({ staffId, isAdmin = false, isEmployee = true, onVerify }: StaffDocumentListProps) {
   const [documents, setDocuments] = useState<StaffDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -210,6 +212,9 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
         </button>
       </div>
 
+      {/* Required Documents Checklist */}
+      <StaffDocumentChecklist documents={documents} isEmployee={isEmployee} />
+
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 p-4 ff-bg-tertiary rounded-lg border border-[var(--ff-border-light)]">
         <div className="flex items-center gap-2">
@@ -366,6 +371,7 @@ export function StaffDocumentList({ staffId, isAdmin = false, onVerify }: StaffD
       {showUploadForm && (
         <StaffDocumentUploadForm
           staffId={staffId}
+          isEmployee={isEmployee}
           onSuccess={handleUploadSuccess}
           onCancel={() => setShowUploadForm(false)}
         />

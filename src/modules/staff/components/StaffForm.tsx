@@ -11,13 +11,15 @@ import {
   Skill,
   isFormerEmployee,
 } from '@/types/staff.types';
+import { mapLegacyContractType, isValidContractType, SAContractType } from '@/types/staff/compliance.types';
 import { safeToDate } from '@/utils/dateHelpers';
 import {
   PersonalInfoSection,
   EmploymentSection,
   EmergencyContactSection,
   AvailabilitySection,
-  SkillsSection
+  SkillsSection,
+  DocumentsSection
 } from './StaffFormSections';
 import { ExitEmployeeModal, ExitFormData } from './ExitEmployeeModal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -80,7 +82,13 @@ export function StaffForm() {
         province: staff.province,
         postalCode: staff.postalCode,
         startDate: startDate,
-        contractType: staff.contractType,
+        // Auto-map legacy contract types to valid SAContractType values
+        contractType: isValidContractType(staff.contractType)
+          ? staff.contractType
+          : mapLegacyContractType(staff.contractType || ''),
+        saContractType: isValidContractType(staff.contractType)
+          ? staff.contractType as SAContractType
+          : mapLegacyContractType(staff.contractType || ''),
         workingHours: staff.workingHours || '08:00 - 17:00',
         availableWeekends: staff.availableWeekends || false,
         availableNights: staff.availableNights || false,
@@ -231,10 +239,16 @@ export function StaffForm() {
             handleInputChange={handleInputChange}
           />
           
-          <SkillsSection 
+          <SkillsSection
             formData={formData}
             handleInputChange={handleInputChange}
             toggleSkill={toggleSkill}
+          />
+
+          <DocumentsSection
+            staffId={id}
+            isEditing={isEditing}
+            contractType={formData.contractType}
           />
 
           {/* Form Actions */}

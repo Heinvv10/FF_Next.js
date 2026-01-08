@@ -221,7 +221,75 @@ export function getPositionsByDepartment(department: string): string[] {
     [StaffDepartment.COMMERCIAL_STRATEGY]: [
       StaffPosition.CCSO,
     ],
+    [StaffDepartment.ADMIN]: [
+      StaffPosition.ADMIN,
+      StaffPosition.ADMIN_ASSISTANT,
+      StaffPosition.DATA_CAPTURER,
+    ],
+    [StaffDepartment.FINANCE]: [
+      StaffPosition.ADMIN,
+      StaffPosition.ADMIN_ASSISTANT,
+      StaffPosition.DATA_CAPTURER,
+      StaffPosition.OTHER,
+    ],
+    [StaffDepartment.HR]: [
+      StaffPosition.ADMIN,
+      StaffPosition.ADMIN_ASSISTANT,
+      StaffPosition.OTHER,
+    ],
+    [StaffDepartment.LOGISTICS]: [
+      StaffPosition.LOGISTICS_COORDINATOR,
+      StaffPosition.DRIVER,
+      StaffPosition.GENERAL_WORKER,
+    ],
+    [StaffDepartment.INSTALLATION]: [
+      StaffPosition.TECHNICIAN,
+      StaffPosition.FIELD_TECHNICIAN,
+      StaffPosition.CABLE_JOINTER,
+      StaffPosition.FIBRE_SPLICER,
+      StaffPosition.TEAM_LEAD,
+    ],
+    [StaffDepartment.MAINTENANCE]: [
+      StaffPosition.TECHNICIAN,
+      StaffPosition.SENIOR_TECHNICIAN,
+      StaffPosition.FIELD_TECHNICIAN,
+    ],
+    [StaffDepartment.QUALITY_ASSURANCE]: [
+      StaffPosition.QUALITY_INSPECTOR,
+      StaffPosition.SAFETY_OFFICER,
+    ],
+    [StaffDepartment.ENGINEERING]: [
+      StaffPosition.NETWORK_ENGINEER,
+      StaffPosition.SENIOR_TECHNICIAN,
+      StaffPosition.TECHNICIAN,
+    ],
+    [StaffDepartment.NETWORK_OPERATIONS]: [
+      StaffPosition.NETWORK_ENGINEER,
+      StaffPosition.TECHNICIAN,
+    ],
+    [StaffDepartment.TECHNICAL_SUPPORT]: [
+      StaffPosition.TECHNICIAN,
+      StaffPosition.SENIOR_TECHNICIAN,
+    ],
+    [StaffDepartment.SALES]: [
+      StaffPosition.ADMIN,
+      StaffPosition.OTHER,
+    ],
+    [StaffDepartment.CUSTOMER_SERVICE]: [
+      StaffPosition.ADMIN,
+      StaffPosition.OTHER,
+    ],
+    [StaffDepartment.SAFETY]: [
+      StaffPosition.SAFETY_OFFICER,
+      StaffPosition.SHEQ_MANAGER,
+    ],
   };
-  
-  return departmentPositions[department] || [];
+
+  // Return department-specific positions, or all positions if department not mapped
+  const positions = departmentPositions[department];
+  if (positions && positions.length > 0) {
+    return positions;
+  }
+  // Fallback: return all positions for unmapped departments
+  return Object.values(StaffPosition);
 }

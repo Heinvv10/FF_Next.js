@@ -1,0 +1,57 @@
+import { useState, useEffect, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
+// import { useTheme } from '@/contexts/ThemeContext'; // Ready for future use
+import { useUser } from '@clerk/nextjs';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+// import { ConnectionStatus } from '@/components/realtime/ConnectionStatus'; // Disabled - WebSocket not configured
+import dynamic from 'next/dynamic';
+
+// Dynamically import components that use router to avoid SSR issues
+const Sidebar = dynamic(() => import('./Sidebar').then(mod => ({ default: mod.Sidebar })), { ssr: false });
+const Header = dynamic(() => import('./Header').then(mod => ({ default: mod.Header })), { ssr: false });
+const Footer = dynamic(() => import('./Footer').then(mod => ({ default: mod.Footer })), { ssr: false });
+
+interface PageMeta {
+  title: string;
+  breadcrumbs?: string[];
+  actions?: React.ReactNode;
+}
+
+interface AppLayoutProps {
+  children: ReactNode;
+}
+
+export function AppLayout({ children }: AppLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Load sidebar state from localStorage after mount to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem('fibreflow-sidebar-collapsed');
+    if (saved) {
+      setSidebarCollapsed(JSON.parse(saved));
+    }
+  }, []);
+
+  const pathname = usePathname();
+  const { user, isLoaded } = useUser();
+  // Theme hook ready for future use
+  // const { theme } = useTheme();
+
+  // Save sidebar state to localStorage (only after initial mount)
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem('fibreflow-sidebar-collapsed', JSON.stringify(sidebarCollapsed));
+    }
+  }, [sidebarCollapsed, mounted]);
+
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  // Get page metadata based on current route
+  const getPageMeta = (): PageMeta => {
+    const path = pathname || '/'
