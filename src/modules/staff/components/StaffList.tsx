@@ -103,10 +103,10 @@ export function StaffList() {
     return (
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Import Staff</h1>
+          <h1 className="text-2xl font-bold text-[var(--ff-text-primary)]">Import Staff</h1>
           <button
             onClick={() => setShowImport(false)}
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            className="px-4 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-md hover:bg-[var(--ff-bg-hover)]"
           >
             Back to List
           </button>
@@ -149,9 +149,9 @@ export function StaffList() {
         utilizationRate={Math.round(summary?.utilizationRate || 0)}
         showFilters={showFilters}
         setShowFilters={setShowFilters}
-        onAddStaff={() => router.push('/app/staff/new')}
+        onAddStaff={() => router.push('/staff/new')}
         onImport={() => setShowImport(true)}
-        onSettings={() => router.push('/app/staff/settings')}
+        onSettings={() => router.push('/staff/settings')}
         onExport={handleExport}
       />
 
@@ -167,16 +167,16 @@ export function StaffList() {
 
       <StaffTable
         staff={staff}
-        onView={(staff: StaffMember) => router.push(`/app/staff/${staff.id}`)}
-        onEdit={(staff: StaffMember) => router.push(`/app/staff/edit/${staff.id}`)}
+        onView={(staff: StaffMember) => router.push(`/staff/${staff.id}`)}
+        onEdit={(staff: StaffMember) => router.push(`/staff/${staff.id}/edit`)}
         onDelete={handleDelete}
       />
 
       {staff.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No staff members found</p>
+          <p className="text-[var(--ff-text-secondary)] text-lg">No staff members found</p>
           <button
-            onClick={() => router.push('/app/staff/create')}
+            onClick={() => router.push('/staff/new')}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             Add First Staff Member
