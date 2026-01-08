@@ -108,6 +108,38 @@ export {
 
 export { useRelatedTickets } from './useRelatedTickets';
 
+// ==================== DR Lookup & Form Hooks ====================
+
+/**
+ * DR Lookup and Ticket Form hooks for ticket creation
+ *
+ * Exports:
+ * - useDRLookup: Manual DR lookup with caching
+ * - useDRLookupAuto: Auto-lookup as user types
+ * - drLookupKeys: Query keys for React Query
+ */
+export {
+  useDRLookup,
+  useDRLookupAuto,
+  drLookupKeys,
+} from './useDRLookup';
+
+/**
+ * Ticket Form hooks for form state management
+ *
+ * Exports:
+ * - useTicketForm: Complete form state management
+ * - TICKET_SOURCE_LABELS, TICKET_TYPE_LABELS, etc.: Enum label maps
+ */
+export {
+  useTicketForm,
+  TICKET_SOURCE_LABELS,
+  TICKET_TYPE_LABELS,
+  TICKET_PRIORITY_LABELS,
+  FAULT_CAUSE_LABELS,
+  PRIORITY_COLORS,
+} from './useTicketForm';
+
 // Hooks to be added in future subtasks:
 // - useRiskAcceptance (phase 2)
 // - useEscalation (phase 3)
