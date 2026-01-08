@@ -7,3 +7,4 @@ export { EmploymentSection } from './EmploymentSection';
 export { ContactSection, EmergencyContactSection } from './ContactSection';
 export { AvailabilitySection } from './AvailabilitySection';
 export { SkillsSection } from './SkillsSection';
+export { DocumentsSection } from './DocumentsSection';
