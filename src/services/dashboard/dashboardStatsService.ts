@@ -6,6 +6,39 @@
 
 import { analyticsApi } from '@/services/api/analyticsApi';
 import { log } from '@/lib/logger';
+import { staffService } from '@/services/staffService';
+
+// Lazy SQL client initialization - only used for deprecated methods
+// This prevents neon() from being called at module load time which fails on client-side
+let _sql: ReturnType<typeof import('@neondatabase/serverless').neon> | null = null;
+const getSql = async () => {
+  if (!_sql) {
+    const { neon } = await import('@neondatabase/serverless');
+    _sql = neon(process.env.DATABASE_URL || '');
+  }
+  return _sql;
+};
+
+// Type definitions for deprecated query services
+const staffQueryService = {
+  getStaffSummary: () => staffService.getStaffSummary(),
+};
+
+const clientQueryService = {
+  getClientSummary: async () => ({
+    totalProjectValue: 0,
+    activeClients: 0,
+  }),
+};
+
+const ProjectQueryService = {
+  getAllProjects: async () => [] as any[],
+  getActiveProjects: async () => [] as any[],
+};
+
+const ProjectStatus = {
+  COMPLETED: 'COMPLETED',
+} as const;
 
 // 🟢 WORKING: Core dashboard data types
 export interface DashboardStats {

@@ -101,7 +101,7 @@ const FibreFlowDashboard: React.FC = () => {
   const [workload, setWorkload] = useState<WorkloadData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   // Fetch all dashboard data
   const fetchDashboardData = async () => {
@@ -189,7 +189,7 @@ const FibreFlowDashboard: React.FC = () => {
           <div className="text-right">
             <div className="text-sm text-gray-500">Last Updated</div>
             <div className="text-sm font-medium text-gray-900">
-              {lastUpdate.toLocaleTimeString()}
+              {lastUpdate?.toLocaleTimeString() ?? 'Loading...'}
             </div>
             <button
               onClick={fetchDashboardData}

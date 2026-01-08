@@ -28,3 +28,6 @@ export interface SidebarStyles {
   textColorSecondary: string;
   textColorTertiary: string;
 }
+
+// Track which sections are expanded (section name -> boolean)
+export type ExpandedSections = Record<string, boolean>;
