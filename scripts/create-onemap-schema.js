@@ -30,7 +30,7 @@ async function run() {
       priority VARCHAR(20) DEFAULT 'standard',
       last_full_sync TIMESTAMPTZ,
       last_incremental_sync TIMESTAMPTZ,
-      total_installations INTEGER DEFAULT 0,
+      total_drops INTEGER DEFAULT 0,
       project_mapping JSONB,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -86,7 +86,7 @@ async function run() {
       latitude DECIMAL(10, 8),
       longitude DECIMAL(11, 8),
       pole_type VARCHAR(50),
-      installation_count INTEGER DEFAULT 0,
+      drop_count INTEGER DEFAULT 0,
       checksum VARCHAR(32),
       last_synced_at TIMESTAMPTZ DEFAULT NOW(),
       created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -98,7 +98,7 @@ async function run() {
 
   // 6. Installations table
   await sql`
-    CREATE TABLE IF NOT EXISTS onemap.installations (
+    CREATE TABLE IF NOT EXISTS onemap.drops (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       pole_id UUID REFERENCES onemap.poles(id) ON DELETE SET NULL,
       site_id UUID REFERENCES onemap.sites(id) ON DELETE CASCADE,
@@ -118,13 +118,13 @@ async function run() {
       UNIQUE (site_id, dr_number)
     )
   `;
-  console.log('✓ onemap.installations');
+  console.log('✓ onemap.drops');
 
   // 7. Transactions table
   await sql`
     CREATE TABLE IF NOT EXISTS onemap.transactions (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      installation_id UUID REFERENCES onemap.installations(id) ON DELETE CASCADE,
+      installation_id UUID REFERENCES onemap.drops(id) ON DELETE CASCADE,
       transaction_id INTEGER NOT NULL,
       stage VARCHAR(100),
       status VARCHAR(100),
@@ -197,10 +197,10 @@ async function run() {
   await sql`CREATE INDEX IF NOT EXISTS idx_poles_pon ON onemap.poles(pon_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_poles_site ON onemap.poles(site_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_poles_number ON onemap.poles(pole_number)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_installations_dr ON onemap.installations(dr_number)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_installations_pole ON onemap.installations(pole_id)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_installations_site ON onemap.installations(site_id)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_installations_status ON onemap.installations(current_status)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_drops_dr ON onemap.drops(dr_number)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_drops_pole ON onemap.drops(pole_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_drops_site ON onemap.drops(site_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_drops_status ON onemap.drops(current_status)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_transactions_installation ON onemap.transactions(installation_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_transactions_id ON onemap.transactions(transaction_id)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_sync_log_site ON onemap.sync_log(site_code)`;

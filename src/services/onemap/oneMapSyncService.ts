@@ -98,7 +98,7 @@ async function getEnabledSites(sql: ReturnType<typeof neon>, siteCode?: string) 
 async function getExistingChecksums(sql: ReturnType<typeof neon>, siteId: string): Promise<Map<string, string>> {
   const rows = await sql`
     SELECT dr_number, checksum
-    FROM onemap.installations
+    FROM onemap.drops
     WHERE site_id = ${siteId}::uuid
   `;
 
@@ -123,14 +123,14 @@ async function upsertInstallation(
 
   // Check if exists
   const existing = await sql`
-    SELECT id, checksum FROM onemap.installations
+    SELECT id, checksum FROM onemap.drops
     WHERE site_id = ${siteId}::uuid AND dr_number = ${record.drp}
   `;
 
   if (existing.length === 0) {
     // Insert new
     await sql`
-      INSERT INTO onemap.installations (
+      INSERT INTO onemap.drops (
         site_id, dr_number, latitude, longitude, address,
         current_status, current_stage, pole_number, section_code, pon_code,
         checksum, last_synced_at
@@ -159,7 +159,7 @@ async function upsertInstallation(
 
   // Update existing
   await sql`
-    UPDATE onemap.installations SET
+    UPDATE onemap.drops SET
       latitude = ${lat},
       longitude = ${lng},
       address = ${record.address || null},
@@ -220,7 +220,7 @@ async function updateSiteSyncTime(
     await sql`
       UPDATE onemap.sites SET
         last_full_sync = NOW(),
-        total_installations = ${totalInstallations},
+        total_drops = ${totalInstallations},
         updated_at = NOW()
       WHERE id = ${siteId}::uuid
     `;
@@ -228,7 +228,7 @@ async function updateSiteSyncTime(
     await sql`
       UPDATE onemap.sites SET
         last_incremental_sync = NOW(),
-        total_installations = ${totalInstallations},
+        total_drops = ${totalInstallations},
         updated_at = NOW()
       WHERE id = ${siteId}::uuid
     `;
@@ -315,7 +315,7 @@ export async function syncSite(
 
     // Update site metadata
     const totalInstallations = await sql`
-      SELECT COUNT(*) as count FROM onemap.installations WHERE site_id = ${site.id}::uuid
+      SELECT COUNT(*) as count FROM onemap.drops WHERE site_id = ${site.id}::uuid
     `;
     await updateSiteSyncTime(sql, site.id, fullSync ? 'full' : 'incremental', parseInt(totalInstallations[0].count));
 
@@ -414,10 +414,10 @@ export async function getSyncStatus() {
       s.site_code,
       s.site_name,
       s.enabled,
-      s.total_installations,
+      s.total_drops,
       s.last_full_sync,
       s.last_incremental_sync,
-      (SELECT COUNT(*) FROM onemap.installations i WHERE i.site_id = s.id) as current_count
+      (SELECT COUNT(*) FROM onemap.drops i WHERE i.site_id = s.id) as current_count
     FROM onemap.sites s
     ORDER BY s.site_code
   `;
