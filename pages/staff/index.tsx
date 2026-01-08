@@ -5,17 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Input } from '@/shared/components/ui/Input';
-import { 
-  Search, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Mail, 
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Mail,
   Phone,
   UserPlus,
-  Upload
+  Upload,
+  UserMinus,
+  Users
 } from 'lucide-react';
+
+type StaffStatusType = 'active' | 'inactive' | 'on_leave' | 'suspended' | 'terminated' | 'resigned' | 'retired';
 
 interface StaffMember {
   id: string;
@@ -25,10 +29,19 @@ interface StaffMember {
   phone?: string;
   position?: string;
   department?: string;
-  status: 'active' | 'inactive' | 'on_leave';
+  status: StaffStatusType;
   projects?: number;
   joinDate?: string;
+  endDate?: string;
+  exitType?: string;
+  exitReason?: string;
+  isRehireable?: boolean;
 }
+
+// Helper to check if a status represents a former employee
+const isFormerEmployee = (status: StaffStatusType): boolean => {
+  return ['terminated', 'resigned', 'retired'].includes(status);
+};
 
 export default function StaffPage() {
   const router = useRouter();
@@ -37,6 +50,7 @@ export default function StaffPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [includeFormerEmployees, setIncludeFormerEmployees] = useState(false);
 
   useEffect(() => {
     fetchStaff();
@@ -134,9 +148,30 @@ export default function StaffPage() {
         return 'bg-gray-500/20 text-gray-400';
       case 'on_leave':
         return 'bg-yellow-500/20 text-yellow-400';
+      case 'suspended':
+        return 'bg-amber-500/20 text-amber-400';
+      case 'terminated':
+        return 'bg-red-500/20 text-red-400';
+      case 'resigned':
+        return 'bg-orange-500/20 text-orange-400';
+      case 'retired':
+        return 'bg-blue-500/20 text-blue-400';
       default:
         return 'bg-gray-500/20 text-gray-400';
     }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      active: 'Active',
+      inactive: 'Inactive',
+      on_leave: 'On Leave',
+      suspended: 'Suspended',
+      terminated: 'Terminated',
+      resigned: 'Resigned',
+      retired: 'Retired',
+    };
+    return labels[status] || status.replace('_', ' ');
   };
 
   const filteredStaff = staff.filter(member => {
@@ -145,9 +180,16 @@ export default function StaffPage() {
                           member.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = filterDepartment === 'all' || member.department === filterDepartment;
     const matchesStatus = filterStatus === 'all' || member.status === filterStatus;
-    
-    return matchesSearch && matchesDepartment && matchesStatus;
+
+    // If includeFormerEmployees is false, filter out terminated/resigned/retired
+    const matchesFormerFilter = includeFormerEmployees || !isFormerEmployee(member.status);
+
+    return matchesSearch && matchesDepartment && matchesStatus && matchesFormerFilter;
   });
+
+  // Calculate stats
+  const activeStaff = staff.filter(s => !isFormerEmployee(s.status));
+  const formerStaff = staff.filter(s => isFormerEmployee(s.status));
 
   const departments = [...new Set(staff.map(s => s.department).filter(Boolean))];
 
@@ -207,16 +249,16 @@ export default function StaffPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card className="bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--ff-text-secondary)]">Total Staff</p>
-                  <p className="text-2xl font-bold text-[var(--ff-text-primary)]">{staff.length}</p>
+                  <p className="text-sm text-[var(--ff-text-secondary)]">Current Staff</p>
+                  <p className="text-2xl font-bold text-[var(--ff-text-primary)]">{activeStaff.length}</p>
                 </div>
                 <div className="bg-blue-500/20 p-3 rounded-full">
-                  <UserPlus className="h-6 w-6 text-blue-400" />
+                  <Users className="h-6 w-6 text-blue-400" />
                 </div>
               </div>
             </CardContent>
@@ -243,6 +285,19 @@ export default function StaffPage() {
                 </div>
                 <div className="bg-yellow-500/20 p-3 rounded-full">
                   <Eye className="h-6 w-6 text-yellow-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-[var(--ff-bg-secondary)] border-[var(--ff-border-light)]">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-[var(--ff-text-secondary)]">Former</p>
+                  <p className="text-2xl font-bold text-[var(--ff-text-primary)]">{formerStaff.length}</p>
+                </div>
+                <div className="bg-gray-500/20 p-3 rounded-full">
+                  <UserMinus className="h-6 w-6 text-gray-400" />
                 </div>
               </div>
             </CardContent>
@@ -292,10 +347,31 @@ export default function StaffPage() {
             className="px-4 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="on_leave">On Leave</option>
+            <optgroup label="Current">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="on_leave">On Leave</option>
+              <option value="suspended">Suspended</option>
+            </optgroup>
+            {includeFormerEmployees && (
+              <optgroup label="Former">
+                <option value="terminated">Terminated</option>
+                <option value="resigned">Resigned</option>
+                <option value="retired">Retired</option>
+              </optgroup>
+            )}
           </select>
+          <label className="flex items-center gap-2 px-4 py-2 bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg cursor-pointer hover:bg-[var(--ff-bg-hover)] transition-colors">
+            <input
+              type="checkbox"
+              checked={includeFormerEmployees}
+              onChange={(e) => setIncludeFormerEmployees(e.target.checked)}
+              className="w-4 h-4 rounded border-[var(--ff-border-light)] text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-sm text-[var(--ff-text-primary)] whitespace-nowrap">
+              Include Former
+            </span>
+          </label>
         </div>
 
         {/* Staff Table */}
@@ -376,7 +452,7 @@ export default function StaffPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Badge className={getStatusColor(member.status)} variant="secondary">
-                          {member.status ? member.status.replace('_', ' ') : 'unknown'}
+                          {getStatusLabel(member.status)}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

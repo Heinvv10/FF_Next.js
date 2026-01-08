@@ -190,8 +190,7 @@ export const preloadRouteModules = (currentRoute: string) => {
           import('@/services/projects'),
         ],
         '/app/staff': () => [
-          import('@/modules/staff'),
-          import('@/services/staff'),
+          import('@/services/staffService'),
         ],
         '/app/clients': () => [
           import('@/modules/clients'),

@@ -429,6 +429,124 @@
   box-shadow: 0 0 0 3px var(--ff-primary-100);
 }
 
+/* ================================
+   DARK MODE SELECT/DROPDOWN FIX
+   ================================ */
+
+/* Apply color-scheme to root element for native controls */
+/* CRITICAL: color-scheme tells the browser to render native controls in dark mode */
+:root[data-theme="dark"],
+:root.dark,
+html.dark,
+.dark {
+  color-scheme: dark !important;
+}
+
+/* Ensure body also inherits */
+.dark body,
+html.dark body {
+  color-scheme: dark !important;
+}
+
+/* Dark mode select elements - ensure proper contrast */
+/* Support both data-theme="dark" and .dark class (Tailwind) */
+/* Force dark color scheme on all select elements for native dark dropdown rendering */
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] .ff-select,
+.dark select,
+.dark .ff-select,
+html[style*="color-scheme: dark"] select {
+  color-scheme: dark !important;
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
+}
+
+/* Force select to inherit color-scheme */
+select {
+  color-scheme: inherit;
+}
+
+:root[data-theme="dark"] select option,
+:root[data-theme="dark"] .ff-select option,
+.dark select option,
+.dark .ff-select option {
+  background-color: #334155;
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] select option:checked,
+:root[data-theme="dark"] .ff-select option:checked,
+.dark select option:checked,
+.dark .ff-select option:checked {
+  background-color: #3b82f6;
+  color: white;
+}
+
+:root[data-theme="dark"] select option:hover,
+:root[data-theme="dark"] .ff-select option:hover,
+.dark select option:hover,
+.dark .ff-select option:hover {
+  background-color: #475569;
+}
+
+/* Date inputs in dark mode */
+:root[data-theme="dark"] input[type="date"],
+:root[data-theme="dark"] input[type="datetime-local"],
+:root[data-theme="dark"] input[type="time"],
+.dark input[type="date"],
+.dark input[type="datetime-local"],
+.dark input[type="time"] {
+  color-scheme: dark;
+  background-color: var(--ff-bg-tertiary, #334155);
+  color: var(--ff-text-primary, #f1f5f9);
+}
+
+:root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+:root[data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+:root[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.dark input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* Placeholder text in dark mode */
+:root[data-theme="dark"] input::placeholder,
+:root[data-theme="dark"] textarea::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--ff-text-tertiary, #94a3b8);
+  opacity: 1;
+}
+
+/* Autofill styling for dark mode */
+:root[data-theme="dark"] input:-webkit-autofill,
+:root[data-theme="dark"] input:-webkit-autofill:hover,
+:root[data-theme="dark"] input:-webkit-autofill:focus,
+:root[data-theme="dark"] select:-webkit-autofill,
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #334155 inset !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  caret-color: #f1f5f9 !important;
+}
+
+/* Disabled inputs in dark mode */
+:root[data-theme="dark"] input:disabled,
+:root[data-theme="dark"] select:disabled,
+:root[data-theme="dark"] textarea:disabled,
+.dark input:disabled,
+.dark select:disabled,
+.dark textarea:disabled {
+  background-color: #1e293b;
+  color: #64748b;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .ff-button-group {
   display: flex;
   border-radius: var(--ff-radius-md);
