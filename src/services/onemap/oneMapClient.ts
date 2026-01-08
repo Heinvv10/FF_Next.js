@@ -129,7 +129,7 @@ export class OneMapClient {
   }
 
   /**
-   * Search for installations
+   * Search for drops
    */
   async searchInstallations(
     query: string,
@@ -213,7 +213,7 @@ export class OneMapClient {
   }
 
   /**
-   * Get all installations for a site (handles pagination)
+   * Get all drops for a site (handles pagination)
    */
   async getAllInstallations(
     site: string,
@@ -226,7 +226,7 @@ export class OneMapClient {
     const allRecords: OneMapRecord[] = [];
     let page = 1;
 
-    logger.info('Fetching all installations from 1Map', { site });
+    logger.info('Fetching all drops from 1Map', { site });
 
     while (true) {
       const result = await this.searchInstallations(site, { page, limit: 50 });
@@ -257,7 +257,7 @@ export class OneMapClient {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    logger.info('Completed fetching installations', {
+    logger.info('Completed fetching drops', {
       site,
       totalRecords: allRecords.length,
       pagesProcessed: page,
@@ -267,7 +267,7 @@ export class OneMapClient {
   }
 
   /**
-   * Get all installations for multiple sites
+   * Get all drops for multiple sites
    */
   async getAllSiteInstallations(
     sites: string[],
@@ -279,7 +279,7 @@ export class OneMapClient {
     const results = new Map<string, OneMapRecord[]>();
 
     for (const site of sites) {
-      logger.info(`Fetching installations for site: ${site}`);
+      logger.info(`Fetching drops for site: ${site}`);
 
       const records = await this.getAllInstallations(site, {
         maxPages: options.maxPagesPerSite,

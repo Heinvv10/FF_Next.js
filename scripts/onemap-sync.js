@@ -318,14 +318,14 @@ async function syncSite(sql, client, site, options) {
 
         // Check if installation exists
         const existing = await sql`
-          SELECT id, checksum FROM onemap.installations
+          SELECT id, checksum FROM onemap.drops
           WHERE site_id = ${site.id}::uuid AND dr_number = ${record.drp}
         `;
 
         if (existing.length === 0) {
           // Insert new installation
           await sql`
-            INSERT INTO onemap.installations (
+            INSERT INTO onemap.drops (
               site_id, pole_id, dr_number, latitude, longitude, address,
               current_status, current_stage, pole_number, section_code, pon_code,
               checksum, last_synced_at
@@ -340,7 +340,7 @@ async function syncSite(sql, client, site, options) {
         } else if (existing[0].checksum !== checksum) {
           // Update changed installation
           await sql`
-            UPDATE onemap.installations SET
+            UPDATE onemap.drops SET
               pole_id = ${poleId}::uuid,
               latitude = ${lat}, longitude = ${lng},
               address = ${record.address || null},
@@ -370,8 +370,8 @@ async function syncSite(sql, client, site, options) {
     // Update pole installation counts
     await sql`
       UPDATE onemap.poles p SET
-        installation_count = (
-          SELECT COUNT(*) FROM onemap.installations i WHERE i.pole_id = p.id
+        drop_count = (
+          SELECT COUNT(*) FROM onemap.drops i WHERE i.pole_id = p.id
         )
       WHERE p.site_id = ${site.id}::uuid
     `;
@@ -380,7 +380,7 @@ async function syncSite(sql, client, site, options) {
 
     // Update site metadata
     const count = await sql`
-      SELECT COUNT(*) as count FROM onemap.installations WHERE site_id = ${site.id}::uuid
+      SELECT COUNT(*) as count FROM onemap.drops WHERE site_id = ${site.id}::uuid
     `;
     const installCount = parseInt(count[0].count);
 
@@ -388,7 +388,7 @@ async function syncSite(sql, client, site, options) {
       await sql`
         UPDATE onemap.sites SET
           last_full_sync = NOW(),
-          total_installations = ${installCount},
+          total_drops = ${installCount},
           updated_at = NOW()
         WHERE id = ${site.id}::uuid
       `;
@@ -396,7 +396,7 @@ async function syncSite(sql, client, site, options) {
       await sql`
         UPDATE onemap.sites SET
           last_incremental_sync = NOW(),
-          total_installations = ${installCount},
+          total_drops = ${installCount},
           updated_at = NOW()
         WHERE id = ${site.id}::uuid
       `;
@@ -450,9 +450,9 @@ async function showStatus(sql) {
 
   const sites = await sql`
     SELECT
-      s.site_code, s.site_name, s.enabled, s.total_installations,
+      s.site_code, s.site_name, s.enabled, s.total_drops,
       s.last_full_sync, s.last_incremental_sync,
-      (SELECT COUNT(*) FROM onemap.installations i WHERE i.site_id = s.id) as current_count
+      (SELECT COUNT(*) FROM onemap.drops i WHERE i.site_id = s.id) as current_count
     FROM onemap.sites s ORDER BY s.site_code
   `;
 

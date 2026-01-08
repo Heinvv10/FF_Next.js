@@ -59,12 +59,12 @@ async function main() {
   console.log('Site ID:', siteId);
 
   // Clear existing data for this site
-  console.log('\nClearing existing installations for site...');
-  await sql`DELETE FROM onemap.installations WHERE site_id = ${siteId}::uuid`;
+  console.log('\nClearing existing drops for site...');
+  await sql`DELETE FROM onemap.drops WHERE site_id = ${siteId}::uuid`;
   await sql`DELETE FROM onemap.poles WHERE site_id = ${siteId}::uuid`;
 
   // Process rows
-  console.log(`\nProcessing ${rows.length} installations...`);
+  console.log(`\nProcessing ${rows.length} drops...`);
 
   const poleCache = new Map(); // pole_number -> pole_id
   let processed = 0;
@@ -114,7 +114,7 @@ async function main() {
 
         // Insert installation
         await sql`
-          INSERT INTO onemap.installations (
+          INSERT INTO onemap.drops (
             site_id, dr_number, pole_id, pole_number, section_code, pon_code,
             latitude, longitude, address, current_status, last_synced_at
           ) VALUES (
@@ -152,8 +152,8 @@ async function main() {
   console.log('Updating pole installation counts...');
   await sql`
     UPDATE onemap.poles p SET
-      installation_count = (
-        SELECT COUNT(*) FROM onemap.installations i WHERE i.pole_id = p.id
+      drop_count = (
+        SELECT COUNT(*) FROM onemap.drops i WHERE i.pole_id = p.id
       )
     WHERE p.site_id = ${siteId}::uuid
   `;
@@ -161,7 +161,7 @@ async function main() {
   // Update site totals
   await sql`
     UPDATE onemap.sites SET
-      total_installations = ${processed},
+      total_drops = ${processed},
       last_full_sync = NOW()
     WHERE id = ${siteId}::uuid
   `;
@@ -182,11 +182,11 @@ async function main() {
   // Verify
   const counts = await sql`
     SELECT
-      (SELECT COUNT(*) FROM onemap.installations WHERE site_id = ${siteId}::uuid) as installations,
+      (SELECT COUNT(*) FROM onemap.drops WHERE site_id = ${siteId}::uuid) as drops,
       (SELECT COUNT(*) FROM onemap.poles WHERE site_id = ${siteId}::uuid) as poles
   `;
   console.log('\nDatabase counts:');
-  console.log(`  Installations: ${counts[0].installations}`);
+  console.log(`  Installations: ${counts[0].drops}`);
   console.log(`  Poles: ${counts[0].poles}`);
 }
 

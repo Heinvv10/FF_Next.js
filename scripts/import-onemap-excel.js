@@ -84,7 +84,7 @@ async function main() {
     await sql`DELETE FROM onemap.pons WHERE zone_id = ANY(${zoneIds}::uuid[])`;
   }
 
-  await sql`DELETE FROM onemap.installations WHERE project_id = ${projectId}::uuid`;
+  await sql`DELETE FROM onemap.drops WHERE project_id = ${projectId}::uuid`;
   await sql`DELETE FROM onemap.poles WHERE project_id = ${projectId}::uuid`;
   await sql`DELETE FROM onemap.zones WHERE project_id = ${projectId}::uuid`;
   console.log('Cleared.');
@@ -130,8 +130,8 @@ async function main() {
   }
   console.log(`Created ${ponMap.size} PONs`);
 
-  // Phase 3: Create poles and installations
-  console.log('\nPhase 3: Creating poles and installations...');
+  // Phase 3: Create poles and drops
+  console.log('\nPhase 3: Creating poles and drops...');
   const poleCache = new Map(); // pole_number -> pole_id
   let processed = 0;
   let errors = 0;
@@ -166,7 +166,7 @@ async function main() {
 
         // Insert installation
         await sql`
-          INSERT INTO onemap.installations (
+          INSERT INTO onemap.drops (
             project_id, dr_number, pole_id, pole_number, zone_code, pon_code,
             latitude, longitude, address, current_status, last_synced_at
           ) VALUES (
@@ -203,14 +203,14 @@ async function main() {
   console.log('Updating pole counts...');
   await sql`
     UPDATE onemap.poles p SET
-      installation_count = (SELECT COUNT(*) FROM onemap.installations i WHERE i.pole_id = p.id)
+      drop_count = (SELECT COUNT(*) FROM onemap.drops i WHERE i.pole_id = p.id)
     WHERE p.project_id = ${projectId}::uuid
   `;
 
   // Update project totals
   await sql`
     UPDATE onemap.projects SET
-      total_installations = ${processed},
+      total_drops = ${processed},
       last_full_sync = NOW()
     WHERE id = ${projectId}::uuid
   `;

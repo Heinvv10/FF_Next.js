@@ -63,13 +63,13 @@ async function main() {
       }
     }
 
-    // Mark distribution poles (those with installations) for projects without Pole Type
+    // Mark distribution poles (those with drops) for projects without Pole Type
     if (proj.code !== 'MOH') {
       await sql`
         UPDATE onemap.poles SET pole_type = 'Distribution'
         WHERE project_id = ${projectId}::uuid
         AND pole_type IS NULL
-        AND installation_count > 0
+        AND drop_count > 0
       `;
 
       // Mark remaining as Feeder
