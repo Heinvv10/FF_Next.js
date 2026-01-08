@@ -145,18 +145,18 @@ export function StaffForm() {
       <div className="mb-6">
         <button
           onClick={() => router.push('/staff')}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
+          className="inline-flex items-center text-sm text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)]"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back to Staff List
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
+      <div className="bg-[var(--ff-bg-secondary)] rounded-lg shadow-sm border border-[var(--ff-border-light)]">
+        <div className="px-6 py-4 border-b border-[var(--ff-border-light)]">
           <div className="flex items-center gap-3">
             <User className="w-6 h-6 text-blue-600" />
-            <h1 className="text-xl font-semibold text-gray-900">
+            <h1 className="text-xl font-semibold text-[var(--ff-text-primary)]">
               {isEditing ? 'Edit Staff Member' : 'Add New Staff Member'}
             </h1>
           </div>
@@ -164,7 +164,7 @@ export function StaffForm() {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
-            <div className="p-4 text-red-800 bg-red-100 border border-red-200 rounded-lg">
+            <div className="p-4 text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg">
               <div className="flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
@@ -203,11 +203,11 @@ export function StaffForm() {
           />
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <div className="flex justify-end gap-3 pt-4 border-t border-[var(--ff-border-light)]">
             <button
               type="button"
               onClick={() => router.push('/staff')}
-              className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-6 py-2 text-sm font-medium text-[var(--ff-text-primary)] bg-[var(--ff-bg-tertiary)] border border-[var(--ff-border-light)] rounded-lg hover:bg-[var(--ff-bg-hover)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Cancel
             </button>

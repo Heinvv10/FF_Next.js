@@ -28,14 +28,14 @@ export function StaffListHeader({
   onExport
 }: StaffListHeaderProps) {
   return (
-    <div className="bg-white shadow-sm border-b">
+    <div className="bg-[var(--ff-bg-secondary)] shadow-sm border-b border-[var(--ff-border-light)]">
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Users className="h-8 w-8 text-blue-600 mr-3" />
+            <Users className="h-8 w-8 text-blue-500 mr-3" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <h1 className="text-2xl font-bold text-[var(--ff-text-primary)]">Staff Management</h1>
+              <p className="text-sm text-[var(--ff-text-secondary)] mt-1">
                 {totalStaff} total staff • {activeStaff} active • {utilizationRate}% utilization
               </p>
             </div>
@@ -44,7 +44,7 @@ export function StaffListHeader({
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`px-4 py-2 border rounded-md text-sm font-medium flex items-center ${
-                showFilters ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                showFilters ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'border-[var(--ff-border-light)] text-[var(--ff-text-secondary)] hover:bg-[var(--ff-bg-hover)]'
               }`}
             >
               <Filter className="h-4 w-4 mr-2" />
@@ -52,7 +52,7 @@ export function StaffListHeader({
             </button>
             <button
               onClick={onExport}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 flex items-center"
+              className="px-4 py-2 border border-[var(--ff-border-light)] text-[var(--ff-text-secondary)] rounded-md text-sm font-medium hover:bg-[var(--ff-bg-hover)] flex items-center"
             >
               <Download className="h-4 w-4 mr-2" />
               Export
@@ -66,7 +66,7 @@ export function StaffListHeader({
             </button>
             <button
               onClick={onSettings}
-              className="p-2 text-gray-500 hover:text-gray-700"
+              className="p-2 text-[var(--ff-text-secondary)] hover:text-[var(--ff-text-primary)]"
               title="Staff Settings"
             >
               <Settings className="h-5 w-5" />

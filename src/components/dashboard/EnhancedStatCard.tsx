@@ -102,7 +102,7 @@ const EnhancedStatCardComponent = ({
     return (
       <div
         className={cn(
-          'bg-white rounded-lg border border-gray-200 shadow-sm',
+          'bg-[var(--ff-bg-secondary)] rounded-lg border border-[var(--ff-border-light)] shadow-sm',
           'animate-pulse',
           variant === 'compact' ? 'p-4' : 'p-6',
           className
@@ -110,18 +110,18 @@ const EnhancedStatCardComponent = ({
       >
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-[var(--ff-bg-tertiary)] rounded w-3/4 mb-2"></div>
             {variant !== 'compact' && (
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-3 bg-[var(--ff-bg-tertiary)] rounded w-1/2"></div>
             )}
           </div>
-          <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+          <div className="w-12 h-12 bg-[var(--ff-bg-tertiary)] rounded-lg"></div>
         </div>
-        
+
         <div className="space-y-2">
-          <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-8 bg-[var(--ff-bg-tertiary)] rounded w-1/2"></div>
           {variant === 'detailed' && (
-            <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+            <div className="h-3 bg-[var(--ff-bg-tertiary)] rounded w-1/3"></div>
           )}
         </div>
       </div>
@@ -133,16 +133,16 @@ const EnhancedStatCardComponent = ({
     return (
       <div
         className={cn(
-          'bg-red-50 border border-red-200 rounded-lg',
+          'bg-red-500/10 border border-red-500/30 rounded-lg',
           variant === 'compact' ? 'p-4' : 'p-6',
           className
         )}
       >
-        <div className="flex items-center space-x-2 text-red-600">
+        <div className="flex items-center space-x-2 text-red-400">
           <AlertCircle className="w-5 h-5" />
           <span className="text-sm font-medium">Error loading {title}</span>
         </div>
-        <p className="text-xs text-red-500 mt-1 truncate">{error}</p>
+        <p className="text-xs text-red-400/80 mt-1 truncate">{error}</p>
       </div>
     );
   }
@@ -151,9 +151,9 @@ const EnhancedStatCardComponent = ({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden bg-white rounded-lg border border-gray-200 shadow-sm',
+        'group relative overflow-hidden bg-[var(--ff-bg-secondary)] rounded-lg border border-[var(--ff-border-light)] shadow-sm',
         'hover:shadow-md transition-all duration-200',
-        (onClick || route) && !error && 'cursor-pointer hover:border-gray-300',
+        (onClick || route) && !error && 'cursor-pointer hover:border-blue-500/50',
         variant === 'compact' && 'p-4',
         variant !== 'compact' && 'p-6',
         className
@@ -161,32 +161,32 @@ const EnhancedStatCardComponent = ({
       onClick={handleClick}
     >
       {/* Top colored bar */}
-      <div 
+      <div
         className="absolute top-0 left-0 right-0 h-1 rounded-t-lg"
         style={{ backgroundColor: color }}
       />
-      
+
       {/* Card Content */}
       <div>
         {/* Header with icon and title */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
             <h3 className={cn(
-              'font-semibold text-gray-900 truncate',
+              'font-semibold text-[var(--ff-text-primary)] truncate',
               variant === 'compact' ? 'text-base' : 'text-lg'
             )}>
               {title}
             </h3>
-            
+
             {subtitle && variant !== 'compact' && (
-              <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+              <p className="text-sm text-[var(--ff-text-secondary)] mt-1 leading-relaxed">
                 {subtitle}
               </p>
             )}
           </div>
-          
+
           {/* Icon container */}
-          <div 
+          <div
             className={cn(
               'flex-shrink-0 rounded-lg flex items-center justify-center ml-4',
               variant === 'compact' ? 'w-10 h-10' : 'w-12 h-12'
@@ -199,19 +199,19 @@ const EnhancedStatCardComponent = ({
             )} />
           </div>
         </div>
-        
+
         {/* Statistics */}
         <div className="space-y-2">
           {/* Main value */}
           <div className="flex items-baseline">
             <span className={cn(
-              'font-bold text-gray-900',
+              'font-bold text-[var(--ff-text-primary)]',
               variant === 'compact' ? 'text-2xl' : 'text-3xl'
             )}>
               {displayValue}
             </span>
           </div>
-          
+
           {/* Trend and description */}
           {variant === 'detailed' && (
             <div className="space-y-1">
@@ -224,15 +224,15 @@ const EnhancedStatCardComponent = ({
                   </span>
                 </div>
               )}
-              
+
               {description && (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[var(--ff-text-secondary)]">
                   {description}
                 </p>
               )}
             </div>
           )}
-          
+
           {/* Compact trend display */}
           {variant !== 'detailed' && showTrend && trend && (
             <div className="flex items-center space-x-1">
@@ -244,7 +244,7 @@ const EnhancedStatCardComponent = ({
           )}
         </div>
       </div>
-      
+
       {/* Hover effect overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent to-transparent group-hover:from-white/5 group-hover:to-transparent transition-all duration-200 pointer-events-none" />
     </div>

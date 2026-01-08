@@ -66,27 +66,27 @@ export default function ProjectsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-        <p className="mt-2 text-gray-600">Manage your FibreFlow projects</p>
+        <h1 className="text-3xl font-bold text-[var(--ff-text-primary)]">Projects</h1>
+        <p className="mt-2 text-[var(--ff-text-secondary)]">Manage your FibreFlow projects</p>
       </div>
 
       {/* WA Monitor Stats Card */}
       {waStats && (
-        <div className="mb-6 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+        <div className="mb-6 bg-[var(--ff-bg-secondary)] p-6 rounded-lg border border-[var(--ff-border-light)] shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <p className="text-sm text-gray-600">QA Drops Today</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-sm text-[var(--ff-text-secondary)]">QA Drops Today</p>
+              <p className="text-2xl font-bold text-[var(--ff-text-primary)] mt-1">
                 {waStats.total.toLocaleString()}
               </p>
               {waStats.total > 0 && (
                 <>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-[var(--ff-text-secondary)] mt-1">
                     {waStats.complete} Complete • {waStats.incomplete} Incomplete
                   </p>
                   <div className="flex items-center mt-2">
                     <span className={`text-sm font-medium ${
-                      waStats.completionRate >= 80 ? 'text-green-600' : 'text-red-600'
+                      waStats.completionRate >= 80 ? 'text-green-400' : 'text-red-400'
                     }`}>
                       {waStats.completionRate >= 80 ? '↑' : '↓'} {waStats.completionRate}% Complete
                     </span>
@@ -94,8 +94,8 @@ export default function ProjectsPage() {
                 </>
               )}
             </div>
-            <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 ml-4">
-              <CheckCircle className="h-6 w-6 text-purple-600" />
+            <div className="h-12 w-12 bg-purple-500/20 rounded-full flex items-center justify-center flex-shrink-0 ml-4">
+              <CheckCircle className="h-6 w-6 text-purple-400" />
             </div>
           </div>
         </div>
@@ -106,13 +106,13 @@ export default function ProjectsPage() {
         <input
           type="text"
           placeholder="Search projects..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-4 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-[var(--ff-text-secondary)]"
           value={projectFilters.search || ''}
           onChange={(e) => handleFilterChange('search', e.target.value)}
         />
 
         <select
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={projectFilters.status || ''}
           onChange={(e) => handleFilterChange('status', e.target.value)}
         >
@@ -132,41 +132,41 @@ export default function ProjectsPage() {
 
       {/* Create Project Form */}
       {showCreateForm && (
-        <div className="mb-6 p-6 bg-white rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Create New Project</h2>
+        <div className="mb-6 p-6 bg-[var(--ff-bg-secondary)] rounded-lg shadow-md border border-[var(--ff-border-light)]">
+          <h2 className="text-xl font-semibold mb-4 text-[var(--ff-text-primary)]">Create New Project</h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-1">
                 Project Name *
               </label>
               <input
                 {...register('name', { required: 'Project name is required' })}
                 type="text"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                <p className="mt-1 text-sm text-red-400">{errors.name.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-1">
                 Description
               </label>
               <textarea
                 {...register('description')}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--ff-text-secondary)] mb-1">
                 Status
               </label>
               <select
                 {...register('status')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-primary)] border border-[var(--ff-border-light)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="pending">Pending</option>
                 <option value="active">Active</option>
@@ -188,7 +188,7 @@ export default function ProjectsPage() {
                   reset();
                   setShowCreateForm(false);
                 }}
-                className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                className="px-6 py-2 bg-[var(--ff-bg-tertiary)] text-[var(--ff-text-secondary)] rounded-lg hover:bg-[var(--ff-bg-hover)] transition-colors border border-[var(--ff-border-light)]"
               >
                 Cancel
               </button>
@@ -198,64 +198,64 @@ export default function ProjectsPage() {
       )}
 
       {/* Projects List */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-[var(--ff-bg-secondary)] rounded-lg shadow-md overflow-hidden border border-[var(--ff-border-light)]">
         {isLoading ? (
           <div className="p-8 text-center">
-            <p className="text-gray-500">Loading projects...</p>
+            <p className="text-[var(--ff-text-secondary)]">Loading projects...</p>
           </div>
         ) : error ? (
           <div className="p-8 text-center">
-            <p className="text-red-600">Error loading projects</p>
+            <p className="text-red-400">Error loading projects</p>
           </div>
         ) : projects && projects.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-[var(--ff-border-light)]">
+              <thead className="bg-[var(--ff-bg-tertiary)]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                     Description
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                     Created
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-[var(--ff-text-secondary)] uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-[var(--ff-bg-secondary)] divide-y divide-[var(--ff-border-light)]">
                 {projects.map((project) => (
                   <tr
                     key={project.id}
-                    className="hover:bg-gray-50 cursor-pointer"
+                    className="hover:bg-[var(--ff-bg-hover)] cursor-pointer"
                     onClick={() => handleSelectProject(project)}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--ff-text-primary)]">
                       {project.name}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-[var(--ff-text-secondary)]">
                       {project.description || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           project.status === 'active'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-500/20 text-green-400'
                             : project.status === 'completed'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-blue-500/20 text-blue-400'
+                            : 'bg-yellow-500/20 text-yellow-400'
                         }`}
                       >
                         {project.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--ff-text-secondary)]">
                       {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -264,7 +264,7 @@ export default function ProjectsPage() {
                           e.stopPropagation();
                           handleDeleteProject(project.id);
                         }}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-400 hover:text-red-300"
                       >
                         Delete
                       </button>
@@ -276,7 +276,7 @@ export default function ProjectsPage() {
           </div>
         ) : (
           <div className="p-8 text-center">
-            <p className="text-gray-500">No projects found</p>
+            <p className="text-[var(--ff-text-secondary)]">No projects found</p>
           </div>
         )}
       </div>

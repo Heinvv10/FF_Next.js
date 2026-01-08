@@ -3,32 +3,32 @@ import { ClientStatus, ClientPriority, ClientCategory } from '@/types/client.typ
 export const getStatusColor = (status: ClientStatus): string => {
   switch (status) {
     case ClientStatus.ACTIVE:
-      return 'bg-green-100 text-green-800';
+      return 'bg-green-500/20 text-green-400';
     case ClientStatus.INACTIVE:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-gray-500/20 text-gray-400';
     case ClientStatus.PROSPECT:
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-blue-500/20 text-blue-400';
     case ClientStatus.CHURNED:
-      return 'bg-red-100 text-red-800';
+      return 'bg-red-500/20 text-red-400';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-gray-500/20 text-gray-400';
   }
 };
 
 export const getPriorityColor = (priority: ClientPriority): string => {
   switch (priority) {
     case ClientPriority.VIP:
-      return 'bg-purple-100 text-purple-800';
+      return 'bg-purple-500/20 text-purple-400';
     case ClientPriority.CRITICAL:
-      return 'bg-red-100 text-red-800';
+      return 'bg-red-500/20 text-red-400';
     case ClientPriority.HIGH:
-      return 'bg-orange-100 text-orange-800';
+      return 'bg-orange-500/20 text-orange-400';
     case ClientPriority.MEDIUM:
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-yellow-500/20 text-yellow-400';
     case ClientPriority.LOW:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-gray-500/20 text-gray-400';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-gray-500/20 text-gray-400';
   }
 };
 

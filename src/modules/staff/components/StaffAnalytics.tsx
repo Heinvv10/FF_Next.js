@@ -29,8 +29,8 @@ export function StaffAnalytics() {
 
   if (error || !summary) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <p className="text-red-600">Failed to load staff analytics</p>
+      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
+        <p className="text-red-400">Failed to load staff analytics</p>
       </div>
     );
   }
@@ -39,8 +39,8 @@ export function StaffAnalytics() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Staff Analytics</h2>
-        <p className="text-gray-600">Comprehensive overview of your workforce performance and allocation</p>
+        <h2 className="text-2xl font-bold text-[var(--ff-text-primary)] mb-2">Staff Analytics</h2>
+        <p className="text-[var(--ff-text-secondary)]">Comprehensive overview of your workforce performance and allocation</p>
       </div>
 
       <StaffKeyMetrics 

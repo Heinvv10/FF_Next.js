@@ -1,5 +1,6 @@
 import type { NextPage } from 'next';
 import dynamic from 'next/dynamic';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 // Lazy load StaffDetail component to reduce initial bundle size
 const StaffDetail = dynamic(
@@ -15,7 +16,11 @@ const StaffDetail = dynamic(
 );
 
 const StaffDetailPage: NextPage = () => {
-  return <StaffDetail />;
+  return (
+    <AppLayout>
+      <StaffDetail />
+    </AppLayout>
+  );
 };
 
 // Prevent static generation to avoid NextRouter mounting issues
